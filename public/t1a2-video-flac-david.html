@@ -1,6 +1,11 @@
+<input id="myNum01" type="number" placeholder="Enter a number">
+<button onclick="mySquareFunction()">Go</button>
+<br><br>
+<span id="mySpan01"></span>
+
 <script>
   function mySquareFunction() {
-
+    // 1. make an array of objects, each holding one number
     let numbers = [
       { value: 2 },
       { value: 7 },
@@ -9,19 +14,19 @@
       { value: 8 }
     ];
 
-
+    // 2. also add the user’s number as an object
     let myIn01 = parseFloat(document.getElementById('myNum01').value);
     numbers.push({ value: myIn01 });
 
- 
+    // 3. prepare a place to collect results
     let output = "";
 
-
+    // 4. loop through the array
     for (let i = 0; i < numbers.length; i++) {
       let num = numbers[i].value; // get the number from the object
       let square = num * num;     // square it
 
-
+      // 5. decision: check if the square is even or odd
       if (square % 2 === 0) {
         output += num + " squared = " + square + " (even)<br>";
       } else {
@@ -29,7 +34,7 @@
       }
     }
 
-
+    // 6. show the results
     document.getElementById('mySpan01').innerHTML = output;
   }
 </script>
