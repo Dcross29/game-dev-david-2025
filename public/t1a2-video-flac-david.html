@@ -1,30 +1,35 @@
 <script>
-  function mySquareFunction(){
-      let myIn01 = parseFloat(document.getElementById('myNum01').value)
-      let myAnswer = myIn01 * myIn01
-      document.getElementById('mySpan01').innerHTML = ' ' + myIn01 + ' squared = ' + myAnswer
+  function mySquareFunction() {
+
+    let numbers = [
+      { value: 2 },
+      { value: 7 },
+      { value: 10 },
+      { value: 3 },
+      { value: 8 }
+    ];
+
+
+    let myIn01 = parseFloat(document.getElementById('myNum01').value);
+    numbers.push({ value: myIn01 });
+
+ 
+    let output = "";
+
+
+    for (let i = 0; i < numbers.length; i++) {
+      let num = numbers[i].value; // get the number from the object
+      let square = num * num;     // square it
+
+
+      if (square % 2 === 0) {
+        output += num + " squared = " + square + " (even)<br>";
+      } else {
+        output += num + " squared = " + square + " (odd)<br>";
+      }
+    }
+
+
+    document.getElementById('mySpan01').innerHTML = output;
   }
 </script>
-<h2 align=center>t1a2-video-flac-David.html</h2>
-
-Input: <input id="myNum01" type=number value="4"> <br>
-
-Event:<input id="myNum01" type=button value="myEvent sqaures" onclick="{
-        mySquareFunction()
-        }"><br>
-
-        Output:<span id="mySpan01">...</span>
-<br>
-<script> 
-let myArray() {
-  for (let i = 0; i < 10; i++) 
-  myArray.push(math.floor(math.random() *10);
-}
-  let sum= 0;
-   for (let i = 0; i <myArray.length; i += 2) {
-      sum += myArray[i];
-}
-  console.log("Array: " + myArray);
-  console.log("the sum of every second number is: " = sum);
-</script>
-
