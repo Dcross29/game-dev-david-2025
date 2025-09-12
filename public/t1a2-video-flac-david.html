@@ -16,17 +16,18 @@
       { value: 8 }
     ];
 
-   
-    let myIn01 = parseFloat(document.getElementById('myNum01').value);
-    numbers.push({ value: myIn01 });
 
-    
+    let userNum = parseFloat(document.getElementById('myNum01').value);
+    numbers.push({ value: userNum });
+
+
     let output = "";
 
-  
+
     for (let i = 0; i < numbers.length; i++) {
-      let num = numbers[i].value; // get the number from the object
-      let square = num * num;     // square it
+      let num = numbers[i].value;
+      let square = num * num;
+
 
       if (square % 2 === 0) {
         output += num + " squared = " + square + " (even)<br>";
@@ -35,22 +36,8 @@
       }
     }
 
-  
+
     document.getElementById('mySpan01').innerHTML = output;
   }
 </script>
 
-<h2> Decision: </h2>
-      if (square % 2 === 0) { <b><--(This check if the inputed number is divisble by 2 without remainder)</b>
-       
-output += num + " squared = " + square + " (even)<br>"; 
-      } else {
-        output += num + " squared = " + square + " (odd)<br>";
-<b>(this decides whether the square of the inputed number is divisible by 2 (even or odd))</b>
-
-<h2>Objects</h2>
-<b>the objects are the numbers in the array that come out squared, the number inputed by the user is put into the array by the line "numbers.push({ value: myIn01 });
-"</b>
-
-<h2>Loop</h2>
-<b></b>
