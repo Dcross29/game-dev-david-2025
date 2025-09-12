@@ -10,19 +10,15 @@
 
     let userNum = parseFloat(document.getElementById('myNum01').value);
  
-    let numbers = [ 3, 8, userNum
-    ];
-
-
-
+    let myvideoflac = {
+      numbers: [ 3, 8, userNum ]
+    };
 
     let output = "";
 
-
-    for (let i = 0; i < numbers.length; i++) {
-      let num = numbers[i];
+    for (let i = 0; i < myvideoflac.numbers.length; i++) {
+      let num = myvideoflac.numbers[i];  
       let square = num * num;
-
 
       if (square % 2 === 0) {
         output += num + " squared = " + square + " (even)<br>";
@@ -31,8 +27,6 @@
       }
     }
 
-
     document.getElementById('mySpan01').innerHTML = output;
   }
 </script>
-
