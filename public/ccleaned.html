@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div id="game" style="position:relative; width:300px; height:200px; border:1px solid black;">
+  <div id="box" style="width:40px; height:40px; background:blue; position:absolute; display:none;"></div>
+</div>
+<button id="start">Start</button>
+<div id="score">Score: 0 Time: 15</div>
+
+<script>
+  let score = 0;
+  let time = 15;
+  let playing = false;
+  let interval;
+
+  const box = document.getElementById('box');
+  const game = document.getElementById('game');
+  const start = document.getElementById('start');
+  const scoreDisplay = document.getElementById('score');
+
+  function moveBox() {
+    const maxX = game.clientWidth - box.clientWidth;
+    const maxY = game.clientHeight - box.clientHeight;
+    box.style.left = Math.random() * maxX + 'px';
+    box.style.top = Math.random() * maxY + 'px';
+  }
+
+  box.onclick = function() {
+    if (!playing) return;
+    score++;
+    moveBox();
+    scoreDisplay.textContent = 'Score: ' + score + ' Time: ' + time;
+  }
+
+  function countdown() {
+    time--;
+    scoreDisplay.textContent = 'Score: ' + score + ' Time: ' + time;
+    if (time === 0) {
+      clearInterval(interval);
+      playing = false;
+      box.style.display = 'none';
+      start.disabled = false;
+      scoreDisplay.textContent = 'Game over! Final score: ' + score;
+    }
+  }
+
+  start.onclick = function() {
+    score = 0;
+    time = 15;
+    playing = true;
+    box.style.display = 'block';
+    moveBox();
+    scoreDisplay.textContent = 'Score: ' + score + ' Time: ' + time;
+    start.disabled = true;
+    interval = setInterval(countdown, 1000);
+  }
+</script>
+
+</body>
+</html>
