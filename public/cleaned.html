@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Click the Moving Box Game</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #282c34;
+    color: white;
+    text-align: center;
+    padding: 40px;
+    user-select: none;
+  }
+  #gameArea {
+    margin: 20px auto;
+    position: relative;
+    width: 400px;
+    height: 300px;
+    background: #444;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  #box {
+    width: 50px;
+    height: 50px;
+    background: #61dafb;
+    position: absolute;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.3s;
+  }
+  #box:hover {
+    background: #21a1f1;
+  }
+  #startBtn {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin-top: 15px;
+    cursor: pointer;
+    border: none;
+    background: #61dafb;
+    border-radius: 5px;
+    color: #282c34;
+    transition: background 0.3s;
+  }
+  #startBtn:hover {
+    background: #21a1f1;
+  }
+  #info {
+    font-size: 22px;
+    margin-top: 15px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Click the Moving Box!</h1>
+<div id="gameArea">
+  <div id="box"></div>
+</div>
+<button id="startBtn">Start Game</button>
+<div id="info">Score: 0 | Time left: 15s</div>
+
+<script>
+  const box = document.getElementById('box');
+  const gameArea = document.getElementById('gameArea');
+  const startBtn = document.getElementById('startBtn');
+  const info = document.getElementById('info');
+
+  let score = 0;
+  let timeLeft = 15;
+  let timer;
+  let gameActive = false;
+
+  // Function to move box randomly within game area
+  function moveBox() {
+    const maxX = gameArea.clientWidth - box.clientWidth;
+    const maxY = gameArea.clientHeight - box.clientHeight;
+    const randomX = Math.floor(Math.random() * maxX);
+    const randomY = Math.floor(Math.random() * maxY);
+    box.style.left = randomX + 'px';
+    box.style.top = randomY + 'px';
+  }
+
+  function updateInfo() {
+    info.textContent = `Score: ${score} | Time left: ${timeLeft}s`;
+  }
+
+  function endGame() {
+    gameActive = false;
+    clearInterval(timer);
+    box.style.display = 'none';
+    startBtn.disabled = false;
+    info.textContent = `Game over! Your final score is ${score}. Click "Start Game" to play again.`;
+  }
+
+  function countdown() {
+    if (timeLeft <= 0) {
+      endGame();
+    } else {
+      timeLeft--;
+      updateInfo();
+    }
+  }
+
+  box.addEventListener('click', () => {
+    if (!gameActive) return;
+    score++;
+    moveBox();
+    updateInfo();
+  });
+
+  startBtn.addEventListener('click', () => {
+    score = 0;
+    timeLeft = 15;
+    gameActive = true;
+    box.style.display = 'block';
+    moveBox();
+    updateInfo();
+    startBtn.disabled = true;
+
+    timer = setInterval(countdown, 1000);
+  });
+</script>
+
+</body>
+</html>
