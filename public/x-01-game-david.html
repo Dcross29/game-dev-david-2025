@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Side Scrolling Platformer - WASD Move + Camera Scroll</title>
+  <title>Fixed Collision + Easier Jumps Platformer</title>
   <style>
     body {
       margin: 0;
@@ -87,13 +87,15 @@
     height: 20,
   });
 
-  // Platform spawn config
+  // Platform spawn config (tighter gaps and heights for easier jumps)
   const PLATFORM_MIN_WIDTH = 120;
-  const PLATFORM_MAX_WIDTH = 200;
+  const PLATFORM_MAX_WIDTH = 180;
   const PLATFORM_MIN_HEIGHT = 15;
   const PLATFORM_MAX_HEIGHT = 25;
-  const PLATFORM_MIN_Y = HEIGHT - 120;
-  const PLATFORM_MAX_Y = HEIGHT - 40;
+  const PLATFORM_MIN_Y = HEIGHT - 110;
+  const PLATFORM_MAX_Y = HEIGHT - 50;
+  const MAX_PLATFORM_GAP = 130; // max gap between platforms (reduced)
+  const MAX_VERTICAL_DIFF = 35; // max vertical difference between consecutive platforms (reduced)
 
   // Handle keyboard input
   window.addEventListener('keydown', e => {
@@ -127,20 +129,29 @@
     let lastPlatform = platforms[platforms.length - 1];
     while (lastPlatform.x + lastPlatform.width < cameraX + WIDTH + 500) {
       const width = randomRange(PLATFORM_MIN_WIDTH, PLATFORM_MAX_WIDTH);
-      const height = randomRange(PLATFORM_MIN_HEIGHT, PLATFORM_MAX_HEIGHT);
-      let yMin = Math.max(PLATFORM_MIN_Y, lastPlatform.y - 40);
-      let yMax = Math.min(PLATFORM_MAX_Y, lastPlatform.y + 40);
-      let y = randomRange(yMin, yMax);
 
-      const gap = randomRange(100, 180);
+      // Calculate next platform Y with smooth vertical variation & clamping
+      let minY = lastPlatform.y - MAX_VERTICAL_DIFF;
+      let maxY = lastPlatform.y + MAX_VERTICAL_DIFF;
+      if (minY < PLATFORM_MIN_Y) minY = PLATFORM_MIN_Y;
+      if (maxY > PLATFORM_MAX_Y) maxY = PLATFORM_MAX_Y;
+      let y = randomRange(minY, maxY);
+
+      // Smaller gaps for easier jumps
+      const gap = randomRange(60, MAX_PLATFORM_GAP);
+
       lastPlatform = {
         x: lastPlatform.x + lastPlatform.width + gap,
         y,
         width,
-        height,
+        height: randomRange(PLATFORM_MIN_HEIGHT, PLATFORM_MAX_HEIGHT),
       };
       platforms.push(lastPlatform);
     }
+  }
+
+  function rectsIntersect(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
   }
 
   function update(delta) {
@@ -172,74 +183,56 @@
     // Prevent moving beyond left edge of world
     if (nextX < 0) nextX = 0;
 
-    // Collision detection - horizontal
-    // Check if player collides horizontally with platforms
-    // For simplicity: only prevent player moving inside platforms horizontally on their vertical range
+    // --- Horizontal collision check ---
+    // Move horizontally first, checking collisions
+    let horizontalCollision = false;
     for (const p of platforms) {
       if (
-        player.y + player.height > p.y && // player overlaps platform vertically
-        player.y < p.y + p.height
+        rectsIntersect(nextX, player.y, player.width, player.height, p.x, p.y, p.width, p.height)
       ) {
-        if (
-          player.vx > 0 && // moving right
-          player.x + player.width <= p.x && // currently left of platform
-          nextX + player.width > p.x // would collide next frame
-        ) {
-          nextX = p.x - player.width; // stop at platform left edge
-          player.vx = 0;
-        } else if (
-          player.vx < 0 && // moving left
-          player.x >= p.x + p.width && // currently right of platform
-          nextX < p.x + p.width // would collide next frame
-        ) {
-          nextX = p.x + p.width; // stop at platform right edge
-          player.vx = 0;
+        // Collision detected, block horizontal movement
+        horizontalCollision = true;
+        if (player.vx > 0) {
+          // Moving right: place player just left of platform
+          nextX = p.x - player.width;
+        } else if (player.vx < 0) {
+          // Moving left: place player just right of platform
+          nextX = p.x + p.width;
+        }
+        player.vx = 0;
+      }
+    }
+
+    player.x = nextX;
+
+    // --- Vertical collision check ---
+    // Apply vertical movement and check if standing on platform
+    player.onPlatform = false;
+    let verticalCollision = false;
+
+    // We test vertical collisions *after* horizontal position update
+    for (const p of platforms) {
+      if (
+        rectsIntersect(player.x, nextY, player.width, player.height, p.x, p.y, p.width, p.height)
+      ) {
+        if (player.vy > 0) {
+          // Falling and hit platform from above: land on platform
+          nextY = p.y - player.height;
+          player.vy = 0;
+          player.onPlatform = true;
+          verticalCollision = true;
+        } else if (player.vy < 0) {
+          // Hitting platform from below, block upward movement
+          nextY = p.y + p.height;
+          player.vy = 0;
+          verticalCollision = true;
         }
       }
     }
 
-    // Apply horizontal movement after collision check
-    player.x = nextX;
+    player.y = nextY;
 
-    // Collision detection - vertical (platform standing)
-    player.onPlatform = false;
-    let onPlatformThisFrame = false;
-
-    // Check if player lands on any platform
-    for (const p of platforms) {
-      const playerBottomNext = nextY + player.height;
-      const platformTop = p.y;
-      const platformBottom = p.y + p.height;
-
-      // Check horizontal overlap with small margin to avoid sticky edges
-      const horizontalOverlap =
-        player.x + player.width > p.x + 5 &&
-        player.x < p.x + p.width - 5;
-
-      // Check if player is falling and will land on platform
-      if (
-        horizontalOverlap &&
-        playerBottomNext >= platformTop &&
-        player.y + player.height <= platformTop && // player was above platform last frame
-        player.vy >= 0
-      ) {
-        // Land on platform
-        nextY = platformTop - player.height;
-        player.vy = 0;
-        player.onPlatform = true;
-        onPlatformThisFrame = true;
-        break;
-      }
-    }
-
-    // If not on any platform, apply vertical movement normally
-    if (!onPlatformThisFrame) {
-      player.y = nextY;
-    } else {
-      player.y = nextY;
-    }
-
-    // Prevent going above screen top
+    // Prevent going above top screen edge
     if (player.y < 0) {
       player.y = 0;
       player.vy = 0;
@@ -250,7 +243,7 @@
       cameraX = player.x - CAMERA_RIGHT_EDGE;
     }
 
-    // Optional: prevent camera from going left beyond 0 (world start)
+    // Prevent camera from going left beyond 0 (world start)
     if (cameraX < 0) cameraX = 0;
 
     // Remove platforms behind camera by a margin to save memory
