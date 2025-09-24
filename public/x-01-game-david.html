@@ -80,14 +80,14 @@
 
   // Input handling
   function jump() {
-    if (player.onPlatform) {
+    if (player.onPlatform && !gameOver) {
       player.vy = JUMP_VELOCITY;
       player.onPlatform = false;
     }
   }
 
   window.addEventListener('keydown', e => {
-    if ((e.code === 'Space' || e.code === 'ArrowUp') && !gameOver) {
+    if ((e.code === 'Space' || e.code === 'ArrowUp')) {
       e.preventDefault();
       jump();
     } else if (gameOver && e.code === 'Enter') {
@@ -96,20 +96,22 @@
   });
 
   window.addEventListener('mousedown', () => {
-    if (!gameOver) jump();
+    jump();
   });
 
   // Game loop
-  let lastTime = 0;
-  function gameLoop(timestamp = 0) {
+  let lastTime = null;
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const deltaMs = timestamp - lastTime;
+    lastTime = timestamp;
+
     if (gameOver) {
       drawGameOver();
       return;
     }
-    const delta = (timestamp - lastTime) / 16.666; // normalize to ~60fps steps
-    lastTime = timestamp;
 
-    update(delta);
+    update(deltaMs / 16.666); // normalize delta time to approx 60 FPS
     draw();
 
     requestAnimationFrame(gameLoop);
@@ -158,8 +160,6 @@
     }
 
     // Collision detection: check if player is standing on a platform
-    // We check if player's feet (y + height) are on platform top (platform.y),
-    // and player's x overlaps platform horizontally
     player.onPlatform = false;
     for (const p of platforms) {
       if (
@@ -167,7 +167,7 @@
         player.x < p.x + p.width &&
         player.y + player.height >= p.y &&
         player.y + player.height <= p.y + p.height &&
-        player.vy >= 0 // only if falling or steady (to prevent sticking from below)
+        player.vy >= 0
       ) {
         // Snap player on top of platform
         player.y = p.y - player.height;
@@ -231,7 +231,7 @@
       width: WIDTH,
       height: 20,
     });
-    lastTime = 0;
+    lastTime = null;
     document.getElementById('score').textContent = 'Score: 0';
     requestAnimationFrame(gameLoop);
   }
