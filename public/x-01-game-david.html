@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fixed Collision + Easier Jumps Platformer</title>
+  <title>Enhanced Platformer with Challenges</title>
   <style>
     body {
       margin: 0;
@@ -28,7 +28,7 @@
 </head>
 <body>
   <canvas id="game" width="800" height="400"></canvas>
-  <div id="score">Distance: 0</div>
+  <div id="score">Distance: 0 | Coins: 0 | Time: 0s</div>
 
 <script>
 (() => {
@@ -43,8 +43,10 @@
   const PLAYER_HEIGHT = 50;
 
   // Physics constants
-  const GRAVITY = 0.6;
+  let GRAVITY = 0.6;
+  const BASE_GRAVITY = 0.6;
   const JUMP_VELOCITY = -12;
+  const TRAMPOLINE_JUMP_VELOCITY = -18;
   const MAX_FALL_SPEED = 20;
   const PLAYER_SPEED = 4;
 
@@ -54,6 +56,9 @@
 
   let gameOver = false;
   let score = 0;
+  let coinsCollected = 0;
+  let elapsedSeconds = 0;
+  let gameSpeedMultiplier = 1;
 
   // Input state
   const keys = {
@@ -71,13 +76,32 @@
     vx: 0,
     vy: 0,
     onPlatform: false,
+    canDoubleJump: false,
   };
 
   // Camera scroll offset (world coords of left screen edge)
   let cameraX = 0;
 
   // Platforms (world coords)
+  // Added properties for new types of platforms:
+  // type: "normal" (default), "moving", "falling", "trampoline", "shrink"
+  // moving platforms have direction & speed
+  // falling platforms have timer for breaking
+  // shrink platforms pulse size
+
   let platforms = [];
+
+  // Spikes: array of objects {x, y, width, height}
+  let spikes = [];
+
+  // Coins: collectible items {x, y, radius, collected}
+  let coins = [];
+
+  // Enemies: patrol objects {x, y, width, height, vx, patrolRange, startX}
+  let enemies = [];
+
+  // Wind zones: rectangles {x, y, width, height, forceX}
+  let winds = [];
 
   // Initial ground platform spanning the first 2000px
   platforms.push({
@@ -85,6 +109,7 @@
     y: HEIGHT - 20,
     width: 2000,
     height: 20,
+    type: "normal",
   });
 
   // Platform spawn config (tighter gaps and heights for easier jumps)
@@ -96,6 +121,11 @@
   const PLATFORM_MAX_Y = HEIGHT - 50;
   const MAX_PLATFORM_GAP = 130; // max gap between platforms (reduced)
   const MAX_VERTICAL_DIFF = 35; // max vertical difference between consecutive platforms (reduced)
+
+  // Utility
+  function randomRange(min, max) {
+    return Math.random() * (max - min) + min;
+  }
 
   // Handle keyboard input
   window.addEventListener('keydown', e => {
@@ -124,7 +154,12 @@
     keys.jump = false;
   });
 
-  // Spawn platforms ahead if needed
+  // Collision helper
+  function rectsIntersect(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  // Spawn platforms and related elements ahead
   function spawnPlatforms() {
     let lastPlatform = platforms[platforms.length - 1];
     while (lastPlatform.x + lastPlatform.width < cameraX + WIDTH + 500) {
@@ -140,43 +175,138 @@
       // Smaller gaps for easier jumps
       const gap = randomRange(60, MAX_PLATFORM_GAP);
 
+      // Decide platform type randomly with weighted chances
+      let typeRoll = Math.random();
+      let type = "normal";
+      if (typeRoll < 0.15) type = "moving";        // 15%
+      else if (typeRoll < 0.25) type = "falling";  // 10%
+      else if (typeRoll < 0.3) type = "trampoline"; // 5%
+      else if (typeRoll < 0.4) type = "shrink";    // 10%
+      // else normal 60%
+
       lastPlatform = {
         x: lastPlatform.x + lastPlatform.width + gap,
         y,
         width,
         height: randomRange(PLATFORM_MIN_HEIGHT, PLATFORM_MAX_HEIGHT),
+        type,
+        // For moving platforms
+        direction: 1,
+        speed: 1 + Math.random() * 1.5,
+        originalX: 0, // will set below
+        // For falling platforms
+        breakTimer: 0,
+        broken: false,
+        // For shrink platforms
+        shrinkTimer: 0,
       };
+      lastPlatform.originalX = lastPlatform.x;
+
       platforms.push(lastPlatform);
+
+      // Random chance to spawn spikes on platform (except trampoline/falling)
+      if (type !== "trampoline" && type !== "falling" && Math.random() < 0.15) {
+        const spikeCount = Math.floor(randomRange(1, 4));
+        for (let i = 0; i < spikeCount; i++) {
+          const spikeWidth = 15;
+          const spikeHeight = 15;
+          const spikeX = lastPlatform.x + randomRange(10, lastPlatform.width - spikeWidth - 10);
+          const spikeY = lastPlatform.y - spikeHeight;
+          spikes.push({
+            x: spikeX,
+            y: spikeY,
+            width: spikeWidth,
+            height: spikeHeight,
+          });
+        }
+      }
+
+      // Random chance to spawn coins on platform
+      if (Math.random() < 0.4) {
+        const coinCount = Math.floor(randomRange(1, 4));
+        for (let i = 0; i < coinCount; i++) {
+          const coinX = lastPlatform.x + randomRange(15, lastPlatform.width - 15);
+          const coinY = lastPlatform.y - 25;
+          coins.push({
+            x: coinX,
+            y: coinY,
+            radius: 8,
+            collected: false,
+          });
+        }
+      }
+
+      // Random chance to spawn enemy on platform (avoid trampoline/falling)
+      if (type !== "trampoline" && type !== "falling" && Math.random() < 0.12) {
+        const enemyWidth = 30;
+        const enemyHeight = 30;
+        const enemyX = lastPlatform.x + randomRange(10, lastPlatform.width - enemyWidth - 10);
+        const enemyY = lastPlatform.y - enemyHeight;
+        const enemySpeed = 1 + Math.random() * 1.5;
+        const patrolRange = randomRange(50, 120);
+        enemies.push({
+          x: enemyX,
+          y: enemyY,
+          width: enemyWidth,
+          height: enemyHeight,
+          vx: enemySpeed,
+          startX: enemyX,
+          patrolRange: patrolRange,
+        });
+      }
+
+      // Random chance to spawn wind zones between platforms
+      if (Math.random() < 0.1) {
+        const windWidth = gap * 0.6;
+        const windHeight = HEIGHT;
+        const windX = lastPlatform.x - gap * 0.7;
+        const windY = 0;
+        const forceX = (Math.random() < 0.5 ? -0.15 : 0.15) * gameSpeedMultiplier; // left or right
+        winds.push({x: windX, y: windY, width: windWidth, height: windHeight, forceX});
+      }
     }
   }
 
-  function rectsIntersect(ax, ay, aw, ah, bx, by, bw, bh) {
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-  }
-
+  // Game update logic
   function update(delta) {
     if (gameOver) return;
 
-    // Horizontal movement
+    // Apply wind force if inside any wind zone
+    let windForce = 0;
+    for (const w of winds) {
+      if (rectsIntersect(player.x, player.y, player.width, player.height, w.x, w.y, w.width, w.height)) {
+        windForce += w.forceX;
+      }
+    }
+
+    // Horizontal movement with wind influence
     if (keys.left) {
-      player.vx = -PLAYER_SPEED;
+      player.vx = -PLAYER_SPEED * gameSpeedMultiplier;
     } else if (keys.right) {
-      player.vx = PLAYER_SPEED;
+      player.vx = PLAYER_SPEED * gameSpeedMultiplier;
     } else {
       player.vx = 0;
     }
+    player.vx += windForce;
 
-    // Jump
-    if (keys.jump && player.onPlatform) {
-      player.vy = JUMP_VELOCITY;
-      player.onPlatform = false;
+    // Jump / Double Jump
+    if (keys.jump) {
+      if (player.onPlatform) {
+        player.vy = JUMP_VELOCITY * gameSpeedMultiplier;
+        player.onPlatform = false;
+        player.canDoubleJump = true;
+      } else if (player.canDoubleJump) {
+        player.vy = JUMP_VELOCITY * gameSpeedMultiplier;
+        player.canDoubleJump = false;
+      }
+      keys.jump = false; // prevent holding jump for repeat
     }
 
     // Apply gravity
-    player.vy += GRAVITY * delta;
-    if (player.vy > MAX_FALL_SPEED) player.vy = MAX_FALL_SPEED;
+    player.vy += GRAVITY * delta * gameSpeedMultiplier;
+    if (player.vy > MAX_FALL_SPEED * gameSpeedMultiplier) player.vy = MAX_FALL_SPEED * gameSpeedMultiplier;
 
-    // Calculate tentative next position
+    // Tentative next position
     let nextX = player.x + player.vx * delta;
     let nextY = player.y + player.vy * delta;
 
@@ -184,19 +314,17 @@
     if (nextX < 0) nextX = 0;
 
     // --- Horizontal collision check ---
-    // Move horizontally first, checking collisions
-    let horizontalCollision = false;
+    // Move horizontally first, checking collisions with platforms
     for (const p of platforms) {
+      if (p.broken) continue; // skip broken platforms
+
       if (
         rectsIntersect(nextX, player.y, player.width, player.height, p.x, p.y, p.width, p.height)
       ) {
         // Collision detected, block horizontal movement
-        horizontalCollision = true;
         if (player.vx > 0) {
-          // Moving right: place player just left of platform
           nextX = p.x - player.width;
         } else if (player.vx < 0) {
-          // Moving left: place player just right of platform
           nextX = p.x + p.width;
         }
         player.vx = 0;
@@ -206,23 +334,60 @@
     player.x = nextX;
 
     // --- Vertical collision check ---
-    // Apply vertical movement and check if standing on platform
     player.onPlatform = false;
     let verticalCollision = false;
 
-    // We test vertical collisions *after* horizontal position update
     for (const p of platforms) {
+      if (p.broken) continue;
+
+      // Update moving platforms position
+      if (p.type === "moving") {
+        p.x += p.direction * p.speed * delta * gameSpeedMultiplier;
+        if (p.x > p.originalX + 100) p.direction = -1;
+        if (p.x < p.originalX - 100) p.direction = 1;
+      }
+
+      // Update shrinking platforms (pulse size)
+      if (p.type === "shrink") {
+        p.shrinkTimer += delta * 0.05 * gameSpeedMultiplier;
+        let scale = 0.85 + 0.15 * Math.sin(p.shrinkTimer * Math.PI * 2);
+        p.width = (p.baseWidth || p.width) * scale;
+      } else {
+        p.baseWidth = p.width; // store original width for shrink effect
+      }
+
+      // Falling platforms break timer
+      if (p.type === "falling" && p.breakTimer > 0) {
+        p.breakTimer -= delta * gameSpeedMultiplier;
+        if (p.breakTimer <= 0) {
+          p.broken = true;
+        }
+      }
+
       if (
         rectsIntersect(player.x, nextY, player.width, player.height, p.x, p.y, p.width, p.height)
       ) {
         if (player.vy > 0) {
-          // Falling and hit platform from above: land on platform
+          // Falling, landing on platform
           nextY = p.y - player.height;
           player.vy = 0;
           player.onPlatform = true;
           verticalCollision = true;
+
+          // Falling platform starts breaking when player stands on it
+          if (p.type === "falling" && !p.broken) {
+            p.breakTimer = 60; // 60 frames ~1 sec before breaking
+          }
+
+          // Trampoline platform bounce
+          if (p.type === "trampoline") {
+            player.vy = TRAMPOLINE_JUMP_VELOCITY;
+            player.onPlatform = false;
+            player.canDoubleJump = true;
+          }
+
         } else if (player.vy < 0) {
-          // Hitting platform from below, block upward movement
+          // Hitting platform from below
           nextY = p.y + p.height;
           player.vy = 0;
           verticalCollision = true;
@@ -238,6 +403,39 @@
       player.vy = 0;
     }
 
+    // Collect coins
+    for (const c of coins) {
+      if (!c.collected) {
+        const dx = (player.x + player.width / 2) - c.x;
+        const dy = (player.y + player.height / 2) - c.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < c.radius + Math.min(player.width, player.height) / 2) {
+          c.collected = true;
+          coinsCollected++;
+          score += 50; // bonus points for coins
+        }
+      }
+    }
+
+    // Move enemies (patrol)
+    for (const e of enemies) {
+      e.x += e.vx * delta * gameSpeedMultiplier;
+      if (e.x > e.startX + e.patrolRange) e.vx *= -1;
+      if (e.x < e.startX) e.vx *= -1;
+
+      // Check collision with player => game over
+      if (rectsIntersect(player.x, player.y, player.width, player.height, e.x, e.y, e.width, e.height)) {
+        gameOver = true;
+      }
+    }
+
+    // Check collision with spikes => game over
+    for (const s of spikes) {
+      if (rectsIntersect(player.x, player.y, player.width, player.height, s.x, s.y, s.width, s.height)) {
+        gameOver = true;
+      }
+    }
+
     // Update camera position to follow player when near right edge
     if (player.x - cameraX > CAMERA_RIGHT_EDGE) {
       cameraX = player.x - CAMERA_RIGHT_EDGE;
@@ -246,79 +444,171 @@
     // Prevent camera from going left beyond 0 (world start)
     if (cameraX < 0) cameraX = 0;
 
-    // Remove platforms behind camera by a margin to save memory
+    // Remove platforms behind camera by a margin
     while (platforms.length && platforms[0].x + platforms[0].width < cameraX - 500) {
       platforms.shift();
     }
 
-    // Spawn new platforms ahead
+    // Remove spikes behind camera
+    while (spikes.length && spikes[0].x + spikes[0].width < cameraX - 500) {
+      spikes.shift();
+    }
+
+    // Remove coins behind camera
+    while (coins.length && coins[0].x < cameraX - 500) {
+      coins.shift();
+    }
+
+    // Remove enemies behind camera
+    while (enemies.length && enemies[0].x + enemies[0].width < cameraX - 500) {
+      enemies.shift();
+    }
+
+    // Remove winds behind camera
+    while (winds.length && winds[0].x + winds[0].width < cameraX - 500) {
+      winds.shift();
+    }
+
+    // Spawn new platforms and stuff ahead
     spawnPlatforms();
 
-    // Check if player falls off bottom of screen
+    // Check if player falls off bottom
     if (player.y > HEIGHT) {
       gameOver = true;
     }
 
-    // Update score as cameraX (distance scrolled)
-    score = cameraX;
-    document.getElementById('score').textContent = 'Distance: ' + Math.floor(score);
+    // Increase score by distance moved right (scaled)
+    score += player.vx * delta * 0.5;
+
+    // Update elapsed seconds & difficulty (speed multiplier)
+    elapsedSeconds += delta / 60;
+    if (elapsedSeconds > 30) {
+      gameSpeedMultiplier = 1 + Math.floor(elapsedSeconds / 30) * 0.15;
+      GRAVITY = BASE_GRAVITY * gameSpeedMultiplier;
+    }
   }
 
+  // Draw everything
   function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-    // Draw platforms relative to camera
-    ctx.fillStyle = '#3498db';
-    for (const p of platforms) {
-      const screenX = p.x - cameraX;
-      ctx.fillRect(screenX, p.y, p.width, p.height);
-    }
+    // Background gradient
+    let grad = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    grad.addColorStop(0, '#556b2f');
+    grad.addColorStop(1, '#8fbc8f');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    // Draw player relative to camera
-    ctx.fillStyle = '#2ecc71';
-    ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
-  }
+    // Draw platforms
+    platforms.forEach(p => {
+      if (p.broken) return;
 
-  function drawGameOver() {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      if (p.type === "moving") {
+        ctx.fillStyle = '#8e44ad'; // purple moving
+      } else if (p.type === "falling") {
+        ctx.fillStyle = '#d35400'; // orange falling
+      } else if (p.type === "trampoline") {
+        ctx.fillStyle = '#3498db'; // blue trampoline
+      } else if (p.type === "shrink") {
+        ctx.fillStyle = '#f1c40f'; // yellow shrink
+      } else {
+        ctx.fillStyle = '#2ecc71'; // normal green
+      }
 
+      ctx.fillRect(p.x - cameraX, p.y, p.width, p.height);
+    });
+
+    // Draw spikes
     ctx.fillStyle = '#e74c3c';
-    ctx.font = 'bold 48px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('Game Over', WIDTH / 2, HEIGHT / 2 - 20);
+    spikes.forEach(s => {
+      const spikeX = s.x - cameraX;
+      const spikeY = s.y;
+      ctx.beginPath();
+      // Draw simple triangles spikes
+      for (let i = 0; i < s.width; i += 10) {
+        ctx.moveTo(spikeX + i, spikeY + s.height);
+        ctx.lineTo(spikeX + i + 5, spikeY);
+        ctx.lineTo(spikeX + i + 10, spikeY + s.height);
+      }
+      ctx.fill();
+    });
 
-    ctx.fillStyle = '#eee';
-    ctx.font = '24px monospace';
-    ctx.fillText('Distance: ' + Math.floor(score), WIDTH / 2, HEIGHT / 2 + 20);
-    ctx.fillText('Press Enter to Restart', WIDTH / 2, HEIGHT / 2 + 60);
+    // Draw coins
+    coins.forEach(c => {
+      if (c.collected) return;
+      ctx.fillStyle = 'gold';
+      ctx.beginPath();
+      ctx.arc(c.x - cameraX, c.y, c.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'orange';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+
+    // Draw enemies (red squares)
+    ctx.fillStyle = '#c0392b';
+    enemies.forEach(e => {
+      ctx.fillRect(e.x - cameraX, e.y, e.width, e.height);
+    });
+
+    // Draw wind zones (translucent blue overlays)
+    ctx.fillStyle = 'rgba(52, 152, 219, 0.2)';
+    winds.forEach(w => {
+      ctx.fillRect(w.x - cameraX, w.y, w.width, w.height);
+    });
+
+    // Draw player
+    ctx.fillStyle = '#f39c12';
+    ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
+
+    // Draw score & info
+    document.getElementById('score').textContent = 
+      `Distance: ${Math.floor(score)} | Coins: ${coinsCollected} | Time: ${Math.floor(elapsedSeconds)}s`;
+
+    if (gameOver) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 40px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('GAME OVER', WIDTH / 2, HEIGHT / 2 - 20);
+      ctx.font = '20px monospace';
+      ctx.fillText('Press ENTER to restart', WIDTH / 2, HEIGHT / 2 + 20);
+    }
   }
 
+  // Restart game state
   function restart() {
     gameOver = false;
     score = 0;
+    coinsCollected = 0;
+    elapsedSeconds = 0;
+    gameSpeedMultiplier = 1;
+    GRAVITY = BASE_GRAVITY;
     cameraX = 0;
+
     player.x = 50;
     player.y = HEIGHT - 20 - PLAYER_HEIGHT;
     player.vx = 0;
     player.vy = 0;
     player.onPlatform = false;
+    player.canDoubleJump = false;
+
     platforms = [{
       x: 0,
       y: HEIGHT - 20,
       width: 2000,
       height: 20,
+      type: "normal",
     }];
-    lastTime = null;
-    document.getElementById('score').textContent = 'Distance: 0';
-    requestAnimationFrame(gameLoop);
+    spikes = [];
+    coins = [];
+    enemies = [];
+    winds = [];
   }
 
-  function randomRange(min, max) {
-    return Math.random() * (max - min) + min;
-  }
-
+  // Main loop
   let lastTime = null;
-
   function gameLoop(timestamp) {
     if (!lastTime) lastTime = timestamp;
     const deltaMs = timestamp - lastTime;
@@ -327,17 +617,13 @@
     update(deltaMs / 16.666);
     draw();
 
-    if (gameOver) {
-      drawGameOver();
-      return;
-    }
-
     requestAnimationFrame(gameLoop);
   }
 
+  restart();
   requestAnimationFrame(gameLoop);
+
 })();
 </script>
 </body>
 </html>
-
