@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Jumping Platformer</title>
+<title>Smoother Jumping Platformer</title>
 <style>
   body {
     margin: 0;
@@ -37,13 +37,15 @@
   const WIDTH = canvas.width;
   const HEIGHT = canvas.height;
 
-  // Player settings
+  // Player constants
   const PLAYER_WIDTH = 30;
   const PLAYER_HEIGHT = 50;
-  const PLAYER_X = 100; // fixed x position
+  const PLAYER_X = 100;
 
-  const GRAVITY = 0.7;
-  const JUMP_VELOCITY = -14;
+  // Physics constants (tweaked)
+  const GRAVITY = 0.5; // less gravity for smoother jump
+  const JUMP_VELOCITY = -12; // a bit less jump power for better control
+  const MAX_FALL_SPEED = 20; // cap falling speed
   const PLATFORM_SPEED = 3;
 
   let score = 0;
@@ -52,17 +54,17 @@
   // Player state
   const player = {
     x: PLAYER_X,
-    y: HEIGHT - PLAYER_HEIGHT,
+    y: HEIGHT - PLAYER_HEIGHT - 20, // start standing on initial platform
     width: PLAYER_WIDTH,
     height: PLAYER_HEIGHT,
     vy: 0,
     onPlatform: false,
   };
 
-  // Platforms: array of {x, y, width, height}
+  // Platforms array
   let platforms = [];
 
-  // Initialize with one big platform at bottom
+  // Initial ground platform
   platforms.push({
     x: 0,
     y: HEIGHT - 20,
@@ -70,13 +72,13 @@
     height: 20,
   });
 
-  // Spawn new platform roughly every ~200 px apart horizontally
-  const PLATFORM_MIN_WIDTH = 100;
-  const PLATFORM_MAX_WIDTH = 250;
+  // Platform spawn config (closer and smoother height changes)
+  const PLATFORM_MIN_WIDTH = 120;
+  const PLATFORM_MAX_WIDTH = 200;
   const PLATFORM_MIN_HEIGHT = 15;
-  const PLATFORM_MAX_HEIGHT = 30;
-  const PLATFORM_MIN_Y = 150;
-  const PLATFORM_MAX_Y = HEIGHT - 50;
+  const PLATFORM_MAX_HEIGHT = 25;
+  const PLATFORM_MIN_Y = HEIGHT - 120;  // restrict vertical range to make jumps reasonable
+  const PLATFORM_MAX_Y = HEIGHT - 40;
 
   // Input handling
   function jump() {
@@ -99,8 +101,9 @@
     jump();
   });
 
-  // Game loop
+  // Game loop variables
   let lastTime = null;
+
   function gameLoop(timestamp) {
     if (!lastTime) lastTime = timestamp;
     const deltaMs = timestamp - lastTime;
@@ -111,19 +114,19 @@
       return;
     }
 
-    update(deltaMs / 16.666); // normalize delta time to approx 60 FPS
+    update(deltaMs / 16.666);
     draw();
 
     requestAnimationFrame(gameLoop);
   }
 
-  // Update game state
   function update(delta) {
-    // Apply gravity
+    // Apply gravity and cap falling speed
     player.vy += GRAVITY * delta;
+    if (player.vy > MAX_FALL_SPEED) player.vy = MAX_FALL_SPEED;
     player.y += player.vy * delta;
 
-    // Prevent going above canvas top
+    // Don't let player go above top
     if (player.y < 0) {
       player.y = 0;
       player.vy = 0;
@@ -134,60 +137,67 @@
       p.x -= PLATFORM_SPEED * delta;
     }
 
-    // Remove platforms that moved off screen
+    // Remove offscreen platforms
     while (platforms.length && platforms[0].x + platforms[0].width < 0) {
       platforms.shift();
     }
 
-    // Spawn new platforms to fill screen
+    // Spawn new platforms to keep scrolling
     let lastPlatform = platforms[platforms.length - 1];
-    while (lastPlatform.x + lastPlatform.width < WIDTH + 200) {
+    while (lastPlatform.x + lastPlatform.width < WIDTH + 250) {
       const width = randomRange(PLATFORM_MIN_WIDTH, PLATFORM_MAX_WIDTH);
       const height = randomRange(PLATFORM_MIN_HEIGHT, PLATFORM_MAX_HEIGHT);
-      // Y varies but not too low or too high
-      let y = randomRange(PLATFORM_MIN_Y, PLATFORM_MAX_Y);
 
-      // To help gameplay, keep new platform's y close to last one +/- 50 px
-      y = clamp(y, Math.max(PLATFORM_MIN_Y, lastPlatform.y - 50), Math.min(PLATFORM_MAX_Y, lastPlatform.y + 50));
+      // Smooth Y difference for jumpable platforms
+      // Clamp next platform Y within 40px up/down of last platform's Y
+      let yMin = Math.max(PLATFORM_MIN_Y, lastPlatform.y - 40);
+      let yMax = Math.min(PLATFORM_MAX_Y, lastPlatform.y + 40);
+      let y = randomRange(yMin, yMax);
 
       lastPlatform = {
-        x: lastPlatform.x + lastPlatform.width + randomRange(100, 200),
-        y: y,
-        width: width,
-        height: height,
+        x: lastPlatform.x + lastPlatform.width + randomRange(120, 170),
+        y,
+        width,
+        height,
       };
       platforms.push(lastPlatform);
     }
 
-    // Collision detection: check if player is standing on a platform
+    // Collision detection with platforms
     player.onPlatform = false;
+
+    // We'll check a small vertical tolerance (5px) for landing to avoid sinking
+    const tolerance = 5;
+
     for (const p of platforms) {
+      const playerBottom = player.y + player.height;
+      const platformTop = p.y;
+      const platformBottom = p.y + p.height;
+
       if (
-        player.x + player.width > p.x &&
-        player.x < p.x + p.width &&
-        player.y + player.height >= p.y &&
-        player.y + player.height <= p.y + p.height &&
+        player.x + player.width > p.x + 5 && // add small horizontal margins so player can land easier
+        player.x < p.x + p.width - 5 &&
+        playerBottom >= platformTop - tolerance &&
+        playerBottom <= platformTop + tolerance &&
         player.vy >= 0
       ) {
-        // Snap player on top of platform
-        player.y = p.y - player.height;
+        player.y = platformTop - player.height;
         player.vy = 0;
         player.onPlatform = true;
         break;
       }
     }
 
-    // Check if player falls off screen
+    // Check falling off screen
     if (player.y > HEIGHT) {
       gameOver = true;
     }
 
-    // Increase score over time
+    // Score increment
     score += delta * 0.1;
     document.getElementById('score').textContent = 'Score: ' + Math.floor(score);
   }
 
-  // Draw everything
   function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
@@ -202,7 +212,6 @@
     }
   }
 
-  // Draw game over text
   function drawGameOver() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
@@ -217,11 +226,10 @@
     ctx.fillText('Press Enter to Restart', WIDTH / 2, HEIGHT / 2 + 60);
   }
 
-  // Restart game
   function restart() {
     score = 0;
     gameOver = false;
-    player.y = HEIGHT - PLAYER_HEIGHT;
+    player.y = HEIGHT - PLAYER_HEIGHT - 20;
     player.vy = 0;
     player.onPlatform = false;
     platforms = [];
@@ -236,16 +244,10 @@
     requestAnimationFrame(gameLoop);
   }
 
-  // Helpers
   function randomRange(min, max) {
     return Math.random() * (max - min) + min;
   }
 
-  function clamp(v, min, max) {
-    return Math.min(Math.max(v, min), max);
-  }
-
-  // Start game loop
   requestAnimationFrame(gameLoop);
 })();
 </script>
