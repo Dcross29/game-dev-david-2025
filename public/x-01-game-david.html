@@ -1,34 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Smoother Jumping Platformer</title>
-<style>
-  body {
-    margin: 0;
-    background: #222;
-    color: #eee;
-    font-family: monospace, monospace;
-    overflow: hidden;
-    user-select: none;
-  }
-  canvas {
-    display: block;
-    margin: 0 auto;
-    background: #333;
-    border: 2px solid #555;
-  }
-  #score {
-    text-align: center;
-    font-size: 20px;
-    margin-top: 6px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Side Scrolling Platformer - WASD Move + Camera Scroll</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      color: #eee;
+      font-family: monospace, monospace;
+      overflow: hidden;
+      user-select: none;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #333;
+      border: 2px solid #555;
+    }
+    #score {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 6px;
+    }
+  </style>
 </head>
 <body>
-<canvas id="game" width="800" height="400"></canvas>
-<div id="score">Score: 0</div>
+  <canvas id="game" width="800" height="400"></canvas>
+  <div id="score">Distance: 0</div>
+
 <script>
 (() => {
   const canvas = document.getElementById('game');
@@ -40,176 +41,249 @@
   // Player constants
   const PLAYER_WIDTH = 30;
   const PLAYER_HEIGHT = 50;
-  const PLAYER_X = 100;
 
-  // Physics constants (tweaked)
-  const GRAVITY = 0.5; // less gravity for smoother jump
-  const JUMP_VELOCITY = -12; // a bit less jump power for better control
-  const MAX_FALL_SPEED = 20; // cap falling speed
-  const PLATFORM_SPEED = 3;
+  // Physics constants
+  const GRAVITY = 0.6;
+  const JUMP_VELOCITY = -12;
+  const MAX_FALL_SPEED = 20;
+  const PLAYER_SPEED = 4;
 
-  let score = 0;
+  // Camera config
+  const CAMERA_RIGHT_EDGE = WIDTH * 0.6;
+  const CAMERA_LEFT_EDGE = WIDTH * 0.3;
+
   let gameOver = false;
+  let score = 0;
 
-  // Player state
+  // Input state
+  const keys = {
+    left: false,
+    right: false,
+    jump: false,
+  };
+
+  // Player state (world coordinates)
   const player = {
-    x: PLAYER_X,
-    y: HEIGHT - PLAYER_HEIGHT - 20, // start standing on initial platform
+    x: 50, // start near left edge of world
+    y: HEIGHT - 20 - PLAYER_HEIGHT,
     width: PLAYER_WIDTH,
     height: PLAYER_HEIGHT,
+    vx: 0,
     vy: 0,
     onPlatform: false,
   };
 
-  // Platforms array
+  // Camera scroll offset (world coords of left screen edge)
+  let cameraX = 0;
+
+  // Platforms (world coords)
   let platforms = [];
 
-  // Initial ground platform
+  // Initial ground platform spanning the first 2000px
   platforms.push({
     x: 0,
     y: HEIGHT - 20,
-    width: WIDTH,
+    width: 2000,
     height: 20,
   });
 
-  // Platform spawn config (closer and smoother height changes)
+  // Platform spawn config
   const PLATFORM_MIN_WIDTH = 120;
   const PLATFORM_MAX_WIDTH = 200;
   const PLATFORM_MIN_HEIGHT = 15;
   const PLATFORM_MAX_HEIGHT = 25;
-  const PLATFORM_MIN_Y = HEIGHT - 120;  // restrict vertical range to make jumps reasonable
+  const PLATFORM_MIN_Y = HEIGHT - 120;
   const PLATFORM_MAX_Y = HEIGHT - 40;
 
-  // Input handling
-  function jump() {
-    if (player.onPlatform && !gameOver) {
-      player.vy = JUMP_VELOCITY;
-      player.onPlatform = false;
-    }
-  }
-
+  // Handle keyboard input
   window.addEventListener('keydown', e => {
-    if ((e.code === 'Space' || e.code === 'ArrowUp')) {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
       e.preventDefault();
-      jump();
-    } else if (gameOver && e.code === 'Enter') {
+      keys.jump = true;
+    }
+    if (gameOver && e.code === 'Enter') {
       restart();
     }
   });
 
-  window.addEventListener('mousedown', () => {
-    jump();
+  window.addEventListener('keyup', e => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.jump = false;
   });
 
-  // Game loop variables
-  let lastTime = null;
+  // Mouse/touch jump
+  window.addEventListener('mousedown', () => {
+    keys.jump = true;
+  });
+  window.addEventListener('mouseup', () => {
+    keys.jump = false;
+  });
 
-  function gameLoop(timestamp) {
-    if (!lastTime) lastTime = timestamp;
-    const deltaMs = timestamp - lastTime;
-    lastTime = timestamp;
-
-    if (gameOver) {
-      drawGameOver();
-      return;
-    }
-
-    update(deltaMs / 16.666);
-    draw();
-
-    requestAnimationFrame(gameLoop);
-  }
-
-  function update(delta) {
-    // Apply gravity and cap falling speed
-    player.vy += GRAVITY * delta;
-    if (player.vy > MAX_FALL_SPEED) player.vy = MAX_FALL_SPEED;
-    player.y += player.vy * delta;
-
-    // Don't let player go above top
-    if (player.y < 0) {
-      player.y = 0;
-      player.vy = 0;
-    }
-
-    // Move platforms left
-    for (const p of platforms) {
-      p.x -= PLATFORM_SPEED * delta;
-    }
-
-    // Remove offscreen platforms
-    while (platforms.length && platforms[0].x + platforms[0].width < 0) {
-      platforms.shift();
-    }
-
-    // Spawn new platforms to keep scrolling
+  // Spawn platforms ahead if needed
+  function spawnPlatforms() {
     let lastPlatform = platforms[platforms.length - 1];
-    while (lastPlatform.x + lastPlatform.width < WIDTH + 250) {
+    while (lastPlatform.x + lastPlatform.width < cameraX + WIDTH + 500) {
       const width = randomRange(PLATFORM_MIN_WIDTH, PLATFORM_MAX_WIDTH);
       const height = randomRange(PLATFORM_MIN_HEIGHT, PLATFORM_MAX_HEIGHT);
-
-      // Smooth Y difference for jumpable platforms
-      // Clamp next platform Y within 40px up/down of last platform's Y
       let yMin = Math.max(PLATFORM_MIN_Y, lastPlatform.y - 40);
       let yMax = Math.min(PLATFORM_MAX_Y, lastPlatform.y + 40);
       let y = randomRange(yMin, yMax);
 
+      const gap = randomRange(100, 180);
       lastPlatform = {
-        x: lastPlatform.x + lastPlatform.width + randomRange(120, 170),
+        x: lastPlatform.x + lastPlatform.width + gap,
         y,
         width,
         height,
       };
       platforms.push(lastPlatform);
     }
+  }
 
-    // Collision detection with platforms
-    player.onPlatform = false;
+  function update(delta) {
+    if (gameOver) return;
 
-    // We'll check a small vertical tolerance (5px) for landing to avoid sinking
-    const tolerance = 5;
+    // Horizontal movement
+    if (keys.left) {
+      player.vx = -PLAYER_SPEED;
+    } else if (keys.right) {
+      player.vx = PLAYER_SPEED;
+    } else {
+      player.vx = 0;
+    }
 
+    // Jump
+    if (keys.jump && player.onPlatform) {
+      player.vy = JUMP_VELOCITY;
+      player.onPlatform = false;
+    }
+
+    // Apply gravity
+    player.vy += GRAVITY * delta;
+    if (player.vy > MAX_FALL_SPEED) player.vy = MAX_FALL_SPEED;
+
+    // Calculate tentative next position
+    let nextX = player.x + player.vx * delta;
+    let nextY = player.y + player.vy * delta;
+
+    // Prevent moving beyond left edge of world
+    if (nextX < 0) nextX = 0;
+
+    // Collision detection - horizontal
+    // Check if player collides horizontally with platforms
+    // For simplicity: only prevent player moving inside platforms horizontally on their vertical range
     for (const p of platforms) {
-      const playerBottom = player.y + player.height;
+      if (
+        player.y + player.height > p.y && // player overlaps platform vertically
+        player.y < p.y + p.height
+      ) {
+        if (
+          player.vx > 0 && // moving right
+          player.x + player.width <= p.x && // currently left of platform
+          nextX + player.width > p.x // would collide next frame
+        ) {
+          nextX = p.x - player.width; // stop at platform left edge
+          player.vx = 0;
+        } else if (
+          player.vx < 0 && // moving left
+          player.x >= p.x + p.width && // currently right of platform
+          nextX < p.x + p.width // would collide next frame
+        ) {
+          nextX = p.x + p.width; // stop at platform right edge
+          player.vx = 0;
+        }
+      }
+    }
+
+    // Apply horizontal movement after collision check
+    player.x = nextX;
+
+    // Collision detection - vertical (platform standing)
+    player.onPlatform = false;
+    let onPlatformThisFrame = false;
+
+    // Check if player lands on any platform
+    for (const p of platforms) {
+      const playerBottomNext = nextY + player.height;
       const platformTop = p.y;
       const platformBottom = p.y + p.height;
 
+      // Check horizontal overlap with small margin to avoid sticky edges
+      const horizontalOverlap =
+        player.x + player.width > p.x + 5 &&
+        player.x < p.x + p.width - 5;
+
+      // Check if player is falling and will land on platform
       if (
-        player.x + player.width > p.x + 5 && // add small horizontal margins so player can land easier
-        player.x < p.x + p.width - 5 &&
-        playerBottom >= platformTop - tolerance &&
-        playerBottom <= platformTop + tolerance &&
+        horizontalOverlap &&
+        playerBottomNext >= platformTop &&
+        player.y + player.height <= platformTop && // player was above platform last frame
         player.vy >= 0
       ) {
-        player.y = platformTop - player.height;
+        // Land on platform
+        nextY = platformTop - player.height;
         player.vy = 0;
         player.onPlatform = true;
+        onPlatformThisFrame = true;
         break;
       }
     }
 
-    // Check falling off screen
+    // If not on any platform, apply vertical movement normally
+    if (!onPlatformThisFrame) {
+      player.y = nextY;
+    } else {
+      player.y = nextY;
+    }
+
+    // Prevent going above screen top
+    if (player.y < 0) {
+      player.y = 0;
+      player.vy = 0;
+    }
+
+    // Update camera position to follow player when near right edge
+    if (player.x - cameraX > CAMERA_RIGHT_EDGE) {
+      cameraX = player.x - CAMERA_RIGHT_EDGE;
+    }
+
+    // Optional: prevent camera from going left beyond 0 (world start)
+    if (cameraX < 0) cameraX = 0;
+
+    // Remove platforms behind camera by a margin to save memory
+    while (platforms.length && platforms[0].x + platforms[0].width < cameraX - 500) {
+      platforms.shift();
+    }
+
+    // Spawn new platforms ahead
+    spawnPlatforms();
+
+    // Check if player falls off bottom of screen
     if (player.y > HEIGHT) {
       gameOver = true;
     }
 
-    // Score increment
-    score += delta * 0.1;
-    document.getElementById('score').textContent = 'Score: ' + Math.floor(score);
+    // Update score as cameraX (distance scrolled)
+    score = cameraX;
+    document.getElementById('score').textContent = 'Distance: ' + Math.floor(score);
   }
 
   function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-    // Draw player
-    ctx.fillStyle = '#2ecc71';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // Draw platforms
+    // Draw platforms relative to camera
     ctx.fillStyle = '#3498db';
     for (const p of platforms) {
-      ctx.fillRect(p.x, p.y, p.width, p.height);
+      const screenX = p.x - cameraX;
+      ctx.fillRect(screenX, p.y, p.width, p.height);
     }
+
+    // Draw player relative to camera
+    ctx.fillStyle = '#2ecc71';
+    ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
   }
 
   function drawGameOver() {
@@ -222,25 +296,27 @@
 
     ctx.fillStyle = '#eee';
     ctx.font = '24px monospace';
-    ctx.fillText('Score: ' + Math.floor(score), WIDTH / 2, HEIGHT / 2 + 20);
+    ctx.fillText('Distance: ' + Math.floor(score), WIDTH / 2, HEIGHT / 2 + 20);
     ctx.fillText('Press Enter to Restart', WIDTH / 2, HEIGHT / 2 + 60);
   }
 
   function restart() {
-    score = 0;
     gameOver = false;
-    player.y = HEIGHT - PLAYER_HEIGHT - 20;
+    score = 0;
+    cameraX = 0;
+    player.x = 50;
+    player.y = HEIGHT - 20 - PLAYER_HEIGHT;
+    player.vx = 0;
     player.vy = 0;
     player.onPlatform = false;
-    platforms = [];
-    platforms.push({
+    platforms = [{
       x: 0,
       y: HEIGHT - 20,
-      width: WIDTH,
+      width: 2000,
       height: 20,
-    });
+    }];
     lastTime = null;
-    document.getElementById('score').textContent = 'Score: 0';
+    document.getElementById('score').textContent = 'Distance: 0';
     requestAnimationFrame(gameLoop);
   }
 
@@ -248,8 +324,27 @@
     return Math.random() * (max - min) + min;
   }
 
+  let lastTime = null;
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const deltaMs = timestamp - lastTime;
+    lastTime = timestamp;
+
+    update(deltaMs / 16.666);
+    draw();
+
+    if (gameOver) {
+      drawGameOver();
+      return;
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
   requestAnimationFrame(gameLoop);
 })();
 </script>
 </body>
 </html>
+
