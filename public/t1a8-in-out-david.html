@@ -12,6 +12,10 @@ let myOut= document.getElementById('mySpan01')
     let myOut = document.getElementById('mySpan01')
 myOut.innerHTML = myIn.value.repeat(5)
   }
+  function myOppositeFunction(){
+    let myIn = document.getElementById('myNum04')
+    let myOut = document.getElementById('mySpan01')
+    myOut.innerHTML = Number(myIn.value) * -1
 </script>
 
 
@@ -20,6 +24,7 @@ myOut.innerHTML = myIn.value.repeat(5)
 <input id="myNum01" type=text value="Fred"><br><input type=button value="Move This" onclick="{myDoStuff()}"><br>
 <input id="myNum02" type=Number placeholder="0"><br><input type=button value="Square This" onclick="{mySquareFunction()}"><br>
 <input id="myNum03" type=text value="Fredrick"><br><input type=button value="Repeat This" onclick="{myRepeatFunction()}">
+<input id="myNum04" type=Number placeholder="0"><br><input type=button value="Show Opposite Of This" onclick="{myOppositeFunction()}"><br>
 <br>
 <span id="mySpan01">...</span><br>
 
