@@ -5,7 +5,7 @@ document.getElementById('mySpan01').innerHTML=document.getElementById('myNum01')
   function mySquareFunction(){
 let myIn = document.getElementById('myNum02')
 let myOut= document.getElementById('mySpan01')
-    myOut.innerHtml = myIn.value x myIn.value
+    myOut.innerHtml = Number(myIn.value) * Number(myIn.value)
   }
 </script>
 
@@ -13,7 +13,7 @@ let myOut= document.getElementById('mySpan01')
 <h1 align=center>t1a8-in-out-david.html</h1>
 
 <input id="myNum01" type=text value="Fred"><br><input type=button value="Move This" onclick="{myDoStuff()}"><br>
-<input id="myNum02" type=Number value="0"><br><input type=button value="Square This" onlick="{mySquareFunction()}">
+<input id="myNum02" type=Number placeholder="0"><br><input type=button value="Square This" onlick="{mySquareFunction()}">
 <br>
 <span id="mySpan01">...</span><br>
 
