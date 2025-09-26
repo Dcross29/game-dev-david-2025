@@ -1,10 +1,14 @@
+<script>
+  function myDoStuff(){
+document.getElementById('myNum01').value=document.getElementById('mySpan01').innerHTML
+  }
+</script>
+
+
 <h1 align=center>t1a8-in-out-david.html</h1>
 
-<input type="text" id="myText01" value="type here">
+<input id="myNum01" type=text value="Fred"><br>
 <br>
-<span id="mySpan01">...</span>
-<br>
-<input type="button" value="Move Input Into Span" id="mySpan01">
-<script>
-  document.getElementById('mySpan01')
-  </script> 
+<span id="mySpan01">...</span><br>
+
+<input type=button value="Do Stuff" onclick="{myDoStuff()}"<br>
