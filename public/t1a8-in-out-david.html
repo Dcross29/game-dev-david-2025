@@ -7,6 +7,11 @@ let myIn = document.getElementById('myNum02')
 let myOut= document.getElementById('mySpan01')
     myOut.innerHTML = Number(myIn.value) * Number(myIn.value)
   }
+  function myRepeatFunction(){
+    let myIn = document.getElementById('myNum03')
+    let myOut = document.getElementById('mySpan01')
+myOut.innerHTML = myIn.value.repeat(5)
+  }
 </script>
 
 
@@ -14,6 +19,7 @@ let myOut= document.getElementById('mySpan01')
 
 <input id="myNum01" type=text value="Fred"><br><input type=button value="Move This" onclick="{myDoStuff()}"><br>
 <input id="myNum02" type=Number placeholder="0"><br><input type=button value="Square This" onclick="{mySquareFunction()}">
+<input id="myNum03" type=text value="Fredrick"><br><input type=button value="Repeat This" onclick="{myRepeatFunction()}">
 <br>
 <span id="mySpan01">...</span><br>
 
