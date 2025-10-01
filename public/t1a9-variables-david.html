@@ -1,8 +1,6 @@
 <h1 align=center> t1a9-variables-David.html </h1>
 
-
-Show correct use of const, var, ler and integer, character, boolean, float, and string.<br>
-
+Show correct use of const, var, let and integer, character, boolean, float, and string.<br>
 
 <input id="myNum01" type=text value="Fred">
 +
@@ -17,34 +15,36 @@ Show correct use of const, var, ler and integer, character, boolean, float, and 
 }"><br>
 .<br>
 You do similiar versions of this for integer characters, boolean and float.<br><br>
+
 <h2> adding floating point numbers</h2>
 <input id="myNum03" type=text value="3.4">
 +
 <input id="myNum04" type=text value="2.1"><br>
-<span id="mySpan02>...</span><br>
+<span id="mySpan02">...</span><br>
 
-  <input type=button value="add floating point numbers" onclick="{
-  let myFred =document.getElementById('myNum03').value
-  var myFredrick =document.getElementById('myNum04').value
-  letmyAnswer = parseFloat(myFred) + parseFloat(myFredrick)
+<input type=button value="add floating point numbers" onclick="{
+  let myFred = document.getElementById('myNum03').value
+  var myFredrick = document.getElementById('myNum04').value
+  let myAnswer = parseFloat(myFred) + parseFloat(myFredrick)
   const myOut = document.getElementById('mySpan02')
-  myOut.innerHTML = myFred +'+'+' myFredrick + ' = ' + myAnswer
-  }"><br>
+  myOut.innerHTML = myFred + ' + ' + myFredrick + ' = ' + myAnswer
+}"><br>
 
-  <h2>test for boolean</h2>
+<h2>test for boolean</h2>
 
-  <input id="myBool" type=text valye="3.4">
+<input id="myBool" type=text value="true">
 
-  <span id="mySpan03">...</span><br>
-  <input type=button value="is boolean?" onclick="{
-    let myBool = document.getElementById('myBool').value
-    const myOut = document.getElementById('mySpan03')
+<span id="mySpan03">...</span><br>
+<input type=button value="is boolean?" onclick="{
+  let myBool = document.getElementById('myBool').value
+  const myOut = document.getElementById('mySpan03')
 
-    if (myBool.toLowerCase() === 'true' || myBool.toLowerCase() === 'false') {
-      myAnswer ='yes'
-    } else{ 
-      myAnswer = 'No'
-    }
-    myout.innerHTML = 'Is' + myBool +' a Boolean ? ' + myAnswer
-  }"><br>
-  
+  let myAnswer = ''
+  if (myBool.toLowerCase() === 'true' || myBool.toLowerCase() === 'false') {
+    myAnswer = 'Yes'
+  } else { 
+    myAnswer = 'No'
+  }
+  myOut.innerHTML = 'Is ' + myBool + ' a Boolean? ' + myAnswer
+}"><br>
+
