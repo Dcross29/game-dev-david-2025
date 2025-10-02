@@ -1,9 +1,9 @@
 <script>
-function mySquareFunction {
+function mySquareFunction() {
   let myIn = document.getElementById('myNum02')
-  let myOut = document.getElementById('myDiv')
+  let myOut = document.getElementById('myDiv01')
   myOut.innerHTML = Number(myIn.value) * Number(myIn.value)
-  for (x=0; x<(myOut.value); i++)
+for (let x = 0; x < Number(myIn.value) * Number(myIn.value); x++) 
     }
 </script>
 
@@ -15,4 +15,4 @@ function mySquareFunction {
 
 
 
-<input id="myNum02" type=Number placeholder="0"><br><input type=button value="Square This" onclick="{mySquareFunction()}"><br>
+<input id="myNum02" type=Number placeholder="0"><br><input type=button value="Square This" onclick="mySquareFunction()"><br>
