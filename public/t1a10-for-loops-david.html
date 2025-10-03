@@ -8,11 +8,10 @@
   for (x=0; x<=myNum; x++){
   if (x == 0){
   myTemp += x*x + ' Start <br>'}
-  if (x == myNum*myNum) { 
-  myTemp += x*x + ' Stop <br>'
   }
   else {
   myTemp += x*x + ' <br>'}
+  { myTemp += (myNum*myNum) + ' Stop <br>}
   }
   document.getElementById('myDiv01').innerHTML = myTemp
   }"><br>
