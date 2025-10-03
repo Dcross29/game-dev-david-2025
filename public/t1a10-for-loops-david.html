@@ -4,7 +4,8 @@
 <input type=button value="myEvent squares" onclick="{
   let myTemp = ''
   document.getElementById('myDiv01').innerHTML = ''
-  for (x=0; x<myNum01; x++){
+  let myNum = Number(document.getElementById('myNum01').value)
+  for (x=0; x<myNum; x++){
   if (x == 3){
   myTemp += x + ' third <br>'}
   else { 
