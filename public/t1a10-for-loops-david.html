@@ -6,10 +6,10 @@
   document.getElementById('myDiv01').innerHTML = ''
   let myNum = Number(document.getElementById('myNum01').value)
   for (x=0; x<myNum; x++){
-  if (x == 3){
-  myTemp += x*x + ' third <br>'}
+  if (x == 4){
+  myTemp += x*x + 'Fourth <br>'}
   else { 
-  myTemp += x + '<br>'
+  myTemp += x*x + '<br>'
   }
   }
   document.getElementById('myDiv01').innerHTML = myTemp
