@@ -22,6 +22,13 @@
   myArray4[0] = 'Fred age 10'
   myArray4[1] = 'Fredrick age 20'
   myArray4[2] = 'Fredrickson age 30'
+
+  let myArray5 = new Array()
+
+  myArray5[0] = '<b style="font-weight: 300"> Slight Bold </b>'
+   myArray5[1] = '<b style="font-weight: 600"> Slightly more Bold </b>'
+   myArray5[2] = '<b style="font-weight: 900"> A Lot Bold </b>'
+  
 </script>
 
 <h1 align=center>t1a11-Array-David.html</h1>
@@ -69,8 +76,18 @@ Max Array Entry: <input type=text id="myText01" value="3"><br>
   document.getElementById('myDiv01').innerHTML = mySum
   }">
 
-  <div id="myDiv01">...</div>
+<input type=button value="Show Array5" onClick="{
+  let myMax = document.getElementById('myText01').value
+  let mySum = ''
+  document.getElementById('myDiv01').innerHTML = ' '
 
+  for (let myLoop=0; myLoop < myMax; myLoop++){
+  mySum += 'Loop #:' + myLoop + ' array entry: ' + myArray5[myLoop] +'<br>'
+  }
+  document.getElementById('myDiv01').innerHTML = mySum
+  }">
+
+  <div id="myDiv01">...</div>
   <br>
 
   You do at least 7 other arrays:<br>
