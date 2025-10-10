@@ -1,10 +1,27 @@
 <h2 align=center>t1a10-for-loops-david.html</h2>
 
-<input id="myNum01" type=number value="10" min="0"> <br>
+<input id="myNum01' typenumber value="4" > <br>
+
+<input type=button value="myEvent squares" onclick="{
+  let myTemp = ''
+  document.getELementById('myDiv01').innerHTML = ''
+  for (x=0; x<10; x++){
+    if (x == 3){
+      myTemp += x + ' third <br>'
+    } else {
+      myTemp += x + '<br>'
+    }
+  }
+  document.getElementById('myDiv01').innerHTML = myTemp
+}"><br>
+
+
+-------------------------------------------------------------------------------------<br>
+<input id="myNum02" type=number value="10" min="0"> <br>
 <input type=button value="square + list up to square" onclick="{
   let myTemp = ''
   document.getElementById('myDiv01').innerHTML = ''
-  let myNum = Number(document.getElementById('myNum01').value)
+  let myNum = Number(document.getElementById('myNum02').value)
   for (x=0; x<=myNum; x++){
   if (x == 0){
   myTemp += x*x + ' Start <br>'}
