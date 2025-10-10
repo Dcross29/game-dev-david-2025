@@ -1,11 +1,11 @@
 <h2 align=center>t1a10-for-loops-david.html</h2>
 
-<input id="myNum01' type=number value="4" > <br>
+<input id="myNum01" type=number value="4" > <br>
 
 <input type=button value="myEvent squares" onclick="{
   let myTemp = ''
-  document.getELementById('myDiv01').innerHTML = ''
-  for (x=0; x<10; x++){
+  document.getElementById('myDiv01').innerHTML = ''
+  for (let x=0; x<10; x++){
     if (x == 3){
       myTemp += x + ' third <br>'
     } else {
@@ -22,7 +22,7 @@
   let myTemp = ''
   document.getElementById('myDiv01').innerHTML = ''
   let myNum = Number(document.getElementById('myNum02').value)
-  for (x=0; x<=myNum; x++){
+  for (let x=0; x<=myNum; x++){
   if (x == 0){
   myTemp += x*x + ' Start <br>'}
   
@@ -32,5 +32,5 @@
   document.getElementById('myDiv01').innerHTML = myTemp
   }"><br>
 
-  <div id="myDiv01">...</div>
+<div id="myDiv01">...</div>
 
