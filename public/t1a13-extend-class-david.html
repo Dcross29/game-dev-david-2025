@@ -30,4 +30,15 @@
     myPet = new myCat(document.getElementById('myText01').value,14)
     myPet.myShow()
     }">
+<input type=button value="myDog" onClick="{
+class myDog extends myAnimal {
+  myShow(){
+  document.getElementById('myDiv01').innerHTML = this.myName +' is not a great dog<br>'
+  }
+  } // end extended class myDog
+
+  myPett = new myDog('Fredrick,5')
+  myPett.myShow()
+  }">
+  
     <div id="myDiv01">...</div>
