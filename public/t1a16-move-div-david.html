@@ -6,12 +6,12 @@
     const myImg = document.getElementById('myImg01');
     let left = parseInt(Img.style.left) || 0,
     let top = parseInt(Img.style.top) || 0;
-      if (e.key === 'w') t -= 10;
-     if (e.key === 's') t += 10;
-  if (e.key === 'a') l -= 10;
-  if (e.key === 'd') l += 10;
-      img.style.left = l + 'px';
-  img.style.top = t + 'px';
+      if (e.key === 'w') top -= 10;
+     if (e.key === 's') top += 10;
+  if (e.key === 'a') left -= 10;
+  if (e.key === 'd') left += 10;
+      img.style.left = left + 'px';
+  img.style.top = top + 'px';
 }
     
   
