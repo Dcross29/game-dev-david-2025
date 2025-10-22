@@ -47,4 +47,7 @@ Use WASD to move image
 <b id="myB" style="position:relative; Top:0; left:0; right:0" onclick="{  
   const myDiv = document.getElementById('myB')
   myDiv.style.top = parseInt(myDiv.style.top) + 20 + 'px'
-}">Click Me</b><br>
+}"
+  oncontextmenu="{ const myDiv = document.getElementById('myB')
+  myDiv.style.top = parseInt(myDiv.style.top) + -20 + 'px' }"
+  >Click Me</b><br>
