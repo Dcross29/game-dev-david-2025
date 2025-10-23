@@ -7,12 +7,12 @@
     <canvas id="canvas" width="320" height="240"></canvas>
     <div id="output">Loading model...</div>
 
-    <script src="public/edge-impulse-standalone.js"></script>
+    <script src="edge-impulse-standalone.js"></script>
     <script>
       async function main() {
         // Load model
         const classifier = await EdgeImpulseClassifier.create({
-          wasmPath: "public/edge-impulse-standalone.wasm"
+          wasmPath: "edge-impulse-standalone.wasm"
         });
         document.getElementById('output').innerText = "Model ready! Starting webcam...";
 
