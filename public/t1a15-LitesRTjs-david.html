@@ -12,7 +12,7 @@
       async function main() {
         // Load model
         const classifier = await EdgeImpulseClassifier.create({
-          wasmPath: "edge-impulse-standalone.wasm"
+          wasmPath: "public/edge-impulse-standalone.wasm"
         });
         document.getElementById('output').innerText = "Model ready! Starting webcam...";
 
