@@ -33,7 +33,7 @@
 <input type=button value="myDog" onClick="{
 class myDog extends myAnimal {
   myShow(){
-  document.getElementById('myDiv01').innerHTML = this.myName +' is not a great dog, he attacks (document.getElementById('myText01').value)<br>'
+  document.getElementById('myDiv01').innerHTML = this.myName +' is not a great dog, he attacks ' + document.getElementById('myText01').value + '<br>'
   }
   } // end extended class myDog
 
@@ -42,3 +42,4 @@ class myDog extends myAnimal {
   }">
   
     <div id="myDiv01">...</div>
+
