@@ -1,1 +1,17 @@
 <h1 align=center>t2a17-prince-David.html</h1>
+
+<div id="myDiv01">Prince</div>
+<button onclick="startMove()">Move Right</button>
+
+<script>
+let x = 100
+function startMove() {
+  setInterval(() => {
+    x += 5
+    document.getElementById('myDiv01').style.left = x + 'px'
+  }, 50)
+}
+</script>
+
+</body>
+</html>
