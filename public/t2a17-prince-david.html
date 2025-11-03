@@ -1,3 +1,7 @@
+<h1 align="center">t2a17-prince-David.html</h1>
+
+<div id="myDiv01" style="position:absolute; left:100px; top:300px;">👑 Prince</div>
+<button onclick="drawCrown()">Draw Crown</button>
 
 <script>
 let x = 100;
@@ -20,14 +24,14 @@ function moveCrown() {
     x += step; y -= step;
   } else if (phase < 40) {    // Down-right
     x += step; y += step;
-  } else if (phase < 60) {    // Up (middle spike)
+  } else if (phase < 60) {    // Big spike up
     y -= step * 2;
-  } else if (phase < 80) {    // Down-right
+  } else if (phase < 80) {    // Big dip down
     x += step; y += step * 2;
-  } else if (phase < 100) {   // Up-right small spike
+  } else if (phase < 100) {   // Small rise
     x += step; y -= step;
   } else {
-    clearInterval(timer);
+    clearInterval(timer); // stop at the end
   }
 
   div.style.left = x + "px";
