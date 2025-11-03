@@ -3,12 +3,44 @@
 <div style="position:relative; left:0; right:0"  id="myDiv01">Prince</div>
 <button onclick="startMove()">Move Right</button>
 
+<h1 align="center">t2a17-prince-David.html</h1>
+
+<div id="myDiv01" style="position:absolute; left:100px; top:300px;">👑 Prince</div>
+<button onclick="drawCrown()">Draw Crown</button>
+
 <script>
-let x = 0
-function startMove() {
-  setInterval(() => {
-    x += 5
-    document.getElementById('myDiv01').style.left = x + 'px'
-  }, 50)
+let x = 100;
+let y = 300;
+let step = 5;
+let phase = 0;
+let timer;
+
+function drawCrown() {
+  clearInterval(timer); // reset any previous animation
+  phase = 0;
+  timer = setInterval(moveCrown, 50);
+}
+
+function moveCrown() {
+  const div = document.getElementById("myDiv01");
+
+  // Move in a crown-like zigzag path
+  if (phase < 20) {           // Up-right
+    x += step; y -= step;
+  } else if (phase < 40) {    // Down-right
+    x += step; y += step;
+  } else if (phase < 60) {    // Up (middle spike)
+    y -= step * 2;
+  } else if (phase < 80) {    // Down-right
+    x += step; y += step * 2;
+  } else if (phase < 100) {   // Up-right small spike
+    x += step; y -= step;
+  } else {
+    clearInterval(timer);
+  }
+
+  div.style.left = x + "px";
+  div.style.top = y + "px";
+  phase++;
 }
 </script>
