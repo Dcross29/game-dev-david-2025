@@ -1,6 +1,6 @@
 <h1 align="center">t2a17-prince-David.html</h1>
 
-<div id="myDiv01" style="position:absolute; left:100px; top:300px;">👑 Prince</div>
+<div id="myDiv01" style="position:absolute; left:100px; top:300px;">Prince</div>
 <button onclick="drawCrown()">Draw Crown</button>
 
 <script>
@@ -13,25 +13,30 @@ let timer;
 function drawCrown() {
   clearInterval(timer); // reset any previous animation
   phase = 0;
+  x = 100; // reset start
+  y = 300;
   timer = setInterval(moveCrown, 50);
 }
 
 function moveCrown() {
   const div = document.getElementById("myDiv01");
 
-  // Move in a crown-like zigzag path
+  // Crown shape path
   if (phase < 20) {           // Up-right
     x += step; y -= step;
   } else if (phase < 40) {    // Down-right
     x += step; y += step;
   } else if (phase < 60) {    // Big spike up
-    y -= step * 2;
+    x += step; y -= step * 2;
   } else if (phase < 80) {    // Big dip down
     x += step; y += step * 2;
   } else if (phase < 100) {   // Small rise
     x += step; y -= step;
+  } else if (phase < 120) {   // Return to baseline (bottom of crown)
+    x += step; 
+    if (y < 300) y += step;   // bring it back down to bottom
   } else {
-    clearInterval(timer); // stop at the end
+    clearInterval(timer); // stop animation
   }
 
   div.style.left = x + "px";
