@@ -1,6 +1,6 @@
 <h1 align="center">t2a17-prince-David.html</h1>
 
-<div id="myDiv01" style="position:absolute; left:100px; top:300px;">Prince</div>
+<div id="myDiv01" style="position:absolute; left:100px; top:300px;">👑 Prince</div>
 <button onclick="drawCrown()">Draw Crown</button>
 
 <script>
@@ -11,9 +11,9 @@ let phase = 0;
 let timer;
 
 function drawCrown() {
-  clearInterval(timer); // reset any previous animation
+  clearInterval(timer);
   phase = 0;
-  x = 100; // reset start
+  x = 100;
   y = 300;
   timer = setInterval(moveCrown, 50);
 }
@@ -21,7 +21,7 @@ function drawCrown() {
 function moveCrown() {
   const div = document.getElementById("myDiv01");
 
-  // Crown shape path
+  // Crown top spikes
   if (phase < 20) {           // Up-right
     x += step; y -= step;
   } else if (phase < 40) {    // Down-right
@@ -32,11 +32,18 @@ function moveCrown() {
     x += step; y += step * 2;
   } else if (phase < 100) {   // Small rise
     x += step; y -= step;
-  } else if (phase < 120) {   // Return to baseline (bottom of crown)
-    x += step; 
-    if (y < 300) y += step;   // bring it back down to bottom
+  } 
+  // Return to baseline (bottom of crown)
+  else if (phase < 120) {
+    x += step;
+    if (y < 300) y += step;   // move downward
+    if (y > 300) y = 300;     // snap cleanly to baseline
+  } 
+  // Optional: move left to close the crown
+  else if (phase < 140) {
+    x -= step;                // slide left back to start
   } else {
-    clearInterval(timer); // stop animation
+    clearInterval(timer);
   }
 
   div.style.left = x + "px";
