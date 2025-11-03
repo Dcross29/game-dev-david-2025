@@ -21,27 +21,23 @@ function drawCrown() {
 function moveCrown() {
   const div = document.getElementById("myDiv01");
 
-  // Crown top spikes
-  if (phase < 20) {           // Up-right
+  // Crown spikes (up and down motion)
+  if (phase < 20) {           // small up spike
     x += step; y -= step;
-  } else if (phase < 40) {    // Down-right
+  } else if (phase < 40) {    // small down
     x += step; y += step;
-  } else if (phase < 60) {    // Big spike up
+  } else if (phase < 60) {    // big spike up
     x += step; y -= step * 2;
-  } else if (phase < 80) {    // Big dip down
+  } else if (phase < 80) {    // big down
     x += step; y += step * 2;
-  } else if (phase < 100) {   // Small rise
+  } else if (phase < 100) {   // final small up
     x += step; y -= step;
-  } 
-  // Return to baseline (bottom of crown)
-  else if (phase < 120) {
+  } else if (phase < 120) {   // back to bottom (complete top part)
     x += step;
-    if (y < 300) y += step;   // move downward
-    if (y > 300) y = 300;     // snap cleanly to baseline
-  } 
-  // Optional: move left to close the crown
-  else if (phase < 140) {
-    x -= step;                // slide left back to start
+    if (y < 300) y += step;
+  } else if (phase < 160) {   // draw bottom line to left (close crown)
+    x -= step;
+    y = 300;
   } else {
     clearInterval(timer);
   }
