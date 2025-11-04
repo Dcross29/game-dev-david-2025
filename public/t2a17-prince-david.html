@@ -4,8 +4,10 @@
 <button onclick="drawCrown()">Draw Crown</button>
 
 <script>
-let x = 100;
-let y = 300;
+let startX = 100;
+let startY = 300;
+let x = startX;
+let y = startY;
 let step = 5;
 let phase = 0;
 let timer;
@@ -13,32 +15,35 @@ let timer;
 function drawCrown() {
   clearInterval(timer);
   phase = 0;
-  x = 100;
-  y = 300;
+  x = startX;
+  y = startY;
   timer = setInterval(moveCrown, 50);
 }
 
 function moveCrown() {
   const div = document.getElementById("myDiv01");
 
-  // Crown spikes (up and down motion)
-  if (phase < 20) {           // small up spike
-    x += step; y -= step;
-  } else if (phase < 40) {    // small down
+  // Draw spikes first
+  if (phase < 20) {
+    x += step; y -= step; 
+  } else if (phase < 40) {
     x += step; y += step;
-  } else if (phase < 60) {    // big spike up
+  } else if (phase < 60) {
     x += step; y -= step * 2;
-  } else if (phase < 80) {    // big down
+  } else if (phase < 80) {
     x += step; y += step * 2;
-  } else if (phase < 100) {   // final small up
+  } else if (phase < 100) {
     x += step; y -= step;
-  } else if (phase < 120) {   // back to bottom (complete top part)
-    x += step;
-    if (y < 300) y += step;
-  } else if (phase < 160) {   // draw bottom line to left (close crown)
+  }
+  // THEN return to starting Y EXACTLY
+  else if (y < startY) {
+    y += step;
+  }
+  // THEN move left until we reach startX EXACTLY
+  else if (x > startX) {
     x -= step;
-    y = 300;
-  } else {
+  } 
+  else {
     clearInterval(timer);
   }
 
