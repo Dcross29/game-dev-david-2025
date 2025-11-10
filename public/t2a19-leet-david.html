@@ -14,9 +14,7 @@
 <pre>
   <script>
   function myReverse(){
-document.getElementById('MyStringIn').innerHTML=document.getElementById('MyStringOut').value
-  }
-  function myReverse(){
+    document.getElementById('MyStringIn').innerHTML=document.getElementById('MyStringOut').value
 let myIn = document.getElementById('MyStringIn')
 let myOut= document.getElementById('MyStringOut')
     myOut.innerHTML = console.log(reverseString('myIn')
@@ -26,5 +24,21 @@ let myOut= document.getElementById('MyStringOut')
     <div id="MyStringOut">Output</div>
   <input value="Reverse value of ..." type=button onclick="{function myReverse()}>
 </pre>
-  <br><br><li> Put the chatGPT working code here. (Sensibly, it does not need several tags that are not used)
+  <br><br><li>   <div id="MyStringIn">Reverse</div>
+    <div id="MyStringOut">Output</div>
+    
+    <input type="button" value="Reverse value of ..." onclick="myReverse()">
+
+    <script>
+      function myReverse() {
+        // Get text from MyStringIn div
+        let myIn = document.getElementById('MyStringIn').innerHTML;
+
+        // Reverse the text
+        let reversed = myIn.split('').reverse().join('');
+
+        // Show reversed string in MyStringOut div
+        document.getElementById('MyStringOut').innerHTML = reversed;
+      }
+    </script>
 </ol>
