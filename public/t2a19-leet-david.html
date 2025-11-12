@@ -29,17 +29,15 @@ let myOut= document.getElementById('MyStringOut')
   Chatgpt working code: <br>
   <script>
 function myReverse() {
-  document.getElementById('MyStringIn').innerHTML = document.getElementById('MyStringOut').value;
-  let myIn = document.getElementById('MyStringIn');
-  let myOut = document.getElementById('MyStringOut');
-  myOut.innerHTML = reverseString(myIn.innerHTML);
+  let myIn = document.getElementById('MyStringIn').value;
+  let reversed = myIn.split('').reverse().join('');
+  document.getElementById('MyStringOut').innerHTML = reversed;
 }
 </script>
 
 <input type="text" value="Input" id="MyStringIn">
 <div id="MyStringOut">Output</div>
 <input value="Reverse value of Input" type="button" onclick="myReverse()">
-
   
 </ol>
   
