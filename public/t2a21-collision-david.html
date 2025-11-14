@@ -1,1 +1,13 @@
 <h1 align=center>t2a21-collision-david.html</h1>
+
+<img id="myImg01" src="myImage01.jpg" style="position:absolute; left:0px; width:50px;
+  height:30px;">
+
+<img id="myImg02" src="myImage02.jpg" src="myImage02.jpg" style="position:absolute; left:100px;
+  top:0px; width:50px; height:30px;><br>
+
+<input type=button value="move" onclick="{
+document.getElementById('myImg01').style.left = 
+parseInt(document.getElementById('myImg01').style.left) + 10 + 'px';
+myCheckHit();
+}"><br>
