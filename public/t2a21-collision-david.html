@@ -1,32 +1,50 @@
-<h1 align=center>t2a21-collision-david.html</h1>
-<div id="myDiv01">...</div>
-<img width="200" id="myImg01" src="arrow.jpg" 
-style="position:absolute; left:200px; width:50px; height:30px;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>t2a21-collision-david.html</title>
+</head>
+<body>
+  <h1 align="center">t2a21-collision-david.html</h1>
 
-<img width="200" id="myImg02" src="move.jpg" 
-style="position:absolute; left:0px; top:0px; width:50px; height:30px;"><br>
-<br>
-<br><br>
-<input type=button value="move" onclick="{
-document.getElementById('myImg01').style.left = 
-parseInt(document.getElementById('myImg01').style.left) + 10 + 'px';
-myCheckHit();
-}"><br>
-<script>
-function myCheckHit() {
-  const img1 = document.getElementById('myImg01');
-  const img2 = document.getElementById('myImg02');
+  <img id="myImg01" src="arrow.jpg"
+       style="position:absolute; left:200px; top:0px; width:50px; height:30px;" />
 
-  const r1 = img1.getBoundingClientRect();
-  const r2 = img2.getBoundingClientRect();
+  <img id="myImg02" src="move.jpg"
+       style="position:absolute; left:0px; top:0px; width:50px; height:30px;" />
 
-  if (
-    r1.right > r2.left &&
-    r1.left < r2.right &&
-    r1.bottom > r2.top &&
-    r1.top < r2.bottom
-  ) {
-    document.getElementById('myDiv01').innerHTML = "Hit!";
-  }
-}
-</script>
+  <br style="clear:both; margin-top:60px;" />
+
+  <input type="button" value="move" onclick="
+    (function(){
+      const img = document.getElementById('myImg02');
+      const cur = parseInt(img.style.left) || 0;
+      img.style.left = (cur + 10) + 'px';
+      myCheckHit();
+    })();
+  " />
+
+  <div id="myDiv01" style="margin-top:10px; font-weight:bold;"></div>
+
+  <script>
+    function myCheckHit() {
+      const img1 = document.getElementById('myImg01');
+      const img2 = document.getElementById('myImg02');
+
+      const r1 = img1.getBoundingClientRect();
+      const r2 = img2.getBoundingClientRect();
+
+      if (
+        r1.right > r2.left &&
+        r1.left < r2.right &&
+        r1.bottom > r2.top &&
+        r1.top < r2.bottom
+      ) {
+        document.getElementById('myDiv01').innerText = "Hit!";
+      } else {
+        document.getElementById('myDiv01').innerText = "";
+      }
+    }
+  </script>
+</body>
+</html>
