@@ -1,5 +1,5 @@
 <h1 align=center>t2a21-collision-david.html</h1>
-
+<div id="myDiv01">...</div>
 <img width="200" id="myImg01" src="arrow.jpg" style="position:absolute; left:0px; width:50px;
   height:30px;">
 
@@ -11,3 +11,21 @@ document.getElementById('myImg01').style.left =
 parseInt(document.getElementById('myImg01').style.left) + 10 + 'px';
 myCheckHit();
 }"><br>
+<script>
+function myCheckHit() {
+  const img1 = document.getElementById('myImg01');
+  const img2 = document.getElementById('myImg02');
+
+  const r1 = img1.getBoundingClientRect();
+  const r2 = img2.getBoundingClientRect();
+
+  if (
+    r1.right > r2.left &&
+    r1.left < r2.right &&
+    r1.bottom > r2.top &&
+    r1.top < r2.bottom
+  ) {
+    document.getElementById('myDiv01').innerHTML = "Hit!";
+  }
+}
+</script>
