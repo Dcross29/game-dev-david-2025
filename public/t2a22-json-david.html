@@ -11,9 +11,9 @@
 
     const img = data.image || data.url;
 
-    
     if (img.endsWith(".jpg") || img.endsWith(".jpeg") || img.endsWith(".png") || img.endsWith(".gif")) {
-      document.getElementById('myDiv1').innerHTML += `<img src="${img}" alt="Random Image" style="max-width: 100%; height: auto;">`;
+      document.getElementById('myDiv1').innerHTML +=
+        `<img src="${img}" alt="Random Image" style="max-width: 100%; height: auto;">`;
     }
   }
 </script>
@@ -24,6 +24,9 @@
   <option value="https://random.dog/woof.json">randomDog</option>
   <option value="https://foodish-api.com/api/">randomFood</option>
   <option value="https://yesno.wtf/api">randomYesNo</option>
+  <option value="https://random-d.uk/api/v2/random">randomDuck</option>
+  <option value="https://aws.random.cat/meow">randomCat</option>
+  <option value="https://api.bunnies.io/v2/loop/random/?media=gif,png">randomBunny</option>
 </select><br><br>
 
 <div id="myDiv1">...</div>
