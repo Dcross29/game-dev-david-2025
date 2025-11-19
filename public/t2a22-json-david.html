@@ -9,25 +9,7 @@
     const myJson = JSON.stringify(data, null, 2);
     document.getElementById('myDiv1').innerHTML = `<pre>${myJson}</pre>`;
 
-  
-    const img =
-      data.image ||             
-      data.url ||             
-      data.file ||             
-      (data.media && (data.media.gif || data.media.poster)); 
-
-    if (typeof img === "string" &&
-        (img.endsWith(".jpg") ||
-         img.endsWith(".jpeg") ||
-         img.endsWith(".png") ||
-         img.endsWith(".gif"))) {
-
-      document.getElementById('myDiv1').innerHTML +=
-        `<img src="${img}" alt="Random Image" style="max-width: 100%; height: auto;">`;
-    } else {
-      document.getElementById('myDiv1').innerHTML +=
-        `<p><b>No image available — media is not an image.</b></p>`;
-    }
+    document.getElementById('myDiv1').innerHTML += `<img src="${data.image}" alt="Random Image" style="max-width: 100%; height: auto;">`;
   }
 </script>
 
@@ -35,9 +17,6 @@
   <option></option>
   <option value="https://randomfox.ca/floof/">randomfox</option>
   <option value="https://random.dog/woof.json">randomdog</option>
-  <option value="https://random-d.uk/api/random">randomduck</option>
-  <option value="https://aws.random.cat/meow">randomcat</option>
-  <option value="https://api.bunnies.io/v2/loop/random/?media=gif,png">randombunny</option>
 </select><br><br>
 
 <div id="myDiv1">...</div>
