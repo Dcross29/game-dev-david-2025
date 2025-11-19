@@ -24,6 +24,9 @@
 
       document.getElementById('myDiv1').innerHTML +=
         `<img src="${img}" alt="Random Image" style="max-width: 100%; height: auto;">`;
+    } else {
+      document.getElementById('myDiv1').innerHTML +=
+        `<p><b>No image available — media is not an image.</b></p>`;
     }
   }
 </script>
