@@ -9,9 +9,15 @@
     const myJson = JSON.stringify(data, null, 2);
     document.getElementById('myDiv1').innerHTML = `<pre>${myJson}</pre>`;
 
-    const img = data.image || data.url;
+  
+    const img =
+      data.image ||             
+      data.url ||             
+      data.file ||             
+      (data.media && (data.media.gif || data.media.poster)); 
 
-    document.getElementById('myDiv1').innerHTML += `<img src="${img}" alt="Random Image" style="max-width: 100%; height: auto;">`;
+    document.getElementById('myDiv1').innerHTML +=
+      `<img src="${img}" alt="Random Image" style="max-width: 100%; height: auto;">`;
   }
 </script>
 
