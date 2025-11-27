@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Magic Word</title>
+  <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 50px;
+      text-align: center;
+    }
+    input { padding: 5px; font-size: 16px; }
+    button { padding: 5px 10px; font-size: 16px; }
+    h2 { margin-top: 20px; color: darkblue; }
+  </style>
+</head>
+<body>
+
+  <h1>magic word</h1>
+  <form id="magicForm">
+    <input type="text" id="magicInput" value="fred">
+    <button type="submit">Submit</button>
+  </form>
+  <h2 id="response"></h2>
+
+  <script>
+    // Initialize Parse with your Back4App credentials
+    Parse.initialize("dOEPFRioEg5GMAfmM2assPpHboWu8ha5HATmoRUM", "1U8HteeFzK29D0me2ca8OZZzlmwz7kY3HA8ww2cJ");  // <-- replace these
+    Parse.serverURL = "https://parseapi.back4app.com/";
+
+    const form = document.getElementById("magicForm");
+    const responseEl = document.getElementById("response");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const word = document.getElementById("magicInput").value;
+
+      try {
+        const result = await Parse.Cloud.run("checkMagicWord", { word });
+        responseEl.textContent = result.result;
+      } catch (err) {
+        responseEl.textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
