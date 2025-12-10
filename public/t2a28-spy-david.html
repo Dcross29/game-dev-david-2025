@@ -1,44 +1,59 @@
 <h1 align=center>t2a28-spy-david.html</h1>
-<textarea id="myArea01" rows=4 cols=70>Hello how are you</textarea><br> 
 
-<!-- YOUR ORIGINAL ENCRYPTION -->
+<textarea id="myArea01" rows=4 cols=70>Hello how are you</textarea><br>
+
+
+<!-- ========================== -->
+<!-- YOUR ORIGINAL ENCRYPTION  -->
+<!-- ========================== -->
+
 <input type=button value="encrypt" onclick="{
    let myTemp = ''
    myString = document.getElementById('myArea01').value.toLowerCase().split('')
    for (let myLoop=0; myLoop < myString.length; myLoop++){
       myTemp = myString[myLoop]
+
       if (myString[myLoop] == 'e') {myTemp = 'f'} 
       if (myString[myLoop] == 'h') {myTemp = 'i'} 
+
       myString[myLoop] = myTemp
    }
    document.getElementById('myArea02').value = myString.join('')
 }"><br><br>
 
-<textarea id="myArea02" rows=4 cols=70></textarea><br> 
 
-<!-- YOUR ORIGINAL DECRYPTION -->
+<textarea id="myArea02" rows=4 cols=70></textarea><br>
+
+
+<!-- ========================== -->
+<!-- YOUR ORIGINAL DECRYPTION  -->
+<!-- ========================== -->
+
 <input type=button value="decrypt" onclick="{
    let myTemp = ''
    myString = document.getElementById('myArea02').value.toLowerCase().split('')
    for (let myLoop=0; myLoop < myString.length; myLoop++){
       myTemp = myString[myLoop]
+
       if (myString[myLoop] == 'f') {myTemp = 'e'} 
       if (myString[myLoop] == 'i') {myTemp = 'h'} 
+
       myString[myLoop] = myTemp
    }
    document.getElementById('myArea03').value = myString.join('')
 }"><br><br>
 
-<textarea id="myArea03" rows=4 cols=70></textarea><br>
+
+<textarea id="myArea03" rows=4 cols=70></textarea><br><br>
+
+<hr>
+<h2>Extra Encryptions</h2>
 
 
+<!-- ========================== -->
+<!-- 1. REVERSE TEXT           -->
+<!-- ========================== -->
 
-<!-- ========================================== -->
-<!-- 🔥 NEW TOTALLY SEPARATE ENCRYPTIONS BELOW -->
-<!-- ========================================== -->
-
-
-<!-- 1. REVERSE TEXT -->
 <input type=button value="reverse encrypt" onclick="{
    let t = document.getElementById('myArea01').value.split('').reverse().join('')
    document.getElementById('myArea02').value = t
@@ -51,7 +66,10 @@
 <br><br>
 
 
-<!-- 2. SHIFT LETTERS BY 1 (a→b, z→a) -->
+<!-- ========================== -->
+<!-- 2. SHIFT LETTERS BY 1     -->
+<!-- ========================== -->
+
 <input type=button value="shift encrypt" onclick="{
    let text = document.getElementById('myArea01').value.toLowerCase()
    let out = ''
@@ -80,15 +98,18 @@
 <br><br>
 
 
-<!-- 3. LETTERS TO NUMBERS -->
+<!-- ========================== -->
+<!-- 3. NUMBERS ENCRYPTION     -->
+<!-- ========================== -->
+
 <input type=button value="number encrypt" onclick="{
    let text = document.getElementById('myArea01').value.toLowerCase()
    let out = ''
    for (let c of text){
       if (c >= 'a' && c <= 'z'){
-         out += (c.charCodeAt(0)-96) + ' '
+         out += (c.charCodeAt(0) - 96) + ' '
       } else {
-         out += c + ' '
+         out += '  '   // make sure spaces are visible
       }
    }
    document.getElementById('myArea02').value = out
@@ -98,9 +119,13 @@
    let parts = document.getElementById('myArea02').value.split(' ')
    let out = ''
    for (let p of parts){
-      let num = parseInt(p)
-      if (!isNaN(num)){
-         out += String.fromCharCode(num + 96)
+      if (p.trim() === '') {
+         out += ' '   // restore spaces
+      } else {
+         let num = parseInt(p)
+         if (!isNaN(num)){
+            out += String.fromCharCode(num + 96)
+         }
       }
    }
    document.getElementById('myArea03').value = out
