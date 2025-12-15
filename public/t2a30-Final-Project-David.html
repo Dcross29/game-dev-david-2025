@@ -71,41 +71,7 @@ function myCheckHit(){
 
 
 
-
-<input type=button value="Auto Background Left" onclick="{
-  clearInterval(myClock)
-  let myTemp = '100px 0px'
-  myClock = setInterval(function(){
-      myGlobalX -= 5
-      myTemp =  myGlobalX + 'px 0px'
-      document.getElementById('myBody').style.backgroundPosition = myTemp
-  }, 100)
-    
-}">
-
-
-<input type=button value="Right" onTouchStart="{this.click(); event.preventDefault();}" onclick="{
-  document.getElementById('myImg01').style.left = parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
-  myCheckHit()     // checks for all collisions
-}">
-
-<input type=button value="Down" onTouchStart="{this.click(); event.preventDefault();}" onclick="{
-  document.getElementById('myImg01').style.top = parseInt(document.getElementById('myImg01').style.top) + 10 + 'px'
-  myCheckHit()     // checks for all collisions
-}">
-
-
-
-<input type=button value="Auto Right" onTouchStart="{this.click(); event.preventDefault();}" onclick="{
-
-  clearInterval(myTimer01)
-  myTimer01 = setInterval(function(){
-     document.getElementById('myImg01').style.left = parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
-     myCheckHit()     // checks for all collisions
-  }, 50)
-
-
-}"><br><br>
+<br><br>
 
 
 <img id="myImg01" src="mc.gif" title="myImg01" style="position:absolute; width:100px; height:80px; left: 50px; top:190px;">
