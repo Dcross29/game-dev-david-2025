@@ -61,11 +61,12 @@ function myCheckHit(){
        document.getElementById('myImg01').style.left = '10px'
    }
 
-function myKeyPress(event) {
-    alert(`You pressed: ${event.key}`);
+
   }
 
   function myWasdFunction(e) {
+    e.key = e.key.toLowerCase() 
+
     const myImg = document.getElementById('myImg01');
     let left = parseInt(myImg.style.left) || 0;
     let top = parseInt(myImg.style.top) || 0;
@@ -77,9 +78,8 @@ function myKeyPress(event) {
 
     myImg.style.left = left + 'px';
     myImg.style.top = top + 'px';
-  }
+}
 
-  document.addEventListener('keydown', myWasdFunction);
 
 
 }
