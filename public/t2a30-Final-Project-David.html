@@ -5,7 +5,6 @@
 
 <script>
 
-   // global variables here
    let myGlobalX = 0
    let myClock
    let myTimer01
@@ -63,6 +62,8 @@ function myWasdFunction(e) {
 
     myImg.style.left = left + 'px';
     myImg.style.top = top + 'px';
+
+    myCheckHit()   <!-- ONLY ADDITION -->
 }
 
 document.addEventListener('keydown', myWasdFunction)
@@ -75,3 +76,5 @@ document.addEventListener('keydown', myWasdFunction)
 <img id="myImg02" src="iron.jpg" style="position:absolute; width:10px; height:80px; left:350px; top:190px;">
 <img id="myImg03" src="iron.jpg" style="position:absolute; width:100px; height:8px; left:500px; top:190px;">
 <img id="myImg04" src="doorclosed.gif" style="position:absolute; width:100px; height:80px; left:500px; top:400px;">
+
+
