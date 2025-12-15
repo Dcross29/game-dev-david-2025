@@ -61,7 +61,25 @@ function myCheckHit(){
        document.getElementById('myImg01').style.left = '10px'
    }
 
+function myKeyPress(event) {
+    alert(`You pressed: ${event.key}`);
+  }
 
+  function myWasdFunction(e) {
+    const myImg = document.getElementById('myImg01');
+    let left = parseInt(myImg.style.left) || 0;
+    let top = parseInt(myImg.style.top) || 0;
+
+    if (e.key === 'w') top -= 10;
+    if (e.key === 's') top += 10;
+    if (e.key === 'a') left -= 10;
+    if (e.key === 'd') left += 10;
+
+    myImg.style.left = left + 'px';
+    myImg.style.top = top + 'px';
+  }
+
+  document.addEventListener('keydown', myWasdFunction);
 
 
 }
