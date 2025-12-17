@@ -69,6 +69,11 @@ function myCheckHit(){
        document.getElementById('myImg01').style.left = '10px'
         document.getElementById('myImg01').style.top = '250px'
    }
+   
+   if( parseInt(document.getElementById('myImg01').style.left) <0 ){
+       document.getElementById('myImg01').style.left = '10px'
+        document.getElementById('myImg01').style.top = '250px'
+   }
 }
 
 function myWasdFunction(e) {
