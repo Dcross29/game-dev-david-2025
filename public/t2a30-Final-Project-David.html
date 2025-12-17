@@ -57,6 +57,12 @@ function myCheckHit(){
       document.getElementById('myImg01').style.left = '20px'
             document.getElementById('myImg01').style.top = '250px'
    }
+
+ if ( myHitOther('myImg01','myImg05.5') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+ }
+   
    if ( myHitOther('myImg01','myImg04') ){
        document.getElementById('myLock').innerText='This door is locked, if only there were a key...'
    }
