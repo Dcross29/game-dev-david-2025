@@ -57,7 +57,7 @@ function myCheckHit(){
       document.getElementById('myImg01').style.left = '20px'
             document.getElementById('myImg01').style.top = '250px'
    }
-   if ( myHitOther('myImg01','myImg05.5') ){
+   if ( myHitOther('myImg01','myImg04') ){
        document.getElementById('myLock').innerText='This door is locked, if only there were a key...'
        document.getElementById('myImg01').style.left = '20px'
             document.getElementById('myImg01').style.top = '250px'
@@ -107,11 +107,10 @@ document.addEventListener('keydown', myWasdFunction)
    <img id="myImg03.2" src="iron.jpg" style="position:absolute; width:450px; height:10px; left:0px; top:400px;"> 
 <img id="myImg05" src="iron.jpg" style="position:absolute; width:150px; height:10px; left:450px; top:110px;"> 
 <img id="myImg06" src="iron.jpg" style="position:absolute; width:10px; height:100px; left:450px; top:110px;"> 
-<img id="myImg05.5" src="iron.jpg" style="position:absolute; width:150px; height:10px; left:450px; top:700px;"> 
 
    <img id="myImg07" src="key.gif" style="position:absolute; width:50px; height:50px; left:500px; top: 120px;">
 <div id="myLock" style="position:absolute; width:100px; height:80px; left:650px; top:650px;"></div>
-   <img id="myImg04" src="dooropen.gif" style="position:absolute; width:100px; height:80px; left:480px; top:750px;">
+   <img id="myImg04" src="doorclosed.gif" style="position:absolute; width:100px; height:80px; left:480px; top:550px;">
 
 </body>
 </html>
