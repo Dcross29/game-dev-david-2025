@@ -64,6 +64,7 @@ function myCheckHit(){
  }
 
 if ( myHitOther('myImg01','myImg07') ){
+   document.getElementById('myImg07').style.display = "none"
    document.getElementById('myUnlock').innerText='You hear a door slide open...'
    document.getElementById('myLock').innerText=''
       document.getElementById('myImg04').src = 'dooropen.gif'
