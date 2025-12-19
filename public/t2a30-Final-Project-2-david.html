@@ -20,14 +20,16 @@
      style="position:absolute; width:127px; height:127px; left:1178px; top:565px;"
      onclick="
        event.stopPropagation();
+       doorOpen = true;
        document.getElementById('myBody').background='lvl2dooropen.gif';
        this.style.display='none';
      ">
 
 <script>
+let doorOpen = false;
+
 function myNextLvl() {
-  const body = document.getElementById('myBody');
-  if (body.background.includes('lvl2dooropen.gif')) {
+  if (doorOpen) {
     location = 'https://www.google.com/';
   }
 }
