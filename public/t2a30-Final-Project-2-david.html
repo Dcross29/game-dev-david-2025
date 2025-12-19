@@ -1,21 +1,37 @@
+<!DOCTYPE html>
+<html>
+<body id="myBody"
+      style="background-size:100%"
+      background="lvl2doorclose.gif"
+      onclick="myNextLvl()">
+
+<h3>
+<details>
+  <summary>How to Progress</summary>
+  <ul>
+    <li>1. Click the red button</li>
+    <li>2. Click the open door</li>
+  </ul>
+</details>
+</h3>
+
+<img id="mybutton"
+     src="Button.gif"
+     style="position:absolute; width:127px; height:127px; left:1178px; top:565px;"
+     onclick="
+       event.stopPropagation();
+       document.getElementById('myBody').background='lvl2dooropen.gif';
+       this.style.display='none';
+     ">
+
 <script>
 function myNextLvl() {
   const body = document.getElementById('myBody');
-
-  // Only navigate if the background is open when the user clicks
   if (body.background.includes('lvl2dooropen.gif')) {
     location = 'https://www.google.com/';
   }
 }
 </script>
 
-  
-  <h3><details value="How to Progress">
-  <li>1.Click the red button
-    <li>2.Click the open door
-</details></h3>
-<body id="myBody" style="background-size:100%" background="lvl2doorclose.gif" onclick="myNextLvl()">
-  <img id="mybutton" src="Button.gif" style="position:absolute; width:127px; height:127px; left:1178px; top: 565px;" 
-    onclick="{ document.getElementById('myBody').background= 'lvl2dooropen.gif'
-    document.getElementById('mybutton').style.display = '0'}
-    ">
+</body>
+</html>
