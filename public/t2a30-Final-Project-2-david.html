@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body id="myBody"
-      style="background-size:100%"
-      background="lvl2doorclose.gif"
+      style="background-size:100%; background-image:url('lvl2doorclose.gif');"
       onclick="myNextLvl()">
 
 <h3>
@@ -21,7 +20,7 @@
      onclick="
        event.stopPropagation();
        doorOpen = true;
-       document.getElementById('myBody').background='lvl2dooropen.gif';
+       document.getElementById('myBody').style.backgroundImage = 'url(lvl2dooropen.gif)';
        this.style.display='none';
      ">
 
@@ -30,7 +29,7 @@ let doorOpen = false;
 
 function myNextLvl() {
   if (doorOpen) {
-    location = 'https://www.google.com/';
+    location.href = 'https://www.google.com/';
   }
 }
 </script>
