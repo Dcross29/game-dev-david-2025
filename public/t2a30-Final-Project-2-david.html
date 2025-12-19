@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html>
 <body id="myBody"
-      style="background-size:100%; background-image:url('lvl2doorclose.gif');"
-      onclick="myNextLvl()">
+      style="background-size:100%; background-image:url('lvl2doorclose.gif');">
 
 <h3>
-<details>
+<details open>
   <summary>How to Progress</summary>
   <ul>
     <li>1. Click the red button</li>
-    <li>2. Click the open door</li>
+    <li>2. Press W when the door is open</li>
   </ul>
 </details>
 </h3>
@@ -27,11 +26,11 @@
 <script>
 let doorOpen = false;
 
-function myNextLvl() {
-  if (doorOpen) {
+document.addEventListener('keydown', function(e) {
+  if (doorOpen && (e.key === 'w' || e.key === 'W')) {
     location.href = 'https://www.google.com/';
   }
-}
+});
 </script>
 
 </body>
