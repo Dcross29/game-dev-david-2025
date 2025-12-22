@@ -1,51 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>I will pop that bubble - lvl 3</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+  #roomView {
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  #arrowLeft, #arrowRight {
+    position: absolute;
+    top: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    z-index: 10;
+    transform: translateY(-50%);
+  }
+  #arrowLeft { left: 10px; }
+  #arrowRight { right: 10px; }
 
-<h1><font color=red>I will pop that bubble - lvl 3</font></h1>
+  #item1, #shelfDoor {
+    position: absolute;
+    cursor: pointer;
+    transition: opacity 0.3s;
+  }
+</style>
+</head>
+<body>
 
-<body style="margin:0; overflow:hidden;">
+<h1 style="color:red; text-align:center;">I will pop that bubble - lvl 3</h1>
 
-<img id="arrowLeft" src="Arrowleft.gif"
-style="position:absolute; left:10px; top:50%; width:50px; height:50px; cursor:pointer; z-index:10;">
-
-<img id="arrowRight" src="Arrowright.gif"
-style="position:absolute; right:10px; top:50%; width:50px; height:50px; cursor:pointer; z-index:10;">
-
-<div id="roomView"
-style="width:100vw; height:100vh; background-size:cover; position:relative;">
+<div id="roomView">
+  <img id="arrowLeft" src="Arrowleft.gif">
+  <img id="arrowRight" src="Arrowright.gif">
 
   <!-- Center item -->
-  <img id="item1" src="item.png"
-  style="position:absolute; left:500px; top:300px; width:50px; height:50px; cursor:pointer; display:none;">
+  <img id="item1" src="item.png">
 
   <!-- Shelf door -->
-  <img id="shelfDoor" src="Shelfdoor.gif"
-  style="position:absolute; left:420px; top:260px; cursor:pointer; display:none; transition:opacity 0.3s;">
+  <img id="shelfDoor" src="Shelfdoor.gif">
 </div>
 
 <script>
 let currentView = 'center';
 let shelfOpen = false;
 
-function updateView() {
-  const room = document.getElementById('roomView');
-  const item1 = document.getElementById('item1');
-  const shelf = document.getElementById('shelfDoor');
+const room = document.getElementById('roomView');
+const item1 = document.getElementById('item1');
+const shelf = document.getElementById('shelfDoor');
 
+// Positions as percentages of the container (relative to background)
+const positions = {
+  center: { item1: { left: 50, top: 50 }, shelf: null },
+  left: { item1: null, shelf: null },
+  right: { item1: null, shelf: { left: 42, top: 26 } }
+};
+
+function updateView() {
   if (currentView === 'left') {
     room.style.backgroundImage = "url('room_left.png')";
     item1.style.display = 'none';
     shelf.style.display = 'none';
-
   } else if (currentView === 'center') {
     room.style.backgroundImage = "url('room_center.png')";
     item1.style.display = 'block';
     shelf.style.display = 'none';
-
   } else if (currentView === 'right') {
     room.style.backgroundImage = "url('Level3background1.gif')";
     item1.style.display = 'none';
     shelf.style.display = 'block';
+  }
+
+  updatePositions();
+}
+
+// Dynamically update positions based on container size
+function updatePositions() {
+  const roomWidth = room.clientWidth;
+  const roomHeight = room.clientHeight;
+
+  // Item1
+  if (positions[currentView].item1) {
+    const pos = positions[currentView].item1;
+    item1.style.left = (pos.left / 100 * roomWidth - item1.width/2) + 'px';
+    item1.style.top = (pos.top / 100 * roomHeight - item1.height/2) + 'px';
+  }
+
+  // Shelf
+  if (positions[currentView].shelf) {
+    const pos = positions[currentView].shelf;
+    shelf.style.left = (pos.left / 100 * roomWidth) + 'px';
+    shelf.style.top = (pos.top / 100 * roomHeight) + 'px';
+    shelf.style.width = (0.2 * roomWidth) + 'px'; // optional: scale with width
   }
 }
 
@@ -63,11 +117,10 @@ document.getElementById('arrowRight').onclick = () => {
 };
 
 // Shelf click → hide for 3 seconds
-document.getElementById('shelfDoor').onclick = () => {
+shelf.onclick = () => {
   if (shelfOpen) return;
 
   shelfOpen = true;
-  const shelf = document.getElementById('shelfDoor');
   shelf.style.opacity = 0;
 
   setTimeout(() => {
@@ -77,9 +130,12 @@ document.getElementById('shelfDoor').onclick = () => {
 };
 
 // Item interaction
-document.getElementById('item1').onclick = () => {
+item1.onclick = () => {
   alert('You interacted with the item!');
 };
+
+// Update positions on window resize
+window.onresize = updatePositions;
 
 // Initial load
 updateView();
