@@ -12,6 +12,18 @@ body {
     font-family: Segoe UI, sans-serif;
 }
 
+/* LEVEL TITLE */
+#levelTitle {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: red;
+    font-size: 36px;
+    z-index: 10000;
+}
+
+/* ROOM VIEW */
 #roomView {
     width: 100vw;
     height: 100vh;
@@ -38,6 +50,43 @@ body {
 }
 #arrowLeft { left: 20px; }
 #arrowRight { right: 20px; }
+
+/* DETAILS BUTTON */
+#detailsBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
+#detailsOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    padding: 20px;
+    font-size: 18px;
+    text-align: center;
+    z-index: 100000;
+}
+#detailsOverlay button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    background: #fff;
+    color: #000;
+    font-weight: bold;
+}
 
 /* MAN */
 #man {
@@ -217,6 +266,14 @@ body {
 
 <body>
 
+<h1 id="levelTitle">I will pop that bubble - lvl 3</h1>
+<button id="detailsBtn" onclick="showDetails()">Details</button>
+
+<div id="detailsOverlay">
+    <p>If you can't figure out the puzzle, remember: the safe code is the numbers on the paintings in order of their colors.</p>
+    <button onclick="closeDetails()">Close</button>
+</div>
+
 <div id="roomView">
 
 <div id="arrowLeft" class="nav-arrow">◀</div>
@@ -383,8 +440,5 @@ function showMessage(t){
     setTimeout(()=>messageBox.classList.remove('visible'),2500);
 }
 
-updateView();
-</script>
-
-</body>
-</html>
+function showDetails(){
+    documen
