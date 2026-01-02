@@ -8,6 +8,7 @@
 body {
     margin: 0;
     overflow: hidden;
+    background: black;
     font-family: Segoe UI, sans-serif;
 }
 
@@ -41,13 +42,12 @@ body {
 /* MAN */
 #man {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
     cursor: pointer;
     display: none;
-    z-index: 1;
 }
 
 /* PAINTINGS */
@@ -57,7 +57,6 @@ body {
     height: 150px;
     border: 12px solid #2a1b0e;
     display: none;
-    z-index: 2;
 }
 .painting-inner {
     width: 100%;
@@ -79,7 +78,6 @@ body {
     border: 14px solid #5c4634;
     box-shadow: inset 12px 12px 25px rgba(0,0,0,0.7);
     display: none;
-    z-index: 2;
 }
 #shelfDoor {
     position: absolute;
@@ -88,32 +86,33 @@ body {
     transform-origin: left;
     transition: transform 1s;
     cursor: pointer;
+    z-index: 2;
 }
 #shelfDoor.open {
     transform: rotateY(-130deg);
 }
 
-/* NOTE INSIDE SHELF */
+/* NOTE */
 #clueNote {
     position: absolute;
-    width: 60px;
-    height: 80px;
-    background: #fffef0;
     top: 20px;
     left: 20px;
-    padding: 5px;
+    width: 50px;
+    height: 70px;
+    background: #fffef0;
     box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
     cursor: pointer;
-    z-index: 3;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    padding: 5px;
+    border-radius: 4px;
+    z-index: 1; /* behind the door */
 }
-#clueNote div { height: 10px; border-radius: 2px; }
-#clueNote .red { background:red; }
-#clueNote .blue { background:blue; }
-#clueNote .green { background:green; }
-#clueNote .yellow { background:yellow; }
+#clueNote div {
+    height: 10px;
+    border-radius: 2px;
+}
 
 /* SAFE */
 #safe {
@@ -124,7 +123,6 @@ body {
     border: 12px solid #444;
     display: none;
     cursor: pointer;
-    z-index: 2;
 }
 #banana {
     width: 90px;
@@ -133,7 +131,6 @@ body {
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 3;
 }
 
 /* DOOR */
@@ -145,9 +142,10 @@ body {
     border: 12px solid #3a2416;
     display: none;
     cursor: pointer;
-    z-index: 2;
 }
-#exitDoor.open { background: #111; }
+#exitDoor.open {
+    background: #111;
+}
 
 /* KEYPAD */
 #keypadOverlay {
@@ -174,12 +172,11 @@ body {
     padding: 15px 30px;
     border-radius: 30px;
     transition: transform 0.4s;
-    z-index: 10000; /* bumped up to be above everything */
+    z-index: 10000; /* on top of everything */
 }
 #messageBox.visible {
     transform: translateX(-50%) translateY(0);
 }
-
 </style>
 </head>
 
@@ -190,7 +187,6 @@ body {
 <div id="arrowLeft" class="nav-arrow">◀</div>
 <div id="arrowRight" class="nav-arrow">▶</div>
 
-<!-- MAN IMAGE FULL SCREEN -->
 <img id="man" src="Man.gif" onclick="talkToMan()">
 
 <!-- PAINTINGS -->
@@ -199,14 +195,14 @@ body {
 <div id="pGreen" class="painting"><div class="painting-inner" style="background:#070;">9</div></div>
 <div id="pYellow" class="painting"><div class="painting-inner" style="background:#aa0;">1</div></div>
 
-<!-- SHELF -->
+<!-- RIGHT -->
 <div id="shelfArea">
     <div id="shelfDoor" onclick="toggleShelf(event)"></div>
-    <div id="clueNote" onclick="zoomNote()">
-        <div class="red"></div>
-        <div class="blue"></div>
-        <div class="green"></div>
-        <div class="yellow"></div>
+    <div id="clueNote" onclick="zoomNote(event)">
+        <div style="background:red;"></div>
+        <div style="background:blue;"></div>
+        <div style="background:green;"></div>
+        <div style="background:yellow;"></div>
     </div>
 </div>
 
@@ -246,19 +242,19 @@ let hasBanana=false, hasKey=false;
 let input='', code='3591';
 
 function reset(){
-    [pRed,pBlue,pGreen,pYellow,shelfArea,safe,exitDoor].forEach(e=>e.style.display='none');
     man.style.display='none';
-    roomView.style.background='';
+    [pRed,pBlue,pGreen,pYellow,shelfArea,safe,exitDoor].forEach(e=>e.style.display='none');
 }
 
 function updateView(){
     reset();
     if(view===0){
-        man.style.display='block'; // full screen man
+        roomView.style.backgroundImage="url('Man.gif')";
+        man.style.display='block';
     }
     if(view===1){
         roomView.style.background='#444';
-        [pRed,pBlue,pGreen,pYellow].forEach(e=>e.style.display='block');
+        pRed.style.display=pBlue.style.display=pGreen.style.display=pYellow.style.display='block';
         pRed.style.left='10%'; pRed.style.top='20%';
         pBlue.style.right='15%'; pBlue.style.top='20%';
         pGreen.style.left='10%'; pGreen.style.bottom='15%';
@@ -283,7 +279,14 @@ function updateView(){
 arrowLeft.onclick=()=>{ view=(view+3)%4; updateView(); }
 arrowRight.onclick=()=>{ view=(view+1)%4; updateView(); }
 
-function zoomNote(){ showMessage("Note: Red, Blue, Green, Yellow"); }
+function talkToMan(){
+    if(!hasBanana) showMessage("Bring me a banana and I'll trade you a key.");
+    else if(!hasKey){
+        hasKey=true;
+        hasBanana=false;
+        showMessage("Deal. Here's the key.");
+    }
+}
 
 function toggleShelf(e){
     e.stopPropagation();
@@ -291,9 +294,21 @@ function toggleShelf(e){
     shelfDoor.classList.toggle('open',shelfOpen);
 }
 
-function openKeypad(){ if(safeUnlocked) return; keypadOverlay.style.display='flex'; }
+function zoomNote(e){
+    e.stopPropagation();
+    showMessage("Note: Red, Blue, Green, Yellow");
+}
 
-function closeKeypad(){ keypadOverlay.style.display='none'; input=''; keypadDisplay.textContent='____'; }
+function openKeypad(){
+    if(safeUnlocked) return;
+    keypadOverlay.style.display='flex';
+}
+
+function closeKeypad(){
+    keypadOverlay.style.display='none';
+    input='';
+    keypadDisplay.textContent='____';
+}
 
 function pressKey(n){
     if(input.length<4){
@@ -310,15 +325,11 @@ function pressKey(n){
 
 function clearKeypad(){ input=''; keypadDisplay.textContent='____'; }
 
-function grabBanana(e){ e.stopPropagation(); banana.style.display='none'; hasBanana=true; showMessage("You got the banana."); }
-
-function talkToMan(){
-    if(!hasBanana) showMessage("Bring me a banana and I'll trade you a key.");
-    else if(!hasKey){
-        hasKey=true;
-        hasBanana=false;
-        showMessage("Deal. Here's the key.");
-    }
+function grabBanana(e){
+    e.stopPropagation();
+    banana.style.display='none';
+    hasBanana=true;
+    showMessage("You got the banana.");
 }
 
 function openDoor(){
