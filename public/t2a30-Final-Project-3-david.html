@@ -48,6 +48,7 @@ body {
     width: 220px;
     cursor: pointer;
     display: none;
+    z-index: 5;
 }
 
 /* PAINTINGS */
@@ -92,7 +93,7 @@ body {
     transform: rotateY(-130deg);
 }
 
-/* NOTE */
+/* NOTE INSIDE SHELF */
 #clueNote {
     position: absolute;
     top: 20px;
@@ -107,7 +108,7 @@ body {
     justify-content: space-around;
     padding: 5px;
     border-radius: 4px;
-    z-index: 1; /* behind the door */
+    z-index: 1; /* behind the shelf door */
 }
 #clueNote div {
     height: 10px;
@@ -123,6 +124,7 @@ body {
     border: 12px solid #444;
     display: none;
     cursor: pointer;
+    z-index: 3;
 }
 #banana {
     width: 90px;
@@ -142,6 +144,7 @@ body {
     border: 12px solid #3a2416;
     display: none;
     cursor: pointer;
+    z-index: 3;
 }
 #exitDoor.open {
     background: #111;
@@ -155,6 +158,7 @@ body {
     display: none;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 .keypad {
     display: grid;
@@ -172,7 +176,7 @@ body {
     padding: 15px 30px;
     border-radius: 30px;
     transition: transform 0.4s;
-    z-index: 10000; /* on top of everything */
+    z-index: 10000; /* always on top */
 }
 #messageBox.visible {
     transform: translateX(-50%) translateY(0);
@@ -250,6 +254,7 @@ function updateView(){
     reset();
     if(view===0){
         roomView.style.backgroundImage="url('Man.gif')";
+        roomView.style.backgroundSize="cover";
         man.style.display='block';
     }
     if(view===1){
