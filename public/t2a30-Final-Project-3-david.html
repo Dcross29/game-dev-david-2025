@@ -12,14 +12,12 @@ body {
     font-family: Segoe UI, sans-serif;
 }
 
-#levelTitle {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #ff4444;
-    font-size: 32px;
-    z-index: 10000;
+#roomView {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    background-size: cover;
+    background-position: center;
 }
 
 /* NAV */
@@ -47,10 +45,12 @@ body {
     bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
-    width: 220px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     cursor: pointer;
     display: none;
-    z-index: 50;
+    z-index: 5;
 }
 
 /* PAINTINGS */
@@ -60,7 +60,6 @@ body {
     height: 150px;
     border: 12px solid #2a1b0e;
     display: none;
-    z-index: 30;
 }
 .painting-inner {
     width: 100%;
@@ -82,7 +81,6 @@ body {
     border: 14px solid #5c4634;
     box-shadow: inset 12px 12px 25px rgba(0,0,0,0.7);
     display: none;
-    z-index: 40;
 }
 #shelfDoor {
     position: absolute;
@@ -91,7 +89,7 @@ body {
     transform-origin: left;
     transition: transform 1s;
     cursor: pointer;
-    z-index: 45;
+    z-index: 2;
 }
 #shelfDoor.open {
     transform: rotateY(-130deg);
@@ -99,31 +97,25 @@ body {
 
 /* NOTE INSIDE SHELF */
 #clueNote {
-    width: 50px;
-    height: 70px;
-    background: #fffef0;
     position: absolute;
     top: 20px;
     left: 20px;
+    width: 50px;
+    height: 70px;
+    background: #fffef0;
     box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
-    padding: 5px;
     cursor: pointer;
-    z-index: 50;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    transform: rotate(-3deg);
-    border-bottom-right-radius: 10px 2px;
+    padding: 5px;
+    border-radius: 4px;
+    z-index: 1;
 }
 #clueNote div {
-    width: 100%;
-    height: 8px;
+    height: 10px;
     border-radius: 2px;
 }
-#clueNote div:nth-child(1){background:red;}
-#clueNote div:nth-child(2){background:blue;}
-#clueNote div:nth-child(3){background:green;}
-#clueNote div:nth-child(4){background:yellow;}
 
 /* SAFE */
 #safe {
@@ -134,7 +126,7 @@ body {
     border: 12px solid #444;
     display: none;
     cursor: pointer;
-    z-index: 40;
+    z-index: 3;
 }
 #banana {
     width: 90px;
@@ -143,10 +135,9 @@ body {
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 45;
 }
 
-/* EXIT DOOR */
+/* DOOR */
 #exitDoor {
     position: absolute;
     width: 200px;
@@ -155,7 +146,7 @@ body {
     border: 12px solid #3a2416;
     display: none;
     cursor: pointer;
-    z-index: 30;
+    z-index: 3;
 }
 #exitDoor.open {
     background: #111;
@@ -169,42 +160,41 @@ body {
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: 1000;
 }
 .keypad {
     display: grid;
-    grid-template-columns: repeat(3, 70px);
-    gap: 10px;
+    grid-template-columns: repeat(3, 80px);
+    gap: 12px;
+    background: #333;
     padding: 20px;
-    border-radius: 10px;
-    background: #1a1a1a;
-    box-shadow: 0 0 20px #000;
-}
-.keypad button {
-    height: 70px;
-    font-size: 24px;
-    cursor: pointer;
-    background: #2a2a2a;
-    color: #eee;
-    border: 1px solid #444;
-    border-radius: 6px;
-}
-.keypad button:active {
-    background: #444;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
 }
 #keypadDisplay {
     grid-column: span 3;
-    height: 50px;
+    text-align: center;
+    font-size: 32px;
     background: #000;
     color: #0f0;
-    font-family: monospace;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
+    padding: 10px 0;
+    border-radius: 8px;
     margin-bottom: 10px;
-    border: 1px solid #0f0;
-    border-radius: 6px;
+    letter-spacing: 8px;
+}
+
+/* KEYPAD BUTTONS */
+.keypad button {
+    font-size: 24px;
+    background: #555;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.keypad button:hover {
+    background: #777;
 }
 
 /* MESSAGE */
@@ -222,38 +212,22 @@ body {
 #messageBox.visible {
     transform: translateX(-50%) translateY(0);
 }
-
-/* DETAILS TAB */
-#levelHints {
-    position: absolute;
-    top: 60px;
-    left: 10px;
-    color: white;
-    z-index: 10000;
-}
-#levelHints summary {
-    cursor: pointer;
-    font-weight: bold;
-}
-#levelHints ul {
-    margin: 5px 0 0 20px;
-    color: #fff;
-}
 </style>
 </head>
 
 <body>
 
-<h1 id="levelTitle">I will pop that bubble - lvl 3</h1>
+<h1 style="color:red; text-align:center; margin:10px 0;">I will pop that bubble - lvl 3</h1>
 
-<details id="levelHints">
-  <summary>Need Help?</summary>
-  <ul>
-    <li>The safe code comes from the numbers on the paintings in color order.</li>
-    <li>The Note in the shelf shows you what color - number order order to follow. Red, Blue, Green, Yellow → use these to unlock the safe (Code is: 3591).</li>
-    <li>Grab the banana from the safe and bring it to the man.</li>
-    <li>The man will give you a key to open the door.</li>
-  </ul>
+<details style="position:fixed; top:60px; right:20px; z-index:10000; background:rgba(255,255,255,0.9); padding:10px; border-radius:8px;">
+    <summary style="cursor:pointer; font-weight:bold;">Hints / Details</summary>
+    <ul>
+        <li>Look around all sides using the arrows.</li>
+        <li>The man wants a banana before trading a key.</li>
+        <li>The safe contains the banana, unlock it with the 4-digit code.</li>
+        <li>The code can be deduced from the colored paintings / note.</li>
+        <li>Use the key to open the door on the 4th side.</li>
+    </ul>
 </details>
 
 <div id="roomView">
@@ -264,16 +238,19 @@ body {
 <img id="man" src="Man.gif" onclick="talkToMan()">
 
 <!-- PAINTINGS -->
-<div id="pRed" class="painting"><div class="painting-inner">3</div></div>
-<div id="pBlue" class="painting"><div class="painting-inner">5</div></div>
-<div id="pGreen" class="painting"><div class="painting-inner">9</div></div>
-<div id="pYellow" class="painting"><div class="painting-inner">1</div></div>
+<div id="pRed" class="painting"><div class="painting-inner" style="background:#b00;">3</div></div>
+<div id="pBlue" class="painting"><div class="painting-inner" style="background:#005;">5</div></div>
+<div id="pGreen" class="painting"><div class="painting-inner" style="background:#070;">9</div></div>
+<div id="pYellow" class="painting"><div class="painting-inner" style="background:#aa0;">1</div></div>
 
 <!-- RIGHT -->
 <div id="shelfArea">
     <div id="shelfDoor" onclick="toggleShelf(event)"></div>
-    <div id="clueNote" onclick="zoomNote()">
-        <div></div><div></div><div></div><div></div>
+    <div id="clueNote" onclick="zoomNote(event)">
+        <div style="background:red;"></div>
+        <div style="background:blue;"></div>
+        <div style="background:green;"></div>
+        <div style="background:yellow;"></div>
     </div>
 </div>
 
@@ -322,12 +299,11 @@ function updateView(){
     if(view===0){
         roomView.style.backgroundImage="url('Man.gif')";
         roomView.style.backgroundSize="cover";
-        roomView.style.backgroundPosition="center";
         man.style.display='block';
     }
     if(view===1){
         roomView.style.background='#444';
-        [pRed,pBlue,pGreen,pYellow].forEach(e=>{e.style.display='block'});
+        pRed.style.display=pBlue.style.display=pGreen.style.display=pYellow.style.display='block';
         pRed.style.left='10%'; pRed.style.top='20%';
         pBlue.style.right='15%'; pBlue.style.top='20%';
         pGreen.style.left='10%'; pGreen.style.bottom='15%';
@@ -367,7 +343,8 @@ function toggleShelf(e){
     shelfDoor.classList.toggle('open',shelfOpen);
 }
 
-function zoomNote(){
+function zoomNote(e){
+    e.stopPropagation();
     showMessage("Note: Red, Blue, Green, Yellow");
 }
 
@@ -408,7 +385,8 @@ function openDoor(){
     if(!hasKey) showMessage("The door is locked.");
     else{
         exitDoor.classList.add('open');
-        showMessage("You escaped to the next level!");
+        showMessage("You escaped! Moving to next level...");
+        setTimeout(()=>{ window.location.href = 'level4.html'; }, 1500);
     }
 }
 
