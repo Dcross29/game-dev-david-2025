@@ -39,17 +39,6 @@ body {
 #arrowLeft { left: 20px; }
 #arrowRight { right: 20px; }
 
-/* MAN */
-#man {
-    display: none;
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    cursor: pointer;
-}
-
 /* PAINTINGS */
 .painting {
     position: absolute;
@@ -188,67 +177,7 @@ body {
 <div id="arrowLeft" class="nav-arrow">◀</div>
 <div id="arrowRight" class="nav-arrow">▶</div>
 
-<!-- MAN -->
-<img id="man" src="Man.gif" onclick="talkToMan()">
-
 <!-- PAINTINGS -->
 <div id="pRed" class="painting"><div class="painting-inner" style="background:#b00;">3</div></div>
 <div id="pBlue" class="painting"><div class="painting-inner" style="background:#005;">5</div></div>
-<div id="pGreen" class="painting"><div class="painting-inner" style="background:#070;">9</div></div>
-<div id="pYellow" class="painting"><div class="painting-inner" style="background:#aa0;">1</div></div>
-
-<!-- RIGHT SHELF -->
-<div id="shelfArea">
-    <div id="shelfDoor" onclick="toggleShelf(event)"></div>
-    <div id="clueNote" onclick="zoomNote()">
-        <div class="red"></div>
-        <div class="blue"></div>
-        <div class="green"></div>
-        <div class="yellow"></div>
-    </div>
-</div>
-
-<div id="safe" onclick="openKeypad()">
-    <img id="banana" src="https://img.icons8.com/color/96/banana.png" onclick="grabBanana(event)">
-</div>
-
-<!-- FOURTH SIDE -->
-<div id="exitDoor" onclick="openDoor()"></div>
-
-</div>
-
-<div id="keypadOverlay">
-<div class="keypad">
-    <div id="keypadDisplay">____</div>
-    <button onclick="pressKey(1)">1</button>
-    <button onclick="pressKey(2)">2</button>
-    <button onclick="pressKey(3)">3</button>
-    <button onclick="pressKey(4)">4</button>
-    <button onclick="pressKey(5)">5</button>
-    <button onclick="pressKey(6)">6</button>
-    <button onclick="pressKey(7)">7</button>
-    <button onclick="pressKey(8)">8</button>
-    <button onclick="pressKey(9)">9</button>
-    <button onclick="clearKeypad()">CLR</button>
-    <button onclick="pressKey(0)">0</button>
-    <button onclick="closeKeypad()">ESC</button>
-</div>
-</div>
-
-<div id="messageBox"></div>
-
-<script>
-let view = 0; // 0=man,1=left,2=right,3=door
-let shelfOpen=false, safeUnlocked=false;
-let hasBanana=false, hasKey=false;
-let input='', code='3591';
-
-function reset(){
-    man.style.display='none';
-    [pRed,pBlue,pGreen,pYellow,shelfArea,safe,exitDoor].forEach(e=>e.style.display='none');
-}
-
-function updateView(){
-    reset();
-    if(view===0){
-        roomView.style.backgroundImage="url('Ma
+<div id="pGreen
