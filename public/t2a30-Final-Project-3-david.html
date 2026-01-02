@@ -1,298 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <title>I will pop that bubble - lvl 3</title>
 
 <style>
 body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-    font-family: Segoe UI, sans-serif;
+  margin: 0;
+  overflow: hidden;
+  background: black;
 }
 
-#roomView {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-    background-size: cover;
-    background-position: center;
-    background-color: #222; /* fallback if image fails */
+/* room background */
+#room {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
 }
 
-/* NAV */
-.nav-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 60px;
-    height: 60px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    z-index: 100;
-    font-size: 24px;
-}
-#arrowLeft { left: 20px; }
-#arrowRight { right: 20px; }
-
-/* MAN */
-#man {
-    position: absolute;
-    bottom: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 240px;
-    cursor: pointer;
-    display: none;
+/* arrows */
+.arrow {
+  position: absolute;
+  top: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  z-index: 50;
 }
 
-/* PAINTINGS */
-.painting {
-    position: absolute;
-    width: 120px;
-    height: 150px;
-    border: 12px solid #2a1b0e;
-    display: none;
-}
-.painting-inner {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 56px;
-    font-weight: bold;
-    color: white;
+#leftArrow { left: 10px; }
+#rightArrow { right: 10px; }
+
+/* shelf container */
+#shelfContainer {
+  position: absolute;
+  left: 35%;
+  top: 55%;
+  width: 300px;
+  height: 200px;
 }
 
-/* SHELF */
-#shelfArea {
-    position: absolute;
-    width: 220px;
-    height: 280px;
-    background: #3b2a1d;
-    border: 14px solid #5c4634;
-    box-shadow: inset 12px 12px 25px rgba(0,0,0,0.7);
-    display: none;
+/* shelf image */
+#shelf {
+  position: absolute;
+  width: 100%;
+  height: auto;
+  z-index: 5;
 }
 
-#shelfDoor {
-    position: absolute;
-    inset: -6px;
-    background: #6f5542;
-    transform-origin: left;
-    transition: transform 1.2s ease;
-    cursor: pointer;
-}
-#shelfDoor.open {
-    transform: rotateY(-130deg);
+/* note INSIDE shelf */
+#note {
+  position: absolute;
+  left: 110px;
+  top: 90px;
+  width: 70px;
+  cursor: pointer;
+  z-index: 4;
 }
 
-/* NOTE (RESTORED) */
-#clueNote {
-    position: absolute;
-    top: 40px;
-    left: 30px;
-    width: 60px;
-    height: 80px;
-    background: #fffdf0;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-    cursor: pointer;
-    z-index: 5;
-}
-
-/* SAFE */
+/* safe */
 #safe {
-    position: absolute;
-    width: 160px;
-    height: 160px;
-    background: #222;
-    border: 12px solid #444;
-    display: none;
-    cursor: pointer;
+  position: absolute;
+  right: 15%;
+  bottom: 20%;
+  width: 150px;
+  cursor: pointer;
 }
 
-#banana {
-    width: 90px;
-    display: none;
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    cursor: pointer;
+/* paintings */
+.painting {
+  position: absolute;
+  top: 20%;
+  width: 120px;
 }
 
-/* DOOR */
-#exitDoor {
-    position: absolute;
-    width: 200px;
-    height: 360px;
-    background: #5a3b28;
-    border: 12px solid #3a2416;
-    display: none;
-    cursor: pointer;
-}
-#exitDoor.open {
-    background: #111;
+#p1 { left: 20%; }
+#p2 { left: 45%; }
+#p3 { left: 70%; }
+
+/* man */
+#man {
+  position: absolute;
+  bottom: 10%;
+  left: 40%;
+  width: 200px;
 }
 
-/* KEYPAD */
-#keypadOverlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-
-/* MESSAGE */
-#messageBox {
-    position: fixed;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%) translateY(120px);
-    background: white;
-    padding: 15px 30px;
-    border-radius: 30px;
-    transition: transform 0.4s;
-}
-#messageBox.visible {
-    transform: translateX(-50%) translateY(0);
+/* door */
+#door {
+  position: absolute;
+  bottom: 10%;
+  left: 40%;
+  width: 200px;
+  cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div id="roomView">
+<img id="leftArrow" class="arrow" src="Arrowleft.gif" onclick="turnLeft()">
+<img id="rightArrow" class="arrow" src="Arrowright.gif" onclick="turnRight()">
 
-<div id="arrowLeft" class="nav-arrow">◀</div>
-<div id="arrowRight" class="nav-arrow">▶</div>
+<img id="room">
 
-<img id="man" src="Man.gif" alt="Man" onclick="talkToMan()">
-
-<!-- PAINTINGS -->
-<div id="pRed" class="painting"><div class="painting-inner" style="background:#b00;">3</div></div>
-<div id="pBlue" class="painting"><div class="painting-inner" style="background:#005;">5</div></div>
-<div id="pGreen" class="painting"><div class="painting-inner" style="background:#070;">9</div></div>
-<div id="pYellow" class="painting"><div class="painting-inner" style="background:#aa0;">1</div></div>
-
-<!-- RIGHT -->
-<div id="shelfArea">
-    <div id="clueNote" onclick="zoomNote(event)"></div>
-    <div id="shelfDoor" onclick="toggleShelf(event)"></div>
+<!-- shelf side -->
+<div id="shelfContainer">
+  <img id="shelf" src="Shelfdoor.gif">
+  <img id="note" src="Note.gif" onclick="alert('The colors matter...')">
 </div>
 
-<div id="safe" onclick="openKeypad()">
-    <img id="banana" src="https://img.icons8.com/color/96/banana.png" onclick="grabBanana(event)">
-</div>
+<img id="safe" src="Safe.gif">
 
-<!-- FOURTH SIDE -->
-<div id="exitDoor" onclick="openDoor()"></div>
+<!-- paintings -->
+<img id="p1" class="painting" src="PaintingRed.gif">
+<img id="p2" class="painting" src="PaintingBlue.gif">
+<img id="p3" class="painting" src="PaintingGreen.gif">
 
-</div>
+<!-- man -->
+<img id="man" src="Man.gif">
 
-<div id="keypadOverlay"></div>
-<div id="messageBox"></div>
+<!-- door -->
+<img id="door" src="Door.gif">
 
 <script>
-let view = 0; // 0=man,1=paintings,2=shelf/safe,3=door
-let shelfOpen=false, safeUnlocked=false;
-let hasBanana=false, hasKey=false;
-let input='', code='3591';
+let side = 0;
 
-function reset(){
-    man.style.display='none';
-    [pRed,pBlue,pGreen,pYellow,shelfArea,safe,exitDoor].forEach(e=>e.style.display='none');
+function updateRoom() {
+  // hide everything first
+  shelfContainer.style.display = "none";
+  safe.style.display = "none";
+  p1.style.display = "none";
+  p2.style.display = "none";
+  p3.style.display = "none";
+  man.style.display = "none";
+  door.style.display = "none";
+
+  if (side === 0) {
+    room.src = "Man.gif";
+    man.style.display = "block";
+  }
+
+  if (side === 1) {
+    room.src = "Level3background1.gif";
+    shelfContainer.style.display = "block";
+    safe.style.display = "block";
+  }
+
+  if (side === 2) {
+    room.src = "Wall.gif";
+    p1.style.display = "block";
+    p2.style.display = "block";
+    p3.style.display = "block";
+  }
+
+  if (side === 3) {
+    room.src = "DoorRoom.gif";
+    door.style.display = "block";
+  }
 }
 
-function updateView(){
-    reset();
-
-    if(view===0){
-        roomView.style.backgroundImage="url('Man.gif')";
-        man.style.display='block';
-    }
-    if(view===1){
-        roomView.style.backgroundImage='none';
-        pRed.style.display=pBlue.style.display=pGreen.style.display=pYellow.style.display='block';
-        pRed.style.left='10%'; pRed.style.top='20%';
-        pBlue.style.right='15%'; pBlue.style.top='20%';
-        pGreen.style.left='10%'; pGreen.style.bottom='15%';
-        pYellow.style.right='15%'; pYellow.style.bottom='15%';
-    }
-    if(view===2){
-        roomView.style.backgroundImage='none';
-        shelfArea.style.display='block';
-        shelfArea.style.left='15%'; shelfArea.style.top='25%';
-        safe.style.display='block';
-        safe.style.right='15%'; safe.style.top='40%';
-    }
-    if(view===3){
-        roomView.style.backgroundImage='none';
-        exitDoor.style.display='block';
-        exitDoor.style.left='50%';
-        exitDoor.style.bottom='5%';
-        exitDoor.style.transform='translateX(-50%)';
-    }
+function turnLeft() {
+  side = (side + 3) % 4;
+  updateRoom();
 }
 
-arrowLeft.onclick=()=>{ view=(view+3)%4; updateView(); }
-arrowRight.onclick=()=>{ view=(view+1)%4; updateView(); }
-
-function zoomNote(e){
-    e.stopPropagation();
-    showMessage("Red → Blue → Green → Yellow");
+function turnRight() {
+  side = (side + 1) % 4;
+  updateRoom();
 }
 
-function talkToMan(){
-    if(!hasBanana) showMessage("Bring me a banana and I'll trade you a key.");
-    else if(!hasKey){
-        hasKey=true;
-        hasBanana=false;
-        showMessage("Deal. Here's the key.");
-    }
-}
-
-function toggleShelf(e){
-    e.stopPropagation();
-    shelfOpen=!shelfOpen;
-    shelfDoor.classList.toggle('open',shelfOpen);
-}
-
-function openKeypad(){
-    if(safeUnlocked) return;
-    showMessage("Enter the code.");
-}
-
-function grabBanana(e){
-    e.stopPropagation();
-    banana.style.display='none';
-    hasBanana=true;
-    showMessage("You got the banana.");
-}
-
-function openDoor(){
-    if(!hasKey) showMessage("The door is locked.");
-    else{
-        exitDoor.classList.add('open');
-        showMessage("You escaped!");
-    }
-}
-
-function showMessage(t){
-    messageBox.textContent=t;
-    messageBox.classList.add('visible');
-    setTimeout(()=>messageBox.classList.remove('visible'),2500);
-}
-
-updateView();
+updateRoom();
 </script>
 
 </body>
