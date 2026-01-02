@@ -8,25 +8,19 @@
 body {
     margin: 0;
     overflow: hidden;
-    background: #000;
+    background: black;
     font-family: Segoe UI, sans-serif;
 }
 
-#gameContainer {
+#roomView {
     width: 100vw;
     height: 100vh;
     position: relative;
+    background-size: cover;
+    background-position: center;
 }
 
-#roomView {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background: #444;
-    transition: background-color 0.6s;
-}
-
-/* Navigation */
+/* NAV */
 .nav-arrow {
     position: absolute;
     top: 50%;
@@ -45,21 +39,25 @@ body {
 #arrowLeft { left: 20px; }
 #arrowRight { right: 20px; }
 
-/* ================= LEFT WALL PAINTINGS ================= */
+/* MAN */
+#man {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    cursor: pointer;
+    display: none;
+}
 
+/* PAINTINGS */
 .painting {
     position: absolute;
     width: 120px;
     height: 150px;
-    padding: 10px;
     border: 12px solid #2a1b0e;
-    background: #111;
-    box-shadow:
-        0 10px 20px rgba(0,0,0,0.6),
-        inset 0 0 10px rgba(0,0,0,0.4);
     display: none;
 }
-
 .painting-inner {
     width: 100%;
     height: 100%;
@@ -71,98 +69,62 @@ body {
     color: white;
 }
 
-/* ================= SHELF ================= */
-
+/* SHELF */
 #shelfArea {
     position: absolute;
     width: 220px;
     height: 280px;
-    background: linear-gradient(#3b2a1d, #2a1b12);
+    background: #3b2a1d;
     border: 14px solid #5c4634;
-    box-shadow:
-        inset 12px 12px 25px rgba(0,0,0,0.7),
-        0 20px 30px rgba(0,0,0,0.6);
+    box-shadow: inset 12px 12px 25px rgba(0,0,0,0.7);
     display: none;
 }
-
 #shelfDoor {
     position: absolute;
     inset: -6px;
-    background: linear-gradient(135deg, #6f5542, #3e2b1f);
+    background: #6f5542;
     transform-origin: left;
-    transition: transform 1.2s ease;
+    transition: transform 1s;
     cursor: pointer;
-    box-shadow: 4px 0 10px rgba(0,0,0,0.6);
 }
-
-#shelfDoor::after {
-    content:'';
-    width: 18px;
-    height: 18px;
-    background: gold;
-    border-radius: 50%;
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
 #shelfDoor.open {
     transform: rotateY(-130deg);
 }
 
-#clueNote {
-    position: absolute;
-    top: 40px;
-    left: 30px;
-    width: 60px;
-    height: 80px;
-    background: #fffdf0;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-    cursor: pointer;
-}
-
-/* ================= SAFE ================= */
-
+/* SAFE */
 #safe {
     position: absolute;
     width: 160px;
     height: 160px;
-    background: linear-gradient(#333, #111);
+    background: #222;
     border: 12px solid #444;
-    border-radius: 6px;
-    box-shadow:
-        inset -6px -6px 12px rgba(255,255,255,0.05),
-        inset 6px 6px 14px rgba(0,0,0,0.9),
-        0 15px 25px rgba(0,0,0,0.7);
     display: none;
     cursor: pointer;
 }
-
-#safe::before {
-    content:'';
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    border: 6px solid #666;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
 #banana {
     width: 90px;
     display: none;
-    cursor: pointer;
     position: absolute;
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
 }
 
-/* ================= KEYPAD ================= */
+/* DOOR */
+#exitDoor {
+    position: absolute;
+    width: 200px;
+    height: 360px;
+    background: #5a3b28;
+    border: 12px solid #3a2416;
+    display: none;
+    cursor: pointer;
+}
+#exitDoor.open {
+    background: #111;
+}
 
+/* KEYPAD */
 #keypadOverlay {
     position: fixed;
     inset: 0;
@@ -171,26 +133,13 @@ body {
     justify-content: center;
     align-items: center;
 }
-
 .keypad {
     display: grid;
     grid-template-columns: repeat(3, 70px);
-    gap: 12px;
+    gap: 10px;
 }
 
-#keypadDisplay {
-    grid-column: span 3;
-    height: 50px;
-    background: black;
-    color: lime;
-    font-size: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ================= MESSAGE ================= */
-
+/* MESSAGE */
 #messageBox {
     position: fixed;
     bottom: 40px;
@@ -201,7 +150,6 @@ body {
     border-radius: 30px;
     transition: transform 0.4s;
 }
-
 #messageBox.visible {
     transform: translateX(-50%) translateY(0);
 }
@@ -210,29 +158,21 @@ body {
 
 <body>
 
-<div id="gameContainer">
 <div id="roomView">
 
 <div id="arrowLeft" class="nav-arrow">◀</div>
 <div id="arrowRight" class="nav-arrow">▶</div>
 
-<!-- LEFT PAINTINGS -->
-<div id="pRed" class="painting">
-    <div class="painting-inner" style="background:#b00;">3</div>
-</div>
-<div id="pBlue" class="painting">
-    <div class="painting-inner" style="background:#005;">5</div>
-</div>
-<div id="pGreen" class="painting">
-    <div class="painting-inner" style="background:#070;">9</div>
-</div>
-<div id="pYellow" class="painting">
-    <div class="painting-inner" style="background:#aa0;">1</div>
-</div>
+<img id="man" src="Man.gif" onclick="talkToMan()">
 
-<!-- RIGHT OBJECTS -->
+<!-- PAINTINGS -->
+<div id="pRed" class="painting"><div class="painting-inner" style="background:#b00;">3</div></div>
+<div id="pBlue" class="painting"><div class="painting-inner" style="background:#005;">5</div></div>
+<div id="pGreen" class="painting"><div class="painting-inner" style="background:#070;">9</div></div>
+<div id="pYellow" class="painting"><div class="painting-inner" style="background:#aa0;">1</div></div>
+
+<!-- RIGHT -->
 <div id="shelfArea">
-    <div id="clueNote" onclick="zoomNote(event)"></div>
     <div id="shelfDoor" onclick="toggleShelf(event)"></div>
 </div>
 
@@ -240,7 +180,9 @@ body {
     <img id="banana" src="https://img.icons8.com/color/96/banana.png" onclick="grabBanana(event)">
 </div>
 
-</div>
+<!-- FOURTH SIDE -->
+<div id="exitDoor" onclick="openDoor()"></div>
+
 </div>
 
 <div id="keypadOverlay">
@@ -264,64 +206,62 @@ body {
 <div id="messageBox"></div>
 
 <script>
-let currentView = 'center';
-let shelfOpen = false;
-let safeUnlocked = false;
-let currentInput = '';
-const correctCode = '3591';
+let view = 0; // 0=man,1=left,2=right,3=door
+let shelfOpen=false, safeUnlocked=false;
+let hasBanana=false, hasKey=false;
+let input='', code='3591';
 
-function reset() {
-    [pRed,pBlue,pGreen,pYellow,shelfArea,safe].forEach(e=>{
-        e.style.display='none';
-        e.style.transform='none';
-    });
+function reset(){
+    man.style.display='none';
+    [pRed,pBlue,pGreen,pYellow,shelfArea,safe,exitDoor].forEach(e=>e.style.display='none');
 }
 
-function updateView() {
+function updateView(){
     reset();
-    if(currentView==='left'){
-        pRed.style.display='block';
-        pBlue.style.display='block';
-        pGreen.style.display='block';
-        pYellow.style.display='block';
-
+    if(view===0){
+        roomView.style.backgroundImage="url('Man.gif')";
+        man.style.display='block';
+    }
+    if(view===1){
+        roomView.style.background='#444';
+        pRed.style.display=pBlue.style.display=pGreen.style.display=pYellow.style.display='block';
         pRed.style.left='10%'; pRed.style.top='20%';
         pBlue.style.right='15%'; pBlue.style.top='20%';
         pGreen.style.left='10%'; pGreen.style.bottom='15%';
         pYellow.style.right='15%'; pYellow.style.bottom='15%';
     }
-    if(currentView==='right'){
+    if(view===2){
+        roomView.style.background='#555';
         shelfArea.style.display='block';
-        shelfArea.style.left='15%';
-        shelfArea.style.top='25%';
-
+        shelfArea.style.left='15%'; shelfArea.style.top='25%';
         safe.style.display='block';
-        safe.style.right='15%';
-        safe.style.top='40%';
+        safe.style.right='15%'; safe.style.top='40%';
+    }
+    if(view===3){
+        roomView.style.background='#333';
+        exitDoor.style.display='block';
+        exitDoor.style.left='50%';
+        exitDoor.style.bottom='5%';
+        exitDoor.style.transform='translateX(-50%)';
     }
 }
 
-arrowLeft.onclick=()=>{
-    if(currentView==='center') currentView='left';
-    else if(currentView==='right') currentView='center';
-    updateView();
-};
-arrowRight.onclick=()=>{
-    if(currentView==='center') currentView='right';
-    else if(currentView==='left') currentView='center';
-    updateView();
-};
+arrowLeft.onclick=()=>{ view=(view+3)%4; updateView(); }
+arrowRight.onclick=()=>{ view=(view+1)%4; updateView(); }
+
+function talkToMan(){
+    if(!hasBanana) showMessage("Bring me a banana and I'll trade you a key.");
+    else if(!hasKey){
+        hasKey=true;
+        hasBanana=false;
+        showMessage("Deal. Here's the key.");
+    }
+}
 
 function toggleShelf(e){
-    if(currentView!=='right') return;
     e.stopPropagation();
     shelfOpen=!shelfOpen;
     shelfDoor.classList.toggle('open',shelfOpen);
-}
-
-function zoomNote(e){
-    e.stopPropagation();
-    showMessage("Red → Blue → Green → Yellow");
 }
 
 function openKeypad(){
@@ -331,36 +271,38 @@ function openKeypad(){
 
 function closeKeypad(){
     keypadOverlay.style.display='none';
-    clearKeypad();
-}
-
-function pressKey(n){
-    if(currentInput.length<4){
-        currentInput+=n;
-        keypadDisplay.textContent=currentInput.padEnd(4,'_');
-        if(currentInput.length===4) checkCode();
-    }
-}
-
-function clearKeypad(){
-    currentInput='';
+    input='';
     keypadDisplay.textContent='____';
 }
 
-function checkCode(){
-    if(currentInput===correctCode){
-        safeUnlocked=true;
-        closeKeypad();
-        banana.style.display='block';
-        safe.onclick=null;
-        showMessage("Safe unlocked!");
-    } else clearKeypad();
+function pressKey(n){
+    if(input.length<4){
+        input+=n;
+        keypadDisplay.textContent=input.padEnd(4,'_');
+        if(input.length===4 && input===code){
+            safeUnlocked=true;
+            closeKeypad();
+            banana.style.display='block';
+            showMessage("Safe unlocked.");
+        }
+    }
 }
+
+function clearKeypad(){ input=''; keypadDisplay.textContent='____'; }
 
 function grabBanana(e){
     e.stopPropagation();
     banana.style.display='none';
-    showMessage("Level Complete!");
+    hasBanana=true;
+    showMessage("You got the banana.");
+}
+
+function openDoor(){
+    if(!hasKey) showMessage("The door is locked.");
+    else{
+        exitDoor.classList.add('open');
+        showMessage("You escaped!");
+    }
 }
 
 function showMessage(t){
