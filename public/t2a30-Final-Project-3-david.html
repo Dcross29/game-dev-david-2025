@@ -137,6 +137,7 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 70px);
     gap: 10px;
+    color: white;
 }
 
 /* MESSAGE */
@@ -171,20 +172,22 @@ body {
 <div id="pGreen" class="painting"><div class="painting-inner" style="background:#070;">9</div></div>
 <div id="pYellow" class="painting"><div class="painting-inner" style="background:#aa0;">1</div></div>
 
-<!-- RIGHT -->
+<!-- SHELF -->
 <div id="shelfArea">
     <div id="shelfDoor" onclick="toggleShelf(event)"></div>
 </div>
 
+<!-- SAFE -->
 <div id="safe" onclick="openKeypad()">
     <img id="banana" src="https://img.icons8.com/color/96/banana.png" onclick="grabBanana(event)">
 </div>
 
-<!-- FOURTH SIDE -->
+<!-- EXIT DOOR -->
 <div id="exitDoor" onclick="openDoor()"></div>
 
 </div>
 
+<!-- KEYPAD -->
 <div id="keypadOverlay">
 <div class="keypad">
     <div id="keypadDisplay">____</div>
@@ -206,7 +209,7 @@ body {
 <div id="messageBox"></div>
 
 <script>
-let view = 0; // 0=man,1=left,2=right,3=door
+let view = 0;
 let shelfOpen=false, safeUnlocked=false;
 let hasBanana=false, hasKey=false;
 let input='', code='3591';
@@ -218,25 +221,33 @@ function reset(){
 
 function updateView(){
     reset();
+
     if(view===0){
-        roomView.style.backgroundImage="url('Man.gif')";
+        roomView.style.background='#222';
         man.style.display='block';
     }
+
     if(view===1){
         roomView.style.background='#444';
         pRed.style.display=pBlue.style.display=pGreen.style.display=pYellow.style.display='block';
+
         pRed.style.left='10%'; pRed.style.top='20%';
         pBlue.style.right='15%'; pBlue.style.top='20%';
         pGreen.style.left='10%'; pGreen.style.bottom='15%';
         pYellow.style.right='15%'; pYellow.style.bottom='15%';
     }
+
     if(view===2){
         roomView.style.background='#555';
         shelfArea.style.display='block';
-        shelfArea.style.left='15%'; shelfArea.style.top='25%';
+        shelfArea.style.left='15%';
+        shelfArea.style.top='25%';
+
         safe.style.display='block';
-        safe.style.right='15%'; safe.style.top='40%';
+        safe.style.right='15%';
+        safe.style.top='40%';
     }
+
     if(view===3){
         roomView.style.background='#333';
         exitDoor.style.display='block';
