@@ -373,4 +373,18 @@ function openDoor(){
     else{
         exitDoor.classList.add('open');
         showMessage("You escaped! Moving to next level...");
-        setTimeout(()=>{ window.location.href = 'level4.html'; },
+        setTimeout(()=>{ window.location.href = 'level4.html'; }, 1500);
+    }
+}
+
+function showMessage(t){
+    messageBox.textContent=t;
+    messageBox.classList.add('visible');
+    setTimeout(()=>messageBox.classList.remove('visible'),2500);
+}
+
+updateView();
+</script>
+
+</body>
+</html>
