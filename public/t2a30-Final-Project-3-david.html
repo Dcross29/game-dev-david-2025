@@ -110,7 +110,7 @@ body {
     justify-content: space-around;
     padding: 5px;
     border-radius: 4px;
-    z-index: 1; /* behind the shelf door */
+    z-index: 1;
 }
 #clueNote div {
     height: 10px;
@@ -164,8 +164,37 @@ body {
 }
 .keypad {
     display: grid;
-    grid-template-columns: repeat(3, 70px);
-    gap: 10px;
+    grid-template-columns: repeat(3, 80px);
+    gap: 12px;
+    background: #333;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+}
+#keypadDisplay {
+    grid-column: span 3;
+    text-align: center;
+    font-size: 32px;
+    background: #000;
+    color: #0f0;
+    padding: 10px 0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    letter-spacing: 8px;
+}
+
+/* KEYPAD BUTTONS */
+.keypad button {
+    font-size: 24px;
+    background: #555;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.keypad button:hover {
+    background: #777;
 }
 
 /* MESSAGE */
@@ -178,7 +207,7 @@ body {
     padding: 15px 30px;
     border-radius: 30px;
     transition: transform 0.4s;
-    z-index: 10000; /* always on top */
+    z-index: 10000;
 }
 #messageBox.visible {
     transform: translateX(-50%) translateY(0);
@@ -343,18 +372,5 @@ function openDoor(){
     if(!hasKey) showMessage("The door is locked.");
     else{
         exitDoor.classList.add('open');
-        showMessage("You escaped!");
-    }
-}
-
-function showMessage(t){
-    messageBox.textContent=t;
-    messageBox.classList.add('visible');
-    setTimeout(()=>messageBox.classList.remove('visible'),2500);
-}
-
-updateView();
-</script>
-
-</body>
-</html>
+        showMessage("You escaped! Moving to next level...");
+        setTimeout(()=>{ window.location.href = 'level4.html'; },
