@@ -8,7 +8,6 @@
 body {
     margin: 0;
     overflow: hidden;
-    background: black;
     font-family: Segoe UI, sans-serif;
 }
 
@@ -39,6 +38,18 @@ body {
 #arrowLeft { left: 20px; }
 #arrowRight { right: 20px; }
 
+/* MAN */
+#man {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    display: none;
+    z-index: 1;
+}
+
 /* PAINTINGS */
 .painting {
     position: absolute;
@@ -46,6 +57,7 @@ body {
     height: 150px;
     border: 12px solid #2a1b0e;
     display: none;
+    z-index: 2;
 }
 .painting-inner {
     width: 100%;
@@ -67,6 +79,7 @@ body {
     border: 14px solid #5c4634;
     box-shadow: inset 12px 12px 25px rgba(0,0,0,0.7);
     display: none;
+    z-index: 2;
 }
 #shelfDoor {
     position: absolute;
@@ -91,15 +104,12 @@ body {
     padding: 5px;
     box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
     cursor: pointer;
-    z-index: 20;
+    z-index: 3;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
 }
-#clueNote div {
-    height: 10px;
-    border-radius: 2px;
-}
+#clueNote div { height: 10px; border-radius: 2px; }
 #clueNote .red { background:red; }
 #clueNote .blue { background:blue; }
 #clueNote .green { background:green; }
@@ -114,6 +124,7 @@ body {
     border: 12px solid #444;
     display: none;
     cursor: pointer;
+    z-index: 2;
 }
 #banana {
     width: 90px;
@@ -122,6 +133,7 @@ body {
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 3;
 }
 
 /* DOOR */
@@ -133,10 +145,9 @@ body {
     border: 12px solid #3a2416;
     display: none;
     cursor: pointer;
+    z-index: 2;
 }
-#exitDoor.open {
-    background: #111;
-}
+#exitDoor.open { background: #111; }
 
 /* KEYPAD */
 #keypadOverlay {
@@ -164,9 +175,7 @@ body {
     border-radius: 30px;
     transition: transform 0.4s;
 }
-#messageBox.visible {
-    transform: translateX(-50%) translateY(0);
-}
+#messageBox.visible { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 
@@ -177,7 +186,153 @@ body {
 <div id="arrowLeft" class="nav-arrow">◀</div>
 <div id="arrowRight" class="nav-arrow">▶</div>
 
+<!-- MAN IMAGE FULL SCREEN -->
+<img id="man" src="Man.gif" onclick="talkToMan()">
+
 <!-- PAINTINGS -->
 <div id="pRed" class="painting"><div class="painting-inner" style="background:#b00;">3</div></div>
 <div id="pBlue" class="painting"><div class="painting-inner" style="background:#005;">5</div></div>
-<div id="pGreen
+<div id="pGreen" class="painting"><div class="painting-inner" style="background:#070;">9</div></div>
+<div id="pYellow" class="painting"><div class="painting-inner" style="background:#aa0;">1</div></div>
+
+<!-- SHELF -->
+<div id="shelfArea">
+    <div id="shelfDoor" onclick="toggleShelf(event)"></div>
+    <div id="clueNote" onclick="zoomNote()">
+        <div class="red"></div>
+        <div class="blue"></div>
+        <div class="green"></div>
+        <div class="yellow"></div>
+    </div>
+</div>
+
+<div id="safe" onclick="openKeypad()">
+    <img id="banana" src="https://img.icons8.com/color/96/banana.png" onclick="grabBanana(event)">
+</div>
+
+<!-- FOURTH SIDE -->
+<div id="exitDoor" onclick="openDoor()"></div>
+
+</div>
+
+<div id="keypadOverlay">
+<div class="keypad">
+    <div id="keypadDisplay">____</div>
+    <button onclick="pressKey(1)">1</button>
+    <button onclick="pressKey(2)">2</button>
+    <button onclick="pressKey(3)">3</button>
+    <button onclick="pressKey(4)">4</button>
+    <button onclick="pressKey(5)">5</button>
+    <button onclick="pressKey(6)">6</button>
+    <button onclick="pressKey(7)">7</button>
+    <button onclick="pressKey(8)">8</button>
+    <button onclick="pressKey(9)">9</button>
+    <button onclick="clearKeypad()">CLR</button>
+    <button onclick="pressKey(0)">0</button>
+    <button onclick="closeKeypad()">ESC</button>
+</div>
+</div>
+
+<div id="messageBox"></div>
+
+<script>
+let view = 0; // 0=man,1=left,2=right,3=door
+let shelfOpen=false, safeUnlocked=false;
+let hasBanana=false, hasKey=false;
+let input='', code='3591';
+
+function reset(){
+    [pRed,pBlue,pGreen,pYellow,shelfArea,safe,exitDoor].forEach(e=>e.style.display='none');
+    man.style.display='none';
+    roomView.style.background='';
+}
+
+function updateView(){
+    reset();
+    if(view===0){
+        man.style.display='block'; // full screen man
+    }
+    if(view===1){
+        roomView.style.background='#444';
+        [pRed,pBlue,pGreen,pYellow].forEach(e=>e.style.display='block');
+        pRed.style.left='10%'; pRed.style.top='20%';
+        pBlue.style.right='15%'; pBlue.style.top='20%';
+        pGreen.style.left='10%'; pGreen.style.bottom='15%';
+        pYellow.style.right='15%'; pYellow.style.bottom='15%';
+    }
+    if(view===2){
+        roomView.style.background='#555';
+        shelfArea.style.display='block';
+        shelfArea.style.left='15%'; shelfArea.style.top='25%';
+        safe.style.display='block';
+        safe.style.right='15%'; safe.style.top='40%';
+    }
+    if(view===3){
+        roomView.style.background='#333';
+        exitDoor.style.display='block';
+        exitDoor.style.left='50%';
+        exitDoor.style.bottom='5%';
+        exitDoor.style.transform='translateX(-50%)';
+    }
+}
+
+arrowLeft.onclick=()=>{ view=(view+3)%4; updateView(); }
+arrowRight.onclick=()=>{ view=(view+1)%4; updateView(); }
+
+function zoomNote(){ showMessage("Note: Red, Blue, Green, Yellow"); }
+
+function toggleShelf(e){
+    e.stopPropagation();
+    shelfOpen=!shelfOpen;
+    shelfDoor.classList.toggle('open',shelfOpen);
+}
+
+function openKeypad(){ if(safeUnlocked) return; keypadOverlay.style.display='flex'; }
+
+function closeKeypad(){ keypadOverlay.style.display='none'; input=''; keypadDisplay.textContent='____'; }
+
+function pressKey(n){
+    if(input.length<4){
+        input+=n;
+        keypadDisplay.textContent=input.padEnd(4,'_');
+        if(input.length===4 && input===code){
+            safeUnlocked=true;
+            closeKeypad();
+            banana.style.display='block';
+            showMessage("Safe unlocked.");
+        }
+    }
+}
+
+function clearKeypad(){ input=''; keypadDisplay.textContent='____'; }
+
+function grabBanana(e){ e.stopPropagation(); banana.style.display='none'; hasBanana=true; showMessage("You got the banana."); }
+
+function talkToMan(){
+    if(!hasBanana) showMessage("Bring me a banana and I'll trade you a key.");
+    else if(!hasKey){
+        hasKey=true;
+        hasBanana=false;
+        showMessage("Deal. Here's the key.");
+    }
+}
+
+function openDoor(){
+    if(!hasKey) showMessage("The door is locked.");
+    else{
+        exitDoor.classList.add('open');
+        showMessage("You escaped!");
+    }
+}
+
+function showMessage(t){
+    messageBox.textContent=t;
+    messageBox.classList.add('visible');
+    setTimeout(()=>messageBox.classList.remove('visible'),2500);
+}
+
+updateView();
+</script>
+
+</body>
+</html>
