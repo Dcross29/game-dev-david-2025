@@ -3,141 +3,301 @@
 <head>
 <meta charset="UTF-8">
 <title>I will pop that bubble - lvl 3</title>
+
 <style>
-  body {
+body {
     margin: 0;
     overflow: hidden;
-  }
-  #roomView {
+    background: #000;
+    font-family: Segoe UI, sans-serif;
+}
+
+#gameContainer {
     width: 100vw;
     height: 100vh;
-    background-size: cover;
-    background-position: center;
     position: relative;
-  }
-  #arrowLeft, #arrowRight {
+}
+
+#roomView {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: background-color 0.6s;
+}
+
+/* Navigation */
+.nav-arrow {
     position: absolute;
     top: 50%;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    z-index: 10;
     transform: translateY(-50%);
-  }
-  #arrowLeft { left: 10px; }
-  #arrowRight { right: 10px; }
-
-  #item1, #shelfDoor {
-    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
-    transition: opacity 0.3s;
-  }
+    z-index: 100;
+}
+#arrowLeft { left: 20px; }
+#arrowRight { right: 20px; }
+
+/* Shelf */
+#shelfArea {
+    position: absolute;
+    width: 180px;
+    height: 260px;
+    background: #3d2b1f;
+    border: 12px solid #5d4637;
+    display: none;
+}
+#shelfDoor {
+    position: absolute;
+    inset: -6px;
+    background: #6d5647;
+    transform-origin: left;
+    transition: transform 1s;
+    cursor: pointer;
+}
+#shelfDoor.open {
+    transform: rotateY(-125deg);
+}
+
+#clueNote {
+    position: absolute;
+    top: 40px;
+    left: 20px;
+    width: 55px;
+    height: 75px;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* Safe */
+#safe {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    background: #222;
+    border: 10px solid #333;
+    display: none;
+    cursor: pointer;
+}
+
+#banana {
+    width: 90px;
+    display: none;
+    cursor: pointer;
+}
+
+/* Paintings */
+.painting {
+    position: absolute;
+    width: 100px;
+    height: 130px;
+    border: 10px solid #2a1b0e;
+    display: none;
+}
+
+/* Keypad */
+#keypadOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 70px);
+    gap: 10px;
+}
+.keypad button {
+    height: 70px;
+    font-size: 24px;
+}
+
+/* Message */
+#messageBox {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: white;
+    padding: 15px 30px;
+    border-radius: 30px;
+    transition: transform 0.4s;
+}
+#messageBox.visible {
+    transform: translateX(-50%) translateY(0);
+}
 </style>
 </head>
+
 <body>
 
-<h1 style="color:red; text-align:center;">I will pop that bubble - lvl 3</h1>
-
+<div id="gameContainer">
 <div id="roomView">
-  <img id="arrowLeft" src="Arrowleft.gif">
-  <img id="arrowRight" src="Arrowright.gif">
 
-  <!-- Center item -->
-  <img id="item1" src="item.png">
+<div id="arrowLeft" class="nav-arrow">◀</div>
+<div id="arrowRight" class="nav-arrow">▶</div>
 
-  <!-- Shelf door -->
-  <img id="shelfDoor" src="Shelfdoor.gif">
+<img id="item1" src="https://via.placeholder.com/100" style="display:none; position:absolute;">
+
+<div id="shelfArea">
+    <div id="clueNote" onclick="zoomNote(event)"></div>
+    <div id="shelfDoor" onclick="toggleShelf(event)"></div>
 </div>
+
+<div id="safe" onclick="openKeypad()">
+    <img id="banana" src="https://img.icons8.com/color/96/banana.png" onclick="grabBanana(event)">
+</div>
+
+<div id="pRed" class="painting"></div>
+<div id="pBlue" class="painting"></div>
+<div id="pGreen" class="painting"></div>
+<div id="pYellow" class="painting"></div>
+
+</div>
+</div>
+
+<div id="keypadOverlay">
+<div class="keypad">
+    <div id="keypadDisplay">____</div>
+    <button onclick="pressKey(1)">1</button>
+    <button onclick="pressKey(2)">2</button>
+    <button onclick="pressKey(3)">3</button>
+    <button onclick="pressKey(4)">4</button>
+    <button onclick="pressKey(5)">5</button>
+    <button onclick="pressKey(6)">6</button>
+    <button onclick="pressKey(7)">7</button>
+    <button onclick="pressKey(8)">8</button>
+    <button onclick="pressKey(9)">9</button>
+    <button onclick="clearKeypad()">CLR</button>
+    <button onclick="pressKey(0)">0</button>
+    <button onclick="closeKeypad()">ESC</button>
+</div>
+</div>
+
+<div id="messageBox"></div>
 
 <script>
 let currentView = 'center';
 let shelfOpen = false;
+let safeUnlocked = false;
+let currentInput = '';
+const correctCode = '3591';
 
-const room = document.getElementById('roomView');
-const item1 = document.getElementById('item1');
-const shelf = document.getElementById('shelfDoor');
+const views = {
+    center() {
+        item1.style.display = 'block';
+        item1.style.left = '50%';
+        item1.style.top = '50%';
+        item1.style.transform = 'translate(-50%, -50%)';
+    },
+    left() {
+        pRed.style.display = 'block';
+        pBlue.style.display = 'block';
+    },
+    right() {
+        shelfArea.style.display = 'block';
+        shelfArea.style.left = '15%';
+        shelfArea.style.top = '30%';
 
-// Positions as percentages of the container (relative to background)
-const positions = {
-  center: { item1: { left: 50, top: 50 }, shelf: null },
-  left: { item1: null, shelf: null },
-  right: { item1: null, shelf: { left: 42, top: 26 } }
+        safe.style.display = 'block';
+        safe.style.right = '15%';
+        safe.style.top = '50%';
+    }
 };
+
+function reset() {
+    item1.style.display = 'none';
+    shelfArea.style.display = 'none';
+    safe.style.display = 'none';
+    [pRed,pBlue,pGreen,pYellow].forEach(p=>{
+        p.style.display='none';
+        p.style.transform='none';
+    });
+}
 
 function updateView() {
-  if (currentView === 'left') {
-    room.style.backgroundImage = "url('room_left.png')";
-    item1.style.display = 'none';
-    shelf.style.display = 'none';
-  } else if (currentView === 'center') {
-    room.style.backgroundImage = "url('room_center.png')";
-    item1.style.display = 'block';
-    shelf.style.display = 'none';
-  } else if (currentView === 'right') {
-    room.style.backgroundImage = "url('Level3background1.gif')";
-    item1.style.display = 'none';
-    shelf.style.display = 'block';
-  }
-
-  updatePositions();
+    reset();
+    views[currentView]();
 }
 
-// Dynamically update positions based on container size
-function updatePositions() {
-  const roomWidth = room.clientWidth;
-  const roomHeight = room.clientHeight;
+arrowLeft.onclick = () => {
+    if (currentView === 'center') currentView = 'left';
+    else if (currentView === 'right') currentView = 'center';
+    updateView();
+};
 
-  // Item1
-  if (positions[currentView].item1) {
-    const pos = positions[currentView].item1;
-    item1.style.left = (pos.left / 100 * roomWidth - item1.width/2) + 'px';
-    item1.style.top = (pos.top / 100 * roomHeight - item1.height/2) + 'px';
-  }
+arrowRight.onclick = () => {
+    if (currentView === 'center') currentView = 'right';
+    else if (currentView === 'left') currentView = 'center';
+    updateView();
+};
 
-  // Shelf
-  if (positions[currentView].shelf) {
-    const pos = positions[currentView].shelf;
-    shelf.style.left = (pos.left / 100 * roomWidth) + 'px';
-    shelf.style.top = (pos.top / 100 * roomHeight) + 'px';
-    shelf.style.width = (0.2 * roomWidth) + 'px'; // optional: scale with width
-  }
+function toggleShelf(e){
+    if(currentView!=='right') return;
+    e.stopPropagation();
+    shelfOpen=!shelfOpen;
+    shelfDoor.classList.toggle('open',shelfOpen);
 }
 
-// Arrow navigation
-document.getElementById('arrowLeft').onclick = () => {
-  if (currentView === 'center') currentView = 'left';
-  else if (currentView === 'right') currentView = 'center';
-  updateView();
-};
+function zoomNote(e){
+    e.stopPropagation();
+    showMessage("Red, Blue, Green, Yellow");
+}
 
-document.getElementById('arrowRight').onclick = () => {
-  if (currentView === 'center') currentView = 'right';
-  else if (currentView === 'left') currentView = 'center';
-  updateView();
-};
+function openKeypad(){
+    if(safeUnlocked) return;
+    keypadOverlay.style.display='flex';
+}
 
-// Shelf click → hide for 3 seconds
-shelf.onclick = () => {
-  if (shelfOpen) return;
+function closeKeypad(){
+    keypadOverlay.style.display='none';
+    clearKeypad();
+}
 
-  shelfOpen = true;
-  shelf.style.opacity = 0;
+function pressKey(n){
+    if(currentInput.length<4){
+        currentInput+=n;
+        keypadDisplay.textContent=currentInput.padEnd(4,'_');
+        if(currentInput.length===4) checkCode();
+    }
+}
 
-  setTimeout(() => {
-    shelf.style.opacity = 1;
-    shelfOpen = false;
-  }, 3000);
-};
+function clearKeypad(){
+    currentInput='';
+    keypadDisplay.textContent='____';
+}
 
-// Item interaction
-item1.onclick = () => {
-  alert('You interacted with the item!');
-};
+function checkCode(){
+    if(currentInput===correctCode){
+        safeUnlocked=true;
+        closeKeypad();
+        banana.style.display='block';
+        safe.onclick=null;
+        showMessage("Safe unlocked!");
+    } else {
+        clearKeypad();
+    }
+}
 
-// Update positions on window resize
-window.onresize = updatePositions;
+function grabBanana(e){
+    e.stopPropagation();
+    banana.style.display='none';
+    showMessage("Level Complete!");
+}
 
-// Initial load
+function showMessage(t){
+    messageBox.textContent=t;
+    messageBox.classList.add('visible');
+    setTimeout(()=>messageBox.classList.remove('visible'),2500);
+}
+
 updateView();
 </script>
 
