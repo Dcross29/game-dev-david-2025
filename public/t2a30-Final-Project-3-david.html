@@ -389,7 +389,7 @@ function openDoor(){
     if(!hasKey) showMessage("The door is locked.");
     else{
         exitDoor.classList.add('open');
-        showMessage("You escaped! Moving to next level...");
+        showMessage("The door opened, Moving to next level...");
         setTimeout(()=>{ window.location.href = 'level4.html'; }, 1500);
     }
 }
