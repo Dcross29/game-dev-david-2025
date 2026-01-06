@@ -110,6 +110,7 @@ function myWasdFunction(e) {
 }
 
 document.addEventListener('keydown', myWasdFunction)
+window.addEventListener('load',()=>{document.body.style.opacity=0;document.body.style.transition='opacity 1s';requestAnimationFrame(()=>document.body.style.opacity=1)});
 
 </script>
 
