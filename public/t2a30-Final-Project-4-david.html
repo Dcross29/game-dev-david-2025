@@ -1,11 +1,12 @@
-
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"> 
-  
 <style>
+  body {
+    margin: 0;
+  }
+
   #dialogueBox {
     position: fixed;
     bottom: 50px;
@@ -27,10 +28,24 @@
     font-size: 16px;
     cursor: pointer;
   }
+
+  /* FULL PAGE FADE OVERLAY */
+  #fadeOverlay {
+    position: fixed;
+    inset: 0;
+    background: black;
+    z-index: 99999;
+    transition: opacity 1s;
+  }
 </style>
 </head>
 <body style="background-repeat:repeat; background-size: 100%" background="BubbleGuard.gif">
+
+<!-- PAGE FADE OVERLAY -->
+<div id="fadeOverlay"></div>
+
 <h1 align=center><font color=red>I will pop that bubble- lvl 4</font></h1>
+
 <!-- Dialogue box -->
 <div id="dialogueBox">
   <div id="dialogueText"></div>
@@ -38,8 +53,14 @@
 </div>
 
 <script>
+// === FADE-IN THE PAGE ===
+const overlay = document.getElementById('fadeOverlay');
+window.addEventListener('load', () => {
+  overlay.style.opacity = 0;             // fade out
+  setTimeout(() => overlay.remove(), 1000); // remove overlay after fade
+});
+
 // === DIALOGUE STRUCTURE ===
-// npc dialogue -> 3 options -> each option can have 3 sub-options (placeholders)
 const dialogueTree = {
   text: "NPC: Welcome, traveler! What do you want to do?",
   choices: [
@@ -107,8 +128,7 @@ function showDialogue(node) {
 
 // Start dialogue
 showDialogue(dialogueTree);
-
 </script>
+
 </body>
 </html>
-
