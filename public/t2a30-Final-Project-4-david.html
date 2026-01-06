@@ -1,5 +1,114 @@
 
-<h1 align=center><font color=red>I will pop that bubble- lvl 4</font></h1>
-<body id="myBody" style="background-repeat:repeat; background-size: 100%" background="BubbleGuard.gif">
 
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"> 
   
+<style>
+  #dialogueBox {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 500px;
+    text-align: center;
+    display: none;
+    z-index: 10000;
+  }
+  #dialogueChoices button {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body style="background-repeat:repeat; background-size: 100%" background="BubbleGuard.gif">
+<h1 align=center><font color=red>I will pop that bubble- lvl 4</font></h1>
+<!-- Dialogue box -->
+<div id="dialogueBox">
+  <div id="dialogueText"></div>
+  <div id="dialogueChoices"></div>
+</div>
+
+<script>
+// === DIALOGUE STRUCTURE ===
+// npc dialogue -> 3 options -> each option can have 3 sub-options (placeholders)
+const dialogueTree = {
+  text: "NPC: Welcome, traveler! What do you want to do?",
+  choices: [
+    {
+      text: "Option 1 - Ask about the quest",
+      next: {
+        text: "NPC: The quest is dangerous. What will you do?",
+        choices: [
+          { text: "Option 1.1 - Accept the quest", next: null },
+          { text: "Option 1.2 - Ask for more info", next: null },
+          { text: "Option 1.3 - Decline", next: null },
+        ]
+      }
+    },
+    {
+      text: "Option 2 - Ask about rewards",
+      next: {
+        text: "NPC: The rewards are great, but risky. Your choice?",
+        choices: [
+          { text: "Option 2.1 - Take the reward", next: null },
+          { text: "Option 2.2 - Negotiate", next: null },
+          { text: "Option 2.3 - Ignore", next: null },
+        ]
+      }
+    },
+    {
+      text: "Option 3 - Say goodbye",
+      next: {
+        text: "NPC: Farewell, traveler!",
+        choices: [
+          { text: "Option 3.1 - Wave", next: null },
+          { text: "Option 3.2 - Leave silently", next: null },
+          { text: "Option 3.3 - Ask one last question", next: null },
+        ]
+      }
+    }
+  ]
+};
+
+// === JS FUNCTIONALITY ===
+const dialogueBox = document.getElementById("dialogueBox");
+const dialogueText = document.getElementById("dialogueText");
+const dialogueChoices = document.getElementById("dialogueChoices");
+
+function showDialogue(node) {
+  dialogueBox.style.display = "block";
+  dialogueText.textContent = node.text;
+  dialogueChoices.innerHTML = "";
+
+  if(node.choices){
+    node.choices.forEach(choice => {
+      const btn = document.createElement("button");
+      btn.textContent = choice.text;
+      btn.onclick = () => {
+        if(choice.next){
+          showDialogue(choice.next); // go to next dialogue node
+        } else {
+          dialogueBox.style.display = "none"; // end of branch
+        }
+      };
+      dialogueChoices.appendChild(btn);
+    });
+  }
+}
+
+// Start dialogue
+showDialogue(dialogueTree);
+
+</script>
+</body>
+</html>
+
