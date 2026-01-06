@@ -216,6 +216,13 @@ body {
 </head>
 
 <body>
+<div id="fadeOverlay" style="
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:99999;
+  transition: opacity 1s;
+"></div>
 
 <h1 style="color:red; text-align:center; margin:10px 0; position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:100000;">
     I will pop that bubble - lvl 3
@@ -401,6 +408,13 @@ function showMessage(t){
 }
 
 updateView();
+    // FADE-IN WHOLE PAGE
+const overlay = document.getElementById('fadeOverlay');
+window.addEventListener('load', () => {
+  overlay.style.opacity = 0;           // start fade
+  setTimeout(() => overlay.remove(), 1000); // remove overlay after fade
+});
+
 </script>
 
 </body>
