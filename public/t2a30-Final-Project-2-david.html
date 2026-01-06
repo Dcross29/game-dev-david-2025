@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html>
-<h1><font color=red>I will pop that bubble - lvl 2</font></h1>
-      <body id="myBody"
-      style="background-size:100%; background-image:url('lvl2doorclose.gif');">
+<head>
+  <title>I will pop that bubble - lvl 2</title>
+</head>
+
+<body id="myBody"
+style="background-size:100%; background-image:url('lvl2doorclose.gif');">
+
+<h1><font color="red">I will pop that bubble - lvl 2</font></h1>
 
 <h3>
 <details open>
@@ -27,13 +32,16 @@
 <script>
 let doorOpen = false;
 
-document.addEventListener('keydown', function(e) {
+/* W key to leave */
+document.addEventListener('keydown', e => {
   if (doorOpen && (e.key === 'w' || e.key === 'W')) {
     location.href = 't2a30-Final-Project-3-david.html';
   }
 });
-      window.addEventListener('load',()=>{document.body.style.opacity=0;document.body.style.transition='opacity 1s';requestAnimationFrame(()=>document.body.style.opacity=1)});
 
+/* FADE IN — one-time */
+document.body.style.cssText += ';opacity:0;transition:opacity 1s';
+addEventListener('load', () => document.body.style.opacity = 1);
 </script>
 
 </body>
