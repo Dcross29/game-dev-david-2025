@@ -2,12 +2,35 @@
 <html>
 <head>
   <title>I will pop that bubble - lvl 2</title>
+  <style>
+    /* PAGE STYLES */
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      position: relative;
+    }
+
+    /* FADE-IN OVERLAY */
+    #fadeOverlay {
+      position: fixed;
+      inset: 0;
+      background: black;
+      z-index: 9999;
+      transition: opacity 1s;
+    }
+
+    /* Example page content */
+    h1 { color: red; margin: 20px; }
+    h3 { margin-left: 20px; }
+    #mybutton { position: absolute; width:127px; height:127px; left:1178px; top:565px; cursor:pointer; }
+  </style>
 </head>
+<body style="background-size:100%; background-image:url('lvl2doorclose.gif');">
 
-<body id="myBody"
-style="background-size:100%; background-image:url('lvl2doorclose.gif');">
+<!-- FULL SCREEN FADE OVERLAY -->
+<div id="fadeOverlay"></div>
 
-<h1><font color="red">I will pop that bubble - lvl 2</font></h1>
+<h1>I will pop that bubble - lvl 2</h1>
 
 <h3>
 <details open>
@@ -19,15 +42,12 @@ style="background-size:100%; background-image:url('lvl2doorclose.gif');">
 </details>
 </h3>
 
-<img id="mybutton"
-     src="Button.gif"
-     style="position:absolute; width:127px; height:127px; left:1178px; top:565px;"
-     onclick="
-       event.stopPropagation();
-       doorOpen = true;
-       document.getElementById('myBody').style.backgroundImage = 'url(lvl2dooropen.gif)';
-       this.style.display='none';
-     ">
+<img id="mybutton" src="Button.gif" onclick="
+  event.stopPropagation();
+  doorOpen = true;
+  document.body.style.backgroundImage = 'url(lvl2dooropen.gif)';
+  this.style.display='none';
+">
 
 <script>
 let doorOpen = false;
@@ -39,9 +59,12 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* FADE IN — one-time */
-document.body.style.cssText += ';opacity:0;transition:opacity 1s';
-addEventListener('load', () => document.body.style.opacity = 1);
+/* FADE-IN THE PAGE */
+const overlay = document.getElementById('fadeOverlay');
+window.addEventListener('load', () => {
+  overlay.style.opacity = 0;          // start fade
+  setTimeout(() => overlay.remove(), 1000); // remove overlay after fade
+});
 </script>
 
 </body>
