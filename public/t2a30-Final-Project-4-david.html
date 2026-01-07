@@ -60,7 +60,8 @@ h1 {
   z-index: 30000;
 }
 
-#successScreen img {
+#successScreen img,
+#deathScreen img {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
@@ -85,12 +86,6 @@ h1 {
   background: black;
   display: none;
   z-index: 50000;
-}
-
-#deathScreen img {
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
 }
 
 /* GAME OVER */
@@ -130,12 +125,10 @@ h1 {
   <img src="guardleave.gif">
 </div>
 
-<button id="proceedBtn" onclick="location.href='level5.html'">
-  Proceed
-</button>
+<button id="proceedBtn" onclick="location.href='level5.html'">Proceed</button>
 
 <div id="deathScreen">
-  <img src="Death.gif">
+  <img src="death.gif">
 </div>
 
 <div id="gameOver">
@@ -144,16 +137,15 @@ h1 {
 </div>
 
 <script>
-/* ===== FADE IN ===== */
+/* ===== FADE ===== */
 window.onload = () => {
   const f = document.getElementById("fadeOverlay");
   f.style.transition = "opacity 1s";
   f.style.opacity = 0;
-  setTimeout(()=>f.remove(),1000);
+  setTimeout(() => f.remove(), 1000);
 };
 
-/* ===== CONSTANTS ===== */
-const TYPE_SPEED = 80;
+const TYPE_SPEED = 90;
 const GUARD_GIF_DURATION = 1857;
 const DEATH_DURATION = 2500;
 
@@ -167,7 +159,10 @@ const dialogueTree = {
       next: {
         text: ".....\nHello?",
         choices: [
-          { label: "*say nothing*", next: { death: true } },
+          {
+            label: "*say nothing*",
+            next: { text: "Fine. Be that way.", death: true }
+          },
           {
             label: "let me in",
             next: {
@@ -199,19 +194,22 @@ const dialogueTree = {
       next: {
         text: "State your offer.",
         choices: [
-          { label: "rock paper scissors", next: { death: true } },
+          {
+            label: "rock paper scissors",
+            next: { text: "You think I'm here to play games?", death: true }
+          },
           {
             label: "give him whatever is in your pockets",
             next: {
               text: "Uhhh… I got some pocket lint and an old bubblegun wrapper.",
-              death: true
+              npcNext: { text: "You wasted my time.", death: true }
             }
           },
           {
             label: "intimidation",
             next: {
               text: "You let me in, and I won't molly whop you right now.",
-              death: true
+              npcNext: { text: "Big words for a corpse.", death: true }
             }
           }
         ]
@@ -246,7 +244,6 @@ const dialogueTree = {
         ]
       }
     }
-
   ]
 };
 
@@ -258,10 +255,10 @@ const choicesEl = document.getElementById("dialogueChoices");
 function typeWriter(text, done){
   textEl.textContent = "";
   let i = 0;
-  const timer = setInterval(()=>{
+  const interval = setInterval(() => {
     textEl.textContent += text[i++];
     if(i >= text.length){
-      clearInterval(timer);
+      clearInterval(interval);
       done && done();
     }
   }, TYPE_SPEED);
@@ -273,10 +270,10 @@ function showDialogue(node){
 
   typeWriter(node.text, () => {
     if(node.choices){
-      node.choices.forEach(c=>{
+      node.choices.forEach(c => {
         const btn = document.createElement("button");
         btn.textContent = c.label;
-        btn.onclick = ()=>handleNext(c.next);
+        btn.onclick = () => handleNext(c.next);
         choicesEl.appendChild(btn);
       });
     }
@@ -287,15 +284,19 @@ function handleNext(n){
   if(!n) return;
 
   if(n.npcNext){
-    showDialogue({ text: n.text, choices: [] });
-    setTimeout(()=>handleNext(n.npcNext), TYPE_SPEED * n.text.length + 400);
+    showDialogue({
+      text: n.text,
+      choices: [],
+      _after: () => handleNext(n.npcNext)
+    });
+    setTimeout(() => handleNext(n.npcNext), TYPE_SPEED * n.text.length + 400);
     return;
   }
 
   if(n.success){
     box.style.display = "none";
     document.getElementById("successScreen").style.display = "block";
-    setTimeout(()=>{
+    setTimeout(() => {
       document.getElementById("proceedBtn").style.display = "block";
     }, GUARD_GIF_DURATION);
     return;
@@ -303,8 +304,10 @@ function handleNext(n){
 
   if(n.death){
     box.style.display = "none";
-    document.getElementById("deathScreen").style.display = "block";
-    setTimeout(()=>{
+    const d = document.getElementById("deathScreen");
+    d.style.display = "block";
+    setTimeout(() => {
+      d.style.display = "none";
       document.getElementById("gameOver").style.display = "flex";
     }, DEATH_DURATION);
     return;
