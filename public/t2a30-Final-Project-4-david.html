@@ -2,60 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dialogue System - lvl 4</title>
+<title>I will pop that bubble - lvl 4</title>
 
 <style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
+body {
+  margin: 0;
+  font-family: sans-serif;
 
-    /* FIXED FULLSCREEN BACKGROUND */
-    background-image: url('BubbleGuard.gif');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+  background-image: url('BubbleGuard.gif');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 
-    height: 100vh;
-    overflow: hidden;
-  }
+  height: 100vh;
+  overflow: hidden;
+}
 
-  #dialogueBox {
-    position: fixed;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.85);
-    color: white;
-    padding: 20px;
-    border-radius: 15px;
-    max-width: 500px;
-    text-align: center;
-    display: none;
-    z-index: 10000;
-  }
+h1 {
+  text-align: center;
+  color: red;
+}
 
-  #dialogueChoices button {
-    display: block;
-    margin: 10px auto;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-  }
+#fadeOverlay {
+  position: fixed;
+  inset: 0;
+  background: black;
+  z-index: 20000;
+}
 
-  /* FADE-IN OVERLAY */
-  #fadeOverlay {
-    position: fixed;
-    inset: 0;
-    background: black;
-    z-index: 20000;
-  }
+#dialogueBox {
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  max-width: 550px;
+  text-align: center;
+  display: none;
+  z-index: 10000;
+}
+
+#dialogueChoices button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
 </style>
 </head>
 
 <body>
 
-<h1 align="center" style="color:red;">I will pop that bubble - lvl 4</h1>
+<h1>I will pop that bubble - lvl 4</h1>
 
 <div id="fadeOverlay"></div>
 
@@ -65,63 +68,114 @@
 </div>
 
 <script>
-/* === FADE IN PAGE === */
-document.addEventListener("DOMContentLoaded", () => {
-  const fade = document.getElementById("fadeOverlay");
-  fade.style.transition = "opacity 1s";
-  fade.style.opacity = 0;
-  setTimeout(() => fade.style.display = "none", 1000);
-});
+/* ===== FADE IN ===== */
+window.onload = () => {
+  const f = document.getElementById("fadeOverlay");
+  f.style.transition = "opacity 1s";
+  f.style.opacity = 0;
+  setTimeout(()=>f.remove(),1000);
+};
 
-/* === DIALOGUE TREE === */
+/* ===== DIALOGUE TREE ===== */
 const dialogueTree = {
   text: "What brings you here? If it's the door, turn. Now.",
   choices: [
+
+    /* SAY NOTHING */
     {
-      text: "*say nothing*",
+      label: "*say nothing*",
       next: {
         text: ".....\nHello?",
         choices: [
-          { text: "*say nothing*", next: { death: true } },
           {
-            text: "let me in",
+            label: "*say nothing*",
+            next: { death: true }
+          },
+          {
+            label: "let me in",
             next: {
               text: "And why should I?",
               choices: [
-                { text: "flaunt", next: { text: "Really!?", success: true } },
-                { text: "reason", next: { death: true } }
+                {
+                  label: "flaunt",
+                  next: {
+                    text: "Because I'm rich. If you go to that corner over there, I left some money.",
+                    npcNext: {
+                      text: "Really!?",
+                      success: true
+                    }
+                  }
+                },
+                {
+                  label: "reason",
+                  next: {
+                    text: "You don't get paid enough for this.",
+                    npcNext: {
+                      text: "I don't care.",
+                      death: true
+                    }
+                  }
+                }
               ]
             }
           }
         ]
       }
     },
+
+    /* PROPOSITION */
     {
-      text: "*offer a proposition*",
+      label: "*offer a proposition*",
       next: {
-        text: "Choose your method...",
+        text: "State your offer.",
         choices: [
-          { text: "rock paper scissors", next: { rps: true } },
           {
-            text: "give him whatever is in your pockets",
-            next: { text: "uhhh, i got some pocket lint and an old bubblegun wrapper", death: true }
+            label: "rock paper scissors",
+            next: { rps: true }
           },
-          { text: "intimidation", next: { death: true } }
+          {
+            label: "give him whatever is in your pockets",
+            next: {
+              text: "Uhhh… I got some pocket lint and an old bubblegun wrapper.",
+              death: true
+            }
+          },
+          {
+            label: "intimidation",
+            next: {
+              text: "You let me in, and I won't molly whop you right now.",
+              death: true
+            }
+          }
         ]
       }
     },
+
+    /* INSULT */
     {
-      text: "*insult*",
+      label: "*insult*",
       next: {
-        text: "Choose how to insult...",
+        text: "Say it.",
         choices: [
           {
-            text: "insult his spear",
-            next: { text: "No it's not! It's average… besides. It's how you use it", success: true }
+            label: "insult his spear",
+            next: {
+              text: "Your spear is small.",
+              npcNext: {
+                text: "No it's not! It's average… besides. It's how you use it.",
+                success: true
+              }
+            }
           },
           {
-            text: "make fun of his legs",
-            next: { text: "like you'd know anything about muscle, twig-bones", death: true }
+            label: "make fun of his legs",
+            next: {
+              text: "Your legs are so thin, skip leg day?",
+              npcNext: {
+                text: "Like you'd know anything about muscle, twig-bones.",
+                death: true
+              }
+            }
           }
         ]
       }
@@ -129,52 +183,73 @@ const dialogueTree = {
   ]
 };
 
-/* === DIALOGUE SYSTEM === */
-const dialogueBox = document.getElementById("dialogueBox");
-const dialogueText = document.getElementById("dialogueText");
-const dialogueChoices = document.getElementById("dialogueChoices");
+/* ===== ENGINE ===== */
+const box = document.getElementById("dialogueBox");
+const textEl = document.getElementById("dialogueText");
+const choicesEl = document.getElementById("dialogueChoices");
 
-function typeWriter(text, callback) {
-  dialogueText.textContent = "";
+function typeWriter(text, done){
+  textEl.textContent = "";
   let i = 0;
-  const speed = 60; // ⬅️ SLOWER typing
+  const speed = 60;
 
-  const interval = setInterval(() => {
-    dialogueText.textContent += text[i];
-    i++;
-    if (i >= text.length) {
+  const interval = setInterval(()=>{
+    textEl.textContent += text[i++];
+    if(i >= text.length){
       clearInterval(interval);
-      if (callback) callback();
+      done && done();
     }
   }, speed);
 }
 
-function showDialogue(node) {
-  dialogueBox.style.display = "block";
-  dialogueChoices.innerHTML = "";
+function showDialogue(node){
+  box.style.display = "block";
+  choicesEl.innerHTML = "";
 
   typeWriter(node.text, () => {
-    if (node.choices) {
-      node.choices.forEach(choice => {
+
+    if(node._after){
+      setTimeout(node._after, 500);
+      return;
+    }
+
+    if(node.choices){
+      node.choices.forEach(c=>{
         const btn = document.createElement("button");
-        btn.textContent = choice.text;
-        btn.onclick = () => {
-          if (choice.next?.death) {
-            document.body.innerHTML =
-              `<img src="Death.gif" style="width:100vw;height:100vh;">`;
-          } else if (choice.next?.rps) {
-            alert("RPS game placeholder");
-          } else if (choice.next) {
-            showDialogue(choice.next);
-          }
-        };
-        dialogueChoices.appendChild(btn);
+        btn.textContent = c.label;
+        btn.onclick = ()=>handleNext(c.next);
+        choicesEl.appendChild(btn);
       });
     }
   });
 }
 
-/* === START === */
+function handleNext(n){
+  if(!n) return;
+
+  if(n.npcNext){
+    showDialogue({
+      text: n.text,
+      _after: ()=>showDialogue(n.npcNext)
+    });
+    return;
+  }
+
+  if(n.death){
+    document.body.innerHTML =
+      `<img src="Death.gif" style="width:100vw;height:100vh;">`;
+    return;
+  }
+
+  if(n.rps){
+    alert("Rock Paper Scissors game goes here");
+    return;
+  }
+
+  showDialogue(n);
+}
+
+/* ===== START ===== */
 showDialogue(dialogueTree);
 </script>
 
