@@ -8,13 +8,7 @@
 body {
   margin: 0;
   font-family: sans-serif;
-
-  background-image: url('BubbleGuard.gif');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-
+  background: url("BubbleGuard.gif") center / cover no-repeat fixed;
   height: 100vh;
   overflow: hidden;
 }
@@ -22,8 +16,10 @@ body {
 h1 {
   text-align: center;
   color: red;
+  margin-top: 10px;
 }
 
+/* FADE */
 #fadeOverlay {
   position: fixed;
   inset: 0;
@@ -31,6 +27,7 @@ h1 {
   z-index: 20000;
 }
 
+/* DIALOGUE */
 #dialogueBox {
   position: fixed;
   bottom: 50px;
@@ -53,6 +50,68 @@ h1 {
   font-size: 16px;
   cursor: pointer;
 }
+
+/* SUCCESS */
+#successScreen {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: none;
+  z-index: 30000;
+}
+
+#successScreen img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+}
+
+#proceedBtn {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 30px;
+  font-size: 20px;
+  display: none;
+  z-index: 40000;
+  cursor: pointer;
+}
+
+/* DEATH */
+#deathScreen {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: none;
+  z-index: 50000;
+}
+
+#deathScreen img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+}
+
+/* GAME OVER */
+#gameOver {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: red;
+  z-index: 60000;
+}
+
+#gameOver button {
+  margin-top: 20px;
+  padding: 15px 30px;
+  font-size: 20px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -67,6 +126,23 @@ h1 {
   <div id="dialogueChoices"></div>
 </div>
 
+<div id="successScreen">
+  <img src="guardleave.gif">
+</div>
+
+<button id="proceedBtn" onclick="location.href='level5.html'">
+  Proceed
+</button>
+
+<div id="deathScreen">
+  <img src="Death.gif">
+</div>
+
+<div id="gameOver">
+  <h1>GAME OVER</h1>
+  <button onclick="location.reload()">Restart</button>
+</div>
+
 <script>
 /* ===== FADE IN ===== */
 window.onload = () => {
@@ -76,21 +152,22 @@ window.onload = () => {
   setTimeout(()=>f.remove(),1000);
 };
 
+/* ===== CONSTANTS ===== */
+const TYPE_SPEED = 80;
+const GUARD_GIF_DURATION = 1857;
+const DEATH_DURATION = 2500;
+
 /* ===== DIALOGUE TREE ===== */
 const dialogueTree = {
-  text: "What brings you here? If it's the door, turn. Now.",
+  text: "What brings you here. If it's the door, turn. Now.",
   choices: [
 
-    /* SAY NOTHING */
     {
       label: "*say nothing*",
       next: {
         text: ".....\nHello?",
         choices: [
-          {
-            label: "*say nothing*",
-            next: { death: true }
-          },
+          { label: "*say nothing*", next: { death: true } },
           {
             label: "let me in",
             next: {
@@ -100,20 +177,14 @@ const dialogueTree = {
                   label: "flaunt",
                   next: {
                     text: "Because I'm rich. If you go to that corner over there, I left some money.",
-                    npcNext: {
-                      text: "Really!?",
-                      success: true
-                    }
+                    npcNext: { text: "Really!?", success: true }
                   }
                 },
                 {
                   label: "reason",
                   next: {
                     text: "You don't get paid enough for this.",
-                    npcNext: {
-                      text: "I don't care.",
-                      death: true
-                    }
+                    npcNext: { text: "I don't care.", death: true }
                   }
                 }
               ]
@@ -123,16 +194,12 @@ const dialogueTree = {
       }
     },
 
-    /* PROPOSITION */
     {
       label: "*offer a proposition*",
       next: {
         text: "State your offer.",
         choices: [
-          {
-            label: "rock paper scissors",
-            next: { rps: true }
-          },
+          { label: "rock paper scissors", next: { death: true } },
           {
             label: "give him whatever is in your pockets",
             next: {
@@ -151,7 +218,6 @@ const dialogueTree = {
       }
     },
 
-    /* INSULT */
     {
       label: "*insult*",
       next: {
@@ -180,6 +246,7 @@ const dialogueTree = {
         ]
       }
     }
+
   ]
 };
 
@@ -191,15 +258,13 @@ const choicesEl = document.getElementById("dialogueChoices");
 function typeWriter(text, done){
   textEl.textContent = "";
   let i = 0;
-  const speed = 60;
-
-  const interval = setInterval(()=>{
+  const timer = setInterval(()=>{
     textEl.textContent += text[i++];
     if(i >= text.length){
-      clearInterval(interval);
+      clearInterval(timer);
       done && done();
     }
-  }, speed);
+  }, TYPE_SPEED);
 }
 
 function showDialogue(node){
@@ -207,12 +272,6 @@ function showDialogue(node){
   choicesEl.innerHTML = "";
 
   typeWriter(node.text, () => {
-
-    if(node._after){
-      setTimeout(node._after, 500);
-      return;
-    }
-
     if(node.choices){
       node.choices.forEach(c=>{
         const btn = document.createElement("button");
@@ -228,21 +287,26 @@ function handleNext(n){
   if(!n) return;
 
   if(n.npcNext){
-    showDialogue({
-      text: n.text,
-      _after: ()=>showDialogue(n.npcNext)
-    });
+    showDialogue({ text: n.text, choices: [] });
+    setTimeout(()=>handleNext(n.npcNext), TYPE_SPEED * n.text.length + 400);
+    return;
+  }
+
+  if(n.success){
+    box.style.display = "none";
+    document.getElementById("successScreen").style.display = "block";
+    setTimeout(()=>{
+      document.getElementById("proceedBtn").style.display = "block";
+    }, GUARD_GIF_DURATION);
     return;
   }
 
   if(n.death){
-    document.body.innerHTML =
-      `<img src="Death.gif" style="width:100vw;height:100vh;">`;
-    return;
-  }
-
-  if(n.rps){
-    alert("Rock Paper Scissors game goes here");
+    box.style.display = "none";
+    document.getElementById("deathScreen").style.display = "block";
+    setTimeout(()=>{
+      document.getElementById("gameOver").style.display = "flex";
+    }, DEATH_DURATION);
     return;
   }
 
