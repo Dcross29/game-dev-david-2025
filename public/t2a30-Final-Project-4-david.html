@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"> 
+<meta charset="UTF-8">
+<title>Dialogue System - lvl 4</title>
 <style>
   body {
     margin: 0;
+    font-family: sans-serif;
+    background: url('BubbleGuard.gif') no-repeat center center;
+    background-size: cover;
   }
-
   #dialogueBox {
     position: fixed;
     bottom: 50px;
@@ -28,23 +31,19 @@
     font-size: 16px;
     cursor: pointer;
   }
-
-  /* FULL PAGE FADE OVERLAY */
   #fadeOverlay {
     position: fixed;
     inset: 0;
     background: black;
-    z-index: 99999;
-    transition: opacity 1s;
+    z-index: 20000;
   }
 </style>
 </head>
-<body style="background-repeat:repeat; background-size: 100%" background="BubbleGuard.gif">
+<body>
 
-<!-- PAGE FADE OVERLAY -->
+<h1 align="center" style="color:red;">I will pop that bubble - lvl 4</h1>
+
 <div id="fadeOverlay"></div>
-
-<h1 align=center><font color=red>I will pop that bubble- lvl 4</font></h1>
 
 <!-- Dialogue box -->
 <div id="dialogueBox">
@@ -53,80 +52,98 @@
 </div>
 
 <script>
-// === FADE-IN THE PAGE ===
-const overlay = document.getElementById('fadeOverlay');
-window.addEventListener('load', () => {
-  overlay.style.opacity = 0;             // fade out
-  setTimeout(() => overlay.remove(), 1000); // remove overlay after fade
+/* === FADE IN PAGE === */
+document.addEventListener("DOMContentLoaded", ()=>{
+    const fade = document.getElementById("fadeOverlay");
+    fade.style.transition = "opacity 1s";
+    fade.style.opacity = 0;
+    setTimeout(()=>fade.style.display="none", 1000);
 });
 
-// === DIALOGUE STRUCTURE ===
+/* === DIALOGUE TREE === */
 const dialogueTree = {
-  text: "NPC: Welcome, traveler! What do you want to do?",
+  text: "What brings you here? If it's the door, turn. Now.",
   choices: [
-    {
-      text: "Option 1 - Ask about the quest",
-      next: {
-        text: "NPC: The quest is dangerous. What will you do?",
+    { text: "*say nothing*", next: {
+        text: ".....\nHello?",
         choices: [
-          { text: "Option 1.1 - Accept the quest", next: null },
-          { text: "Option 1.2 - Ask for more info", next: null },
-          { text: "Option 1.3 - Decline", next: null },
+          { text: "*say nothing*", next: { death: true } },
+          { text: "let me in", next: {
+              text: "And why should I?",
+              choices: [
+                { text: "flaunt", next: { text: "Really!?", success: true } },
+                { text: "reason", next: { death: true } }
+              ]
+          }}
         ]
-      }
-    },
-    {
-      text: "Option 2 - Ask about rewards",
-      next: {
-        text: "NPC: The rewards are great, but risky. Your choice?",
+    }},
+    { text: "*offer a proposition*", next: {
+        text: "Choose your method...",
         choices: [
-          { text: "Option 2.1 - Take the reward", next: null },
-          { text: "Option 2.2 - Negotiate", next: null },
-          { text: "Option 2.3 - Ignore", next: null },
+          { text: "rock paper scissors", next: { rps: true } },
+          { text: "give him whatever is in your pockets", next: { text: "uhhh, i got some pocket lint and an old bubblegun wrapper", death: true } },
+          { text: "intimidation", next: { death: true } } // guaranteed death
         ]
-      }
-    },
-    {
-      text: "Option 3 - Say goodbye",
-      next: {
-        text: "NPC: Farewell, traveler!",
+    }},
+    { text: "*insult*", next: {
+        text: "Choose how to insult...",
         choices: [
-          { text: "Option 3.1 - Wave", next: null },
-          { text: "Option 3.2 - Leave silently", next: null },
-          { text: "Option 3.3 - Ask one last question", next: null },
+          { text: "insult his spear", next: { text: "No it's not! It's average… besides. It's how you use it", success: true } },
+          { text: "make fun of his legs", next: { text: "like you'd know anything about muscle, twig-bones", death: true } }
         ]
-      }
-    }
+    }}
   ]
 };
 
-// === JS FUNCTIONALITY ===
+/* === DIALOGUE SYSTEM === */
 const dialogueBox = document.getElementById("dialogueBox");
 const dialogueText = document.getElementById("dialogueText");
 const dialogueChoices = document.getElementById("dialogueChoices");
 
-function showDialogue(node) {
-  dialogueBox.style.display = "block";
-  dialogueText.textContent = node.text;
-  dialogueChoices.innerHTML = "";
-
-  if(node.choices){
-    node.choices.forEach(choice => {
-      const btn = document.createElement("button");
-      btn.textContent = choice.text;
-      btn.onclick = () => {
-        if(choice.next){
-          showDialogue(choice.next); // go to next dialogue node
-        } else {
-          dialogueBox.style.display = "none"; // end of branch
-        }
-      };
-      dialogueChoices.appendChild(btn);
-    });
-  }
+function typeWriter(text, callback){
+  dialogueText.textContent = "";
+  let i=0;
+  const speed=30;
+  const interval = setInterval(()=>{
+    dialogueText.textContent += text[i];
+    i++;
+    if(i>=text.length){
+      clearInterval(interval);
+      if(callback) callback();
+    }
+  }, speed);
 }
 
-// Start dialogue
+function showDialogue(node){
+  dialogueBox.style.display = "block";
+  dialogueChoices.innerHTML = "";
+
+  typeWriter(node.text, ()=>{
+    if(node.choices){
+      node.choices.forEach(choice=>{
+        const btn = document.createElement("button");
+        btn.textContent = choice.text;
+        btn.onclick = ()=>{
+          if(choice.next){
+            if(choice.next.death){
+              dialogueBox.style.display="none";
+              document.body.innerHTML=`<img src="Death.gif" style="width:100vw;height:100vh;">`;
+            } else if(choice.next.rps){
+              alert("RPS game would trigger here!");
+            } else {
+              showDialogue(choice.next);
+            }
+          } else {
+            dialogueBox.style.display="none";
+          }
+        };
+        dialogueChoices.appendChild(btn);
+      });
+    }
+  });
+}
+
+/* === START DIALOGUE === */
 showDialogue(dialogueTree);
 </script>
 
