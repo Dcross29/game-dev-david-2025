@@ -2,38 +2,50 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>I Will Pop That Bubble – Goober Room</title>
-
+<title>Goober Room - Birdseye View</title>
 <style>
 body{
   margin:0;
-  font-family:sans-serif;
-  background:black;
   overflow:hidden;
+  background:#222;
+  font-family:sans-serif;
 }
-
-#room{
+#gameArea{
   width:100vw;
   height:100vh;
-  background:#222;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 10%;
+  position:relative;
+  background-image:url('BubbleGuard.gif');
+  background-size:cover;
+  background-position:center;
 }
-
-.door{
-  width:200px;
-  height:350px;
-  background:#5a3b28;
-  border:10px solid #3a2416;
-  cursor:pointer;
+#player{
+  width:60px;
+  height:60px;
+  position:absolute;
+  bottom:50px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:3;
 }
-
 #goober{
-  width:220px;
-  cursor:pointer;
+  width:60px;
+  position:absolute;
+  left:50%;
+  top:40%;
+  transform:translate(-50%, -50%);
+  z-index:2;
 }
+.door{
+  width:80px;
+  height:120px;
+  position:absolute;
+  bottom:50px;
+  z-index:1;
+  background:#5a3b28;
+  border:5px solid #3a2416;
+}
+#doorLeft{left:10%;}
+#doorRight{right:10%;}
 
 #dialogueBox{
   position:fixed;
@@ -44,12 +56,11 @@ body{
   color:white;
   padding:20px;
   border-radius:15px;
-  max-width:550px;
+  max-width:500px;
   text-align:center;
   display:none;
   z-index:1000;
 }
-
 #choices button{
   display:block;
   margin:10px auto;
@@ -57,30 +68,26 @@ body{
   font-size:16px;
   cursor:pointer;
 }
-
 #overlay{
   position:fixed;
   inset:0;
   background:black;
   display:none;
   z-index:2000;
-}
-
-#endingText{
+  text-align:center;
   color:white;
   font-size:28px;
-  text-align:center;
-  margin-top:40vh;
+  padding-top:40vh;
 }
 </style>
 </head>
-
 <body>
 
-<div id="room">
-  <div class="door" onclick="leftDoor()"></div>
-  <img id="goober" src="goober.gif" onclick="startDialogue()">
-  <div class="door" onclick="rightDoor()"></div>
+<div id="gameArea">
+  <img id="player" src="player.gif">
+  <img id="goober" src="goober.gif">
+  <div id="doorLeft" class="door"></div>
+  <div id="doorRight" class="door"></div>
 </div>
 
 <div id="dialogueBox">
@@ -88,11 +95,9 @@ body{
   <div id="choices"></div>
 </div>
 
-<div id="overlay">
-  <div id="endingText"></div>
-</div>
+<div id="overlay"></div>
 
-<!-- ===== AUDIO PLACEHOLDERS ===== -->
+<!-- Audio placeholders -->
 <audio id="a_intro"></audio>
 <audio id="a_doorAnswer"></audio>
 <audio id="a_hair"></audio>
@@ -101,15 +106,41 @@ body{
 <audio id="a_death"></audio>
 
 <script>
-const box = document.getElementById("dialogueBox");
+// ===== GAME VARIABLES =====
+const player = document.getElementById("player");
+const goober = document.getElementById("goober");
+const dialogueBox = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("choices");
 const overlay = document.getElementById("overlay");
-const endingText = document.getElementById("endingText");
 
-let gooberSpoken = false;
+let keys = {};
+let gooberSpoken=false;
 
-/* ===== TYPEWRITER ===== */
+// ===== DIALOGUE TREE =====
+const dialogue = {
+  text:"Hi! I'm the funny little goober that tells lies.",
+  audio:"a_intro",
+  choices:[
+    {
+      label:"Which door has the bubble?",
+      next:{text:"The bubble is behind the right door.", audio:"a_doorAnswer"}
+    },
+    {
+      label:"What's with your one hair?",
+      next:{
+        text:"Oh that? That's actually a nerve ending.",
+        audio:"a_hair",
+        choices:[
+          {label:"Pull it", next:{death:true,text:"HEY—DON'T TOUCH THAT!"}},
+          {label:"Don't pull it", next:{text:"The bubble is behind the right door.", audio:"a_doorAnswer"}}
+        ]
+      }
+    }
+  ]
+};
+
+// ===== TYPEWRITER =====
 function type(text, cb){
   textEl.textContent="";
   let i=0;
@@ -123,8 +154,9 @@ function type(text, cb){
   },speed);
 }
 
+// ===== DIALOGUE FUNCTIONS =====
 function show(node){
-  box.style.display="block";
+  dialogueBox.style.display="block";
   choicesEl.innerHTML="";
   type(node.text,()=>{
     if(node.audio) document.getElementById(node.audio).play();
@@ -145,80 +177,66 @@ function handle(n){
   show(n);
 }
 
-/* ===== DIALOGUE ===== */
-const dialogue = {
-  text:"Hi! I'm the funny little goober that tells lies.",
-  audio:"a_intro",
-  choices:[
-    {
-      label:"Which door has the bubble?",
-      next:{
-        text:"The bubble is behind the right door.",
-        audio:"a_doorAnswer"
-      }
-    },
-    {
-      label:"What's with your one hair?",
-      next:{
-        text:"Oh that? That's not hair. It's actually a nerve ending.",
-        audio:"a_hair",
-        choices:[
-          {
-            label:"Pull it",
-            next:{
-              death:true,
-              text:"HEY— DON'T TOUCH THAT."
-            }
-          },
-          {
-            label:"Don't pull it",
-            next:{
-              text:"The bubble is behind the right door.",
-              audio:"a_doorAnswer"
-            }
-          }
-        ]
-      }
-    }
-  ]
-};
-
-/* ===== EVENTS ===== */
 function startDialogue(){
   if(gooberSpoken) return;
   gooberSpoken=true;
   show(dialogue);
 }
 
-function leftDoor(){
-  overlay.style.display="block";
-  endingText.textContent="Dungeon of Eternal Suffering and Anti-Sillyness\n\nEnding Unlocked:\nPrejudice-Filled Anti-Goober Ending";
-}
-
-function rightDoor(){
-  success();
-}
-
+// ===== DEATH & SUCCESS =====
 function death(msg){
-  box.style.display="none";
+  dialogueBox.style.display="none";
   overlay.style.display="block";
   document.getElementById("a_death").play();
-  endingText.textContent="";
   overlay.innerHTML=`<img src="death.gif" style="width:100vw;height:100vh;">`;
-  setTimeout(()=>{
-    overlay.innerHTML="<div id='endingText'>GAME OVER<br><button onclick='location.reload()'>Restart</button></div>";
-  },2500);
+  setTimeout(()=>overlay.innerHTML=`GAME OVER<br><button onclick="location.reload()">Restart</button>`,2500);
 }
 
 function success(){
-  box.style.display="none";
+  dialogueBox.style.display="none";
   overlay.style.display="block";
   document.getElementById("a_success").play();
   overlay.innerHTML=`<img src="guardleave.gif" style="width:100vw;height:100vh;">`;
-  setTimeout(()=>{
-    overlay.innerHTML="<div id='endingText'><button onclick=\"location.href='levelNext.html'\">Proceed</button></div>";
-  },1857);
+  setTimeout(()=>overlay.innerHTML=`<button onclick="location.href='levelNext.html'">Proceed</button>`,1857);
 }
+
+// ===== PLAYER MOVEMENT =====
+document.addEventListener('keydown', e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
+
+function movePlayer(){
+  let rect = player.getBoundingClientRect();
+  let speed=4;
+
+  if(keys['w'] && rect.top>0) player.style.top=(player.offsetTop-speed)+'px';
+  if(keys['s'] && rect.bottom<window.innerHeight) player.style.top=(player.offsetTop+speed)+'px';
+  if(keys['a'] && rect.left>0) player.style.left=(player.offsetLeft-speed)+'px';
+  if(keys['d'] && rect.right<window.innerWidth) player.style.left=(player.offsetLeft+speed)+'px';
+
+  // interact with goober
+  let p = player.getBoundingClientRect();
+  let g = goober.getBoundingClientRect();
+  if(keys['e'] && !dialogueBox.style.display.includes("block") && 
+     p.left<g.right && p.right>g.left && p.top<g.bottom && p.bottom>g.top){
+    startDialogue();
+  }
+
+  // interact with doors
+  let leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
+  let rightDoor = document.getElementById("doorRight").getBoundingClientRect();
+
+  if(p.left<leftDoor.right && p.right>leftDoor.left && p.top<leftDoor.bottom && p.bottom>leftDoor.top){
+    overlay.style.display="block";
+    overlay.textContent="Dungeon of Eternal Suffering and Anti-Sillyness\nEnding Unlocked: Prejudice-Filled Anti-Goober Ending";
+  }
+  if(p.left<rightDoor.right && p.right>rightDoor.left && p.top<rightDoor.bottom && p.bottom>rightDoor.top){
+    success();
+  }
+
+  requestAnimationFrame(movePlayer);
+}
+
+requestAnimationFrame(movePlayer);
 </script>
 
 </body>
