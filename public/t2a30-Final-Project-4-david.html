@@ -51,8 +51,8 @@ h1 {
   cursor: pointer;
 }
 
-/* SUCCESS */
-#successScreen {
+/* SCREENS */
+#successScreen, #deathScreen {
   position: fixed;
   inset: 0;
   background: black;
@@ -60,8 +60,7 @@ h1 {
   z-index: 30000;
 }
 
-#successScreen img,
-#deathScreen img {
+#successScreen img, #deathScreen img {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
@@ -77,15 +76,6 @@ h1 {
   display: none;
   z-index: 40000;
   cursor: pointer;
-}
-
-/* DEATH */
-#deathScreen {
-  position: fixed;
-  inset: 0;
-  background: black;
-  display: none;
-  z-index: 50000;
 }
 
 /* GAME OVER */
@@ -121,22 +111,28 @@ h1 {
   <div id="dialogueChoices"></div>
 </div>
 
-<div id="successScreen">
-  <img src="guardleave.gif">
-</div>
+<!-- SCREENS -->
+<div id="successScreen"><img src="guardleave.gif"></div>
+<div id="deathScreen"><img src="death.gif"></div>
 
 <button id="proceedBtn" onclick="location.href='level5.html'">Proceed</button>
-
-<div id="deathScreen">
-  <img src="death.gif">
-</div>
 
 <div id="gameOver">
   <h1>GAME OVER</h1>
   <button onclick="location.reload()">Restart</button>
 </div>
 
+<!-- AUDIO PLACEHOLDERS -->
+<audio id="audioDialogue"></audio>
+<audio id="audioSuccess"></audio>
+<audio id="audioDeath"></audio>
+
 <script>
+/* ===== CONSTANTS ===== */
+const TYPE_SPEED = 100;
+const GUARD_GIF_DURATION = 1857;
+const DEATH_DURATION = 2500;
+
 /* ===== FADE ===== */
 window.onload = () => {
   const f = document.getElementById("fadeOverlay");
@@ -145,41 +141,53 @@ window.onload = () => {
   setTimeout(() => f.remove(), 1000);
 };
 
-const TYPE_SPEED = 90;
-const GUARD_GIF_DURATION = 1857;
-const DEATH_DURATION = 2500;
+/* ===== AUDIO ===== */
+const dialogueAudio = document.getElementById("audioDialogue");
+const successAudio  = document.getElementById("audioSuccess");
+const deathAudio    = document.getElementById("audioDeath");
 
 /* ===== DIALOGUE TREE ===== */
 const dialogueTree = {
   text: "What brings you here. If it's the door, turn. Now.",
-  choices: [
+  audio: "",
 
+  choices: [
     {
       label: "*say nothing*",
       next: {
-        text: ".....\nHello?",
+        text: "..... Hello?",
+        audio: "",
         choices: [
           {
             label: "*say nothing*",
-            next: { text: "Fine. Be that way.", death: true }
+            next: {
+              text: "Fine. Be that way.",
+              audio: "",
+              death: true
+            }
           },
           {
             label: "let me in",
             next: {
               text: "And why should I?",
+              audio: "",
               choices: [
                 {
                   label: "flaunt",
                   next: {
-                    text: "Because I'm rich. If you go to that corner over there, I left some money.",
-                    npcNext: { text: "Really!?", success: true }
+                    playerText: "Because I'm rich. If you go to that corner over there, I left some money.",
+                    npcText: "Really!?",
+                    audio: "",
+                    success: true
                   }
                 },
                 {
                   label: "reason",
                   next: {
-                    text: "You don't get paid enough for this.",
-                    npcNext: { text: "I don't care.", death: true }
+                    playerText: "You don't get paid enough for this.",
+                    npcText: "I don't care.",
+                    audio: "",
+                    death: true
                   }
                 }
               ]
@@ -193,23 +201,32 @@ const dialogueTree = {
       label: "*offer a proposition*",
       next: {
         text: "State your offer.",
+        audio: "",
         choices: [
           {
             label: "rock paper scissors",
-            next: { text: "You think I'm here to play games?", death: true }
+            next: {
+              npcText: "You think I'm here to play games?",
+              audio: "",
+              death: true
+            }
           },
           {
             label: "give him whatever is in your pockets",
             next: {
-              text: "Uhhh… I got some pocket lint and an old bubblegun wrapper.",
-              npcNext: { text: "You wasted my time.", death: true }
+              playerText: "Uhhh… I got some pocket lint and an old bubblegun wrapper.",
+              npcText: "You wasted my time.",
+              audio: "",
+              death: true
             }
           },
           {
             label: "intimidation",
             next: {
-              text: "You let me in, and I won't molly whop you right now.",
-              npcNext: { text: "Big words for a corpse.", death: true }
+              playerText: "You let me in, and I won't molly whop you right now.",
+              npcText: "Big words for a corpse.",
+              audio: "",
+              death: true
             }
           }
         ]
@@ -220,25 +237,24 @@ const dialogueTree = {
       label: "*insult*",
       next: {
         text: "Say it.",
+        audio: "",
         choices: [
           {
             label: "insult his spear",
             next: {
-              text: "Your spear is small.",
-              npcNext: {
-                text: "No it's not! It's average… besides. It's how you use it.",
-                success: true
-              }
+              playerText: "Your spear is small.",
+              npcText: "No it's not! It's average… besides. It's how you use it.",
+              audio: "",
+              success: true
             }
           },
           {
             label: "make fun of his legs",
             next: {
-              text: "Your legs are so thin, skip leg day?",
-              npcNext: {
-                text: "Like you'd know anything about muscle, twig-bones.",
-                death: true
-              }
+              playerText: "Your legs are so thin, skip leg day?",
+              npcText: "Like you'd know anything about muscle, twig-bones.",
+              audio: "",
+              death: true
             }
           }
         ]
@@ -252,49 +268,58 @@ const box = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("dialogueChoices");
 
-function typeWriter(text, done){
+function typeWriter(text, audioSrc, callback){
   textEl.textContent = "";
   let i = 0;
+
+  if(audioSrc){
+    dialogueAudio.src = audioSrc;
+    dialogueAudio.play().catch(()=>{});
+  }
+
   const interval = setInterval(() => {
     textEl.textContent += text[i++];
     if(i >= text.length){
       clearInterval(interval);
-      done && done();
+      callback && callback();
     }
   }, TYPE_SPEED);
 }
 
-function showDialogue(node){
+function showNode(node){
   box.style.display = "block";
   choicesEl.innerHTML = "";
 
-  typeWriter(node.text, () => {
+  typeWriter(node.text, node.audio, () => {
     if(node.choices){
       node.choices.forEach(c => {
         const btn = document.createElement("button");
         btn.textContent = c.label;
-        btn.onclick = () => handleNext(c.next);
+        btn.onclick = () => resolveChoice(c.next);
         choicesEl.appendChild(btn);
       });
     }
   });
 }
 
-function handleNext(n){
-  if(!n) return;
+function resolveChoice(n){
+  choicesEl.innerHTML = "";
 
-  if(n.npcNext){
-    showDialogue({
-      text: n.text,
-      choices: [],
-      _after: () => handleNext(n.npcNext)
+  if(n.playerText){
+    typeWriter(n.playerText, n.audio, () => {
+      typeWriter(n.npcText, n.audio, () => endNode(n));
     });
-    setTimeout(() => handleNext(n.npcNext), TYPE_SPEED * n.text.length + 400);
-    return;
+  } else if(n.npcText){
+    typeWriter(n.npcText, n.audio, () => endNode(n));
+  } else {
+    showNode(n);
   }
+}
 
+function endNode(n){
   if(n.success){
     box.style.display = "none";
+    successAudio.play().catch(()=>{});
     document.getElementById("successScreen").style.display = "block";
     setTimeout(() => {
       document.getElementById("proceedBtn").style.display = "block";
@@ -304,20 +329,20 @@ function handleNext(n){
 
   if(n.death){
     box.style.display = "none";
-    const d = document.getElementById("deathScreen");
-    d.style.display = "block";
+    deathAudio.play().catch(()=>{});
+    document.getElementById("deathScreen").style.display = "block";
     setTimeout(() => {
-      d.style.display = "none";
+      document.getElementById("deathScreen").style.display = "none";
       document.getElementById("gameOver").style.display = "flex";
     }, DEATH_DURATION);
     return;
   }
 
-  showDialogue(n);
+  showNode(n);
 }
 
 /* ===== START ===== */
-showDialogue(dialogueTree);
+showNode(dialogueTree);
 </script>
 
 </body>
