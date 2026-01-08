@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>I Will Pop That Bubble – Goober Room</title>
+
+<style>
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:black;
+  overflow:hidden;
+}
+
+#room{
+  width:100vw;
+  height:100vh;
+  background:#222;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 10%;
+}
+
+.door{
+  width:200px;
+  height:350px;
+  background:#5a3b28;
+  border:10px solid #3a2416;
+  cursor:pointer;
+}
+
+#goober{
+  width:220px;
+  cursor:pointer;
+}
+
+#dialogueBox{
+  position:fixed;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.85);
+  color:white;
+  padding:20px;
+  border-radius:15px;
+  max-width:550px;
+  text-align:center;
+  display:none;
+  z-index:1000;
+}
+
+#choices button{
+  display:block;
+  margin:10px auto;
+  padding:10px 20px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+#overlay{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:none;
+  z-index:2000;
+}
+
+#endingText{
+  color:white;
+  font-size:28px;
+  text-align:center;
+  margin-top:40vh;
+}
+</style>
+</head>
+
+<body>
+
+<div id="room">
+  <div class="door" onclick="leftDoor()"></div>
+  <img id="goober" src="goober.gif" onclick="startDialogue()">
+  <div class="door" onclick="rightDoor()"></div>
+</div>
+
+<div id="dialogueBox">
+  <div id="dialogueText"></div>
+  <div id="choices"></div>
+</div>
+
+<div id="overlay">
+  <div id="endingText"></div>
+</div>
+
+<!-- ===== AUDIO PLACEHOLDERS ===== -->
+<audio id="a_intro"></audio>
+<audio id="a_doorAnswer"></audio>
+<audio id="a_hair"></audio>
+<audio id="a_angry"></audio>
+<audio id="a_success"></audio>
+<audio id="a_death"></audio>
+
+<script>
+const box = document.getElementById("dialogueBox");
+const textEl = document.getElementById("dialogueText");
+const choicesEl = document.getElementById("choices");
+const overlay = document.getElementById("overlay");
+const endingText = document.getElementById("endingText");
+
+let gooberSpoken = false;
+
+/* ===== TYPEWRITER ===== */
+function type(text, cb){
+  textEl.textContent="";
+  let i=0;
+  const speed=70;
+  const t=setInterval(()=>{
+    textEl.textContent+=text[i++];
+    if(i>=text.length){
+      clearInterval(t);
+      cb && cb();
+    }
+  },speed);
+}
+
+function show(node){
+  box.style.display="block";
+  choicesEl.innerHTML="";
+  type(node.text,()=>{
+    if(node.audio) document.getElementById(node.audio).play();
+    if(node.choices){
+      node.choices.forEach(c=>{
+        const b=document.createElement("button");
+        b.textContent=c.label;
+        b.onclick=()=>handle(c.next);
+        choicesEl.appendChild(b);
+      });
+    }
+  });
+}
+
+function handle(n){
+  if(n.death) return death(n.text);
+  if(n.success) return success();
+  show(n);
+}
+
+/* ===== DIALOGUE ===== */
+const dialogue = {
+  text:"Hi! I'm the funny little goober that tells lies.",
+  audio:"a_intro",
+  choices:[
+    {
+      label:"Which door has the bubble?",
+      next:{
+        text:"The bubble is behind the right door.",
+        audio:"a_doorAnswer"
+      }
+    },
+    {
+      label:"What's with your one hair?",
+      next:{
+        text:"Oh that? That's not hair. It's actually a nerve ending.",
+        audio:"a_hair",
+        choices:[
+          {
+            label:"Pull it",
+            next:{
+              death:true,
+              text:"HEY— DON'T TOUCH THAT."
+            }
+          },
+          {
+            label:"Don't pull it",
+            next:{
+              text:"The bubble is behind the right door.",
+              audio:"a_doorAnswer"
+            }
+          }
+        ]
+      }
+    }
+  ]
+};
+
+/* ===== EVENTS ===== */
+function startDialogue(){
+  if(gooberSpoken) return;
+  gooberSpoken=true;
+  show(dialogue);
+}
+
+function leftDoor(){
+  overlay.style.display="block";
+  endingText.textContent="Dungeon of Eternal Suffering and Anti-Sillyness\n\nEnding Unlocked:\nPrejudice-Filled Anti-Goober Ending";
+}
+
+function rightDoor(){
+  success();
+}
+
+function death(msg){
+  box.style.display="none";
+  overlay.style.display="block";
+  document.getElementById("a_death").play();
+  endingText.textContent="";
+  overlay.innerHTML=`<img src="death.gif" style="width:100vw;height:100vh;">`;
+  setTimeout(()=>{
+    overlay.innerHTML="<div id='endingText'>GAME OVER<br><button onclick='location.reload()'>Restart</button></div>";
+  },2500);
+}
+
+function success(){
+  box.style.display="none";
+  overlay.style.display="block";
+  document.getElementById("a_success").play();
+  overlay.innerHTML=`<img src="guardleave.gif" style="width:100vw;height:100vh;">`;
+  setTimeout(()=>{
+    overlay.innerHTML="<div id='endingText'><button onclick=\"location.href='levelNext.html'\">Proceed</button></div>";
+  },1857);
+}
+</script>
+
+</body>
+</html>
