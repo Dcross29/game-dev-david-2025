@@ -59,7 +59,7 @@ body {
   color: white;
   padding: 15px 20px;
   border-radius: 10px;
-  max-width: 500px;
+  max-width: 520px;
   display: none;
   z-index: 1000;
 }
@@ -77,7 +77,6 @@ body {
 <div id="game">
   <img id="player" src="player.gif">
   <img id="goober" src="goober.gif">
-
   <div id="doorLeft" class="door"></div>
   <div id="doorRight" class="door"></div>
 </div>
@@ -96,8 +95,10 @@ body {
 let px = window.innerWidth / 2 - 24;
 let py = window.innerHeight - 90;
 let speed = 4;
+
 let locked = false;
 let knowsRightDoor = false;
+let talkedToGoober = false;
 
 /* ===== MOVEMENT ===== */
 document.addEventListener("keydown", e => {
@@ -131,7 +132,7 @@ function typeText(text, done) {
       clearInterval(interval);
       done && done();
     }
-  }, 45); // slow subtitles
+  }, 45);
 }
 
 function showDialogue(node) {
@@ -145,10 +146,10 @@ function showDialogue(node) {
   typeText(node.text, () => {
     if (node.choices) {
       node.choices.forEach(c => {
-        const b = document.createElement("button");
-        b.textContent = c.label;
-        b.onclick = () => handleNode(c.next);
-        choicesEl.appendChild(b);
+        const btn = document.createElement("button");
+        btn.textContent = c.label;
+        btn.onclick = () => handleNode(c.next);
+        choicesEl.appendChild(btn);
       });
     } else {
       setTimeout(() => {
@@ -167,7 +168,7 @@ function handleNode(n) {
 
 /* ===== DIALOGUE TREE ===== */
 const dialogueTree = {
-  text: "What brings you here.",
+  text: "I am the Funny Little Goober That Tells Lies.\nWhat brings you here?",
   choices: [
     {
       label: "Which door has the bubble?",
@@ -188,7 +189,7 @@ const dialogueTree = {
           {
             label: "Don’t pull it",
             next: {
-              text: "Now ask about the door.",
+              text: "Then ask about the door.",
               choices: [
                 {
                   label: "Which door?",
@@ -208,9 +209,13 @@ const dialogueTree = {
 
 /* ===== PROXIMITY CHECK ===== */
 function checkGoober() {
+  if (talkedToGoober) return;
+
   const dx = Math.abs(px - goober.offsetLeft);
   const dy = Math.abs(py - goober.offsetTop);
-  if (dx < 50 && dy < 50 && !locked) {
+
+  if (dx < 50 && dy < 50) {
+    talkedToGoober = true;
     showDialogue(dialogueTree);
   }
 }
