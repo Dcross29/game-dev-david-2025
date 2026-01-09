@@ -2,197 +2,156 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Funny Little Goober - Proper T Hallway</title>
-<style>
-body { margin:0; overflow:hidden; background:#bcbcbc; font-family:sans-serif; }
-#game { position:relative; width:100vw; height:100vh; }
+<title>Correct T Hallway</title>
 
-/* ===== EDGE WALLS (VISIBLE) ===== */
-.wall {
-  position:absolute;
-  background: rgba(0,0,0,0);
-  border:2px solid black;
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #bcbcbc;
 }
 
-/* Vertical stem walls */
-#stemLeft { width:16px; height:400px; left:50%; bottom:0; transform:translateX(-100px); }
-#stemRight { width:16px; height:400px; left:50%; bottom:0; transform:translateX(84px); }
+/* ===== VISUAL DEBUG OUTLINES ===== */
+.outline {
+  position: absolute;
+  border: 3px solid black;
+  pointer-events: none;
+}
 
-/* Horizontal bar walls */
-#barTop { width:600px; height:16px; left:50%; bottom:400px; transform:translateX(-50%); }
-#barBottom { width:600px; height:16px; left:50%; bottom:484px; transform:translateX(-50%); }
+/* Vertical stem */
+#stem {
+  width: 220px;
+  height: 520px;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+/* Horizontal bar */
+#bar {
+  width: 720px;
+  height: 220px;
+  left: 50%;
+  top: 240px;
+  transform: translateX(-50%);
+}
 
 /* ===== PLAYER ===== */
-#player { position:absolute; width:48px; height:48px; left:50%; bottom:20px; transform:translateX(-50%); z-index:5; }
+#player {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+}
 
 /* ===== GOOBER ===== */
-#goober { position:absolute; width:120px; height:120px; left:50%; bottom:490px; transform:translateX(-50%); z-index:6; }
+#goober {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 50%;
+  top: 260px;
+  transform: translateX(-50%);
+}
 
 /* ===== DOORS ===== */
-.door { position:absolute; width:100px; height:150px; background:#aaa; border:6px solid #333; }
-#doorLeft { bottom:490px; left:0; }
-#doorRight { bottom:490px; right:0; }
-
-/* ===== DIALOGUE ===== */
-#dialogueBox {
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background: rgba(0,0,0,0.85);
-  color:white;
-  padding:16px;
-  border-radius:10px;
-  max-width:520px;
-  display:none;
-  z-index:1000;
+.door {
+  position: absolute;
+  width: 100px;
+  height: 150px;
+  background: #aaa;
+  border: 6px solid #333;
 }
-#choices button { display:block; margin:8px auto; }
+
+#doorLeft {
+  top: 260px;
+  left: 60px;
+}
+
+#doorRight {
+  top: 260px;
+  right: 60px;
+}
 </style>
 </head>
+
 <body>
 
-<div id="game">
-  <!-- EDGE WALLS -->
-  <div id="stemLeft" class="wall"></div>
-  <div id="stemRight" class="wall"></div>
-  <div id="barTop" class="wall"></div>
-  <div id="barBottom" class="wall"></div>
+<!-- VISUAL HALLWAY OUTLINES -->
+<div id="stem" class="outline"></div>
+<div id="bar" class="outline"></div>
 
-  <!-- DOORS -->
-  <div id="doorLeft" class="door"></div>
-  <div id="doorRight" class="door"></div>
+<img id="player" src="player.gif">
+<img id="goober" src="goober.gif">
 
-  <!-- SPRITES -->
-  <img id="player" src="player.gif">
-  <img id="goober" src="goober.gif">
-</div>
-
-<div id="dialogueBox">
-  <div id="dialogueText"></div>
-  <div id="choices"></div>
-</div>
+<div id="doorLeft" class="door"></div>
+<div id="doorRight" class="door"></div>
 
 <script>
 const player = document.getElementById("player");
-const goober = document.getElementById("goober");
-const doorLeft = document.getElementById("doorLeft");
-const doorRight = document.getElementById("doorRight");
-const dialogueBox = document.getElementById("dialogueBox");
-const dialogueText = document.getElementById("dialogueText");
-const choices = document.getElementById("choices");
+const speed = 5;
 
-const walls = [
-  document.getElementById("stemLeft"),
-  document.getElementById("stemRight"),
-  document.getElementById("barTop"),
-  document.getElementById("barBottom")
-];
+let px = window.innerWidth / 2 - 24;
+let py = window.innerHeight - 90;
 
-let px = window.innerWidth/2 - 24;
-let py = 20;
-const speed = 4;
+/* ===== T SHAPE DEFINITION ===== */
+function insideHallway(x, y) {
+  const pw = 48;
+  const ph = 48;
 
-let locked = false;
-let talked = false;
-let knowsRight = false;
+  const cx = x + pw / 2;
+  const cy = y + ph / 2;
 
-/* ===== PLAYER MOVEMENT ===== */
+  const stem = {
+    left: window.innerWidth / 2 - 110,
+    right: window.innerWidth / 2 + 110,
+    top: window.innerHeight - 520,
+    bottom: window.innerHeight
+  };
+
+  const bar = {
+    left: window.innerWidth / 2 - 360,
+    right: window.innerWidth / 2 + 360,
+    top: 240,
+    bottom: 460
+  };
+
+  const inStem =
+    cx > stem.left &&
+    cx < stem.right &&
+    cy > stem.top &&
+    cy < stem.bottom;
+
+  const inBar =
+    cx > bar.left &&
+    cx < bar.right &&
+    cy > bar.top &&
+    cy < bar.bottom;
+
+  return inStem || inBar;
+}
+
+/* ===== MOVEMENT ===== */
 document.addEventListener("keydown", e => {
-  if (locked) return;
-
   let nx = px;
   let ny = py;
 
-  switch(e.key.toLowerCase()){
-    case "w": ny += speed; break;
-    case "s": ny -= speed; break;
-    case "a": nx -= speed; break;
-    case "d": nx += speed; break;
-  }
+  if (e.key === "w") ny -= speed;
+  if (e.key === "s") ny += speed;
+  if (e.key === "a") nx -= speed;
+  if (e.key === "d") nx += speed;
 
-  // collision check against walls
-  const testRect = {left:nx, bottom:ny, width:48, height:48};
-  if (!walls.some(w => collideWall(testRect,w))) {
+  if (insideHallway(nx, ny)) {
     px = nx;
     py = ny;
   }
 
   player.style.left = px + "px";
-  player.style.bottom = py + "px";
-
-  checkGoober();
-  checkDoors();
+  player.style.top = py + "px";
 });
-
-/* ===== COLLISION WITH WALLS ===== */
-function collideWall(p, wall) {
-  const r = wall.getBoundingClientRect();
-  const pTop = window.innerHeight - (p.bottom + p.height);
-  return !(
-    p.left + p.width < r.left ||
-    p.left > r.right ||
-    pTop + p.height < r.top ||
-    pTop > r.bottom
-  );
-}
-
-/* ===== GOOBER COLLISION ===== */
-function checkGoober() {
-  if (talked) return;
-  if (collideElement(player, goober)) {
-    talked = true;
-    locked = true;
-    startDialogue();
-  }
-}
-
-function collideElement(a,b){
-  const ar = a.getBoundingClientRect();
-  const br = b.getBoundingClientRect();
-  return !(ar.right<br.left || ar.left>br.right || ar.bottom<br.top || ar.top>br.bottom);
-}
-
-/* ===== DIALOGUE ===== */
-function startDialogue(){
-  dialogueBox.style.display="block";
-  dialogueText.textContent="I am the funny little goober that tells lies.";
-  choices.innerHTML="";
-
-  addChoice("Which door has the bubble?",()=>{dialogueText.textContent="The right door."; knowsRight=true; endDialogue();});
-  addChoice("What's with your one hair?",()=>{
-    dialogueText.textContent="It’s a nerve ending.";
-    choices.innerHTML="";
-    addChoice("Pull it", explode);
-    addChoice("Don't pull it", ()=>{
-      dialogueText.textContent="Then ask about the door.";
-      choices.innerHTML="";
-      addChoice("Which door?",()=>{dialogueText.textContent="The right door."; knowsRight=true; endDialogue();});
-    });
-  });
-}
-
-function addChoice(txt,fn){ 
-  const b=document.createElement("button"); 
-  b.textContent=txt; 
-  b.onclick=fn; 
-  choices.appendChild(b); 
-}
-
-function endDialogue(){ 
-  setTimeout(()=>{locked=false; dialogueBox.style.display="none";},600); 
-}
-
-/* ===== DOORS ===== */
-function checkDoors(){
-  if(knowsRight && collideElement(player,doorRight)) location.href="levelNext.html";
-  if(collideElement(player,doorLeft)) document.body.innerHTML="<h1 style='text-align:center;margin-top:40vh'>Dungeon of Eternal Suffering<br>Ending: Prejudice-Filled Anti-Goober</h1>";
-}
-
-/* ===== DEATH ===== */
-function explode(){ 
-  document.body.innerHTML="<img src='Explode.gif' style='width:100vw;height:100vh'>"; 
-}
 </script>
+
 </body>
 </html>
