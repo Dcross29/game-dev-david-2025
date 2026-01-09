@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Goober Hallway - Level 5</title>
+<title>Funny Little Goober - Level 5</title>
 <style>
   body {
     margin: 0;
@@ -69,7 +69,6 @@
 </div>
 
 <script>
-// ===== PLAYER MOVEMENT =====
 const player = document.getElementById("player");
 let px = window.innerWidth/2 - 30;
 let py = window.innerHeight*0.8;
@@ -87,7 +86,6 @@ document.addEventListener('keydown', e => {
   checkGooberProximity();
 });
 
-// ===== GOOBER DIALOGUE =====
 const goober = document.getElementById("goober");
 const dialogueBox = document.getElementById("dialogueBox");
 const dialogueText = document.getElementById("dialogueText");
@@ -95,7 +93,6 @@ const dialogueChoices = document.getElementById("dialogueChoices");
 const dialogueAudio = document.getElementById("dialogueAudio");
 
 function checkGooberProximity(){
-  // simple proximity trigger
   let gx = goober.offsetLeft + 30;
   let gy = goober.offsetTop + 30;
   let dx = px+30 - gx;
@@ -105,7 +102,6 @@ function checkGooberProximity(){
   }
 }
 
-// ===== DIALOGUE TREE =====
 const dialogueTree = {
   text: "Funny little goober that tells lies: What brings you here?",
   audio: "audio/goober_intro.mp3",
@@ -142,11 +138,10 @@ const dialogueTree = {
   ]
 };
 
-// ===== TYPEWRITER =====
 function typeWriter(text, done){
   dialogueText.textContent = "";
   let i = 0;
-  const speed = 40; // slower
+  const speed = 40;
   const interval = setInterval(()=>{
     dialogueText.textContent += text[i++];
     if(i>=text.length){ clearInterval(interval); done && done(); }
@@ -179,14 +174,13 @@ function handleNext(n){
   }
 
   if(n.success){
-    setTimeout(()=>{ playSuccess(n.success); }, 500);
+    setTimeout(()=>{ proceedNextLevel(n.success); }, 500);
     return;
   }
 
   showDialogue(n);
 }
 
-// ===== DEATH =====
 function playDeath(type){
   dialogueBox.style.display="none";
   dialogueActive=true;
@@ -197,23 +191,17 @@ function playDeath(type){
   }, 2500);
 }
 
-// ===== SUCCESS =====
-function playSuccess(type){
+function proceedNextLevel(type){
   dialogueBox.style.display="none";
   dialogueActive=true;
-  document.body.innerHTML = `<img src="guardleave.gif" style="width:100vw;height:100vh;">`;
-  setTimeout(()=>{ 
-    document.body.innerHTML = `<div style="color:green; text-align:center; font-size:40px; margin-top:40vh;">
-      Proceed<br><button onclick="window.location.href='level6.html'">Next Level</button></div>`;
-  }, 26/14*1000); // gif duration in ms
+  // No Bubble Guard here, just go to next level
+  window.location.href = 'level6.html';
 }
 
-// ===== START DIALOGUE =====
 function startDialogue(){
   if(dialogueActive) return;
   showDialogue(dialogueTree);
 }
 </script>
-
 </body>
 </html>
