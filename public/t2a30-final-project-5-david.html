@@ -8,7 +8,7 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #777;
+  background: #8a8a8a;
   font-family: sans-serif;
 }
 
@@ -18,69 +18,79 @@ body {
   height: 100vh;
 }
 
-/* ===== WALKABLE FLOOR ===== */
-.floor {
+/* ===== HALLWAYS (VISUAL + HITBOX) ===== */
+.hall {
   position: absolute;
-  background: #bdbdbd;
+  background: #d6d6d6;
 }
 
-/* Main hallway */
-#floorUp {
-  width: 140px;
-  height: 50%;
+/* Main hallway (bottom → goober) */
+#hallMain {
+  width: 160px;
+  height: 420px;
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
 }
 
-/* Side halls */
-#floorLeft {
-  width: 40%;
-  height: 140px;
-  top: 26%;
+/* Left hallway */
+#hallLeft {
+  width: 360px;
+  height: 160px;
   left: 0;
+  top: 240px;
 }
 
-#floorRight {
-  width: 40%;
-  height: 140px;
-  top: 26%;
+/* Right hallway */
+#hallRight {
+  width: 360px;
+  height: 160px;
   right: 0;
+  top: 240px;
 }
 
-/* ===== WALLS ===== */
+/* ===== WALLS (visual only) ===== */
 .wall {
   position: absolute;
   background: #555;
 }
 
-/* Vertical walls */
-#wallUpL { left: 50%; bottom: 0; width: 10px; height: 50%; transform: translateX(-80px); }
-#wallUpR { left: 50%; bottom: 0; width: 10px; height: 50%; transform: translateX(70px); }
+.wallV {
+  width: 12px;
+  height: 420px;
+  bottom: 0;
+}
 
-/* Horizontal walls */
-#wallLeftTop { left: 0; top: 26%; width: 40%; height: 10px; }
-#wallLeftBot { left: 0; top: calc(26% + 140px); width: 40%; height: 10px; }
+#wallMainL { left: calc(50% - 86px); }
+#wallMainR { left: calc(50% + 74px); }
 
-#wallRightTop { right: 0; top: 26%; width: 40%; height: 10px; }
-#wallRightBot { right: 0; top: calc(26% + 140px); width: 40%; height: 10px; }
+.wallH {
+  height: 12px;
+  width: 360px;
+}
+
+#wallLeftT { left: 0; top: 228px; }
+#wallLeftB { left: 0; top: 400px; }
+
+#wallRightT { right: 0; top: 228px; }
+#wallRightB { right: 0; top: 400px; }
 
 /* ===== SPRITES ===== */
 #player {
   position: absolute;
   width: 48px;
   height: 48px;
-  bottom: 30px;
   left: 50%;
+  bottom: 20px;
   transform: translateX(-50%);
   z-index: 5;
 }
 
 #goober {
   position: absolute;
-  width: 110px;   /* BIGGER AGAIN */
-  height: 110px;
-  top: 23%;
+  width: 140px; /* BIGGER */
+  height: 140px;
+  top: 200px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 6;
@@ -91,12 +101,12 @@ body {
   position: absolute;
   width: 90px;
   height: 140px;
-  background: #888;
+  background: #999;
   border: 4px solid #444;
 }
 
-#doorLeft { top: 19%; left: 12%; }
-#doorRight { top: 19%; right: 12%; }
+#doorLeft { top: 250px; left: 120px; }
+#doorRight { top: 250px; right: 120px; }
 
 /* ===== DIALOGUE ===== */
 #dialogueBox {
@@ -106,7 +116,7 @@ body {
   transform: translateX(-50%);
   background: rgba(0,0,0,0.85);
   color: white;
-  padding: 15px 20px;
+  padding: 16px;
   border-radius: 10px;
   max-width: 520px;
   display: none;
@@ -116,7 +126,6 @@ body {
 #choices button {
   display: block;
   margin: 8px auto;
-  padding: 6px 14px;
 }
 </style>
 </head>
@@ -125,18 +134,20 @@ body {
 
 <div id="game">
 
-  <!-- FLOORS -->
-  <div id="floorUp" class="floor"></div>
-  <div id="floorLeft" class="floor"></div>
-  <div id="floorRight" class="floor"></div>
+  <!-- HALLWAYS (ALSO HITBOXES) -->
+  <div id="hallMain" class="hall"></div>
+  <div id="hallLeft" class="hall"></div>
+  <div id="hallRight" class="hall"></div>
 
   <!-- WALLS -->
-  <div id="wallUpL" class="wall"></div>
-  <div id="wallUpR" class="wall"></div>
-  <div id="wallLeftTop" class="wall"></div>
-  <div id="wallLeftBot" class="wall"></div>
-  <div id="wallRightTop" class="wall"></div>
-  <div id="wallRightBot" class="wall"></div>
+  <div id="wallMainL" class="wall wallV"></div>
+  <div id="wallMainR" class="wall wallV"></div>
+
+  <div id="wallLeftT" class="wall wallH"></div>
+  <div id="wallLeftB" class="wall wallH"></div>
+
+  <div id="wallRightT" class="wall wallH"></div>
+  <div id="wallRightB" class="wall wallH"></div>
 
   <!-- DOORS -->
   <div id="doorLeft" class="door"></div>
@@ -155,16 +166,16 @@ body {
 
 <script>
 let px = window.innerWidth / 2 - 24;
-let py = window.innerHeight - 90;
+let py = window.innerHeight - 80;
 let speed = 4;
 
 let locked = false;
 let talked = false;
 let knowsRight = false;
 
-const floors = document.querySelectorAll(".floor");
+const halls = document.querySelectorAll(".hall");
 
-/* ===== MOVEMENT + WALL CLAMP ===== */
+/* ===== MOVEMENT ===== */
 document.addEventListener("keydown", e => {
   if (locked) return;
 
@@ -176,7 +187,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "a") nx -= speed;
   if (e.key === "d") nx += speed;
 
-  if (onFloor(nx, ny)) {
+  if (onHall(nx, ny)) {
     px = nx;
     py = ny;
   }
@@ -188,14 +199,12 @@ document.addEventListener("keydown", e => {
   checkDoors();
 });
 
-/* ===== FLOOR CHECK ===== */
-function onFloor(x, y) {
-  const temp = { offsetLeft:x, offsetTop:y, offsetWidth:48, offsetHeight:48 };
-
-  return [...floors].some(f => collide(temp, f));
+/* ===== COLLISION ===== */
+function onHall(x, y) {
+  const p = { offsetLeft:x, offsetTop:y, offsetWidth:48, offsetHeight:48 };
+  return [...halls].some(h => collide(p, h));
 }
 
-/* ===== COLLISION ===== */
 function collide(a, b) {
   return !(
     a.offsetLeft > b.offsetLeft + b.offsetWidth ||
@@ -208,7 +217,6 @@ function collide(a, b) {
 /* ===== GOOBER ===== */
 function checkGoober() {
   if (talked) return;
-
   if (collide(player, goober)) {
     talked = true;
     locked = true;
@@ -220,11 +228,11 @@ function checkGoober() {
 function showDialogue() {
   dialogueBox.style.display = "block";
   dialogueText.textContent =
-    "I am the Funny Little Goober That Tells Lies.\nWhich door do you think has the bubble?";
+    "I am the funny little goober that tells lies.";
 
   choices.innerHTML = "";
 
-  addChoice("Ask which door", () => {
+  addChoice("Ask which door has the bubble", () => {
     dialogueText.textContent = "The right door.";
     knowsRight = true;
     endDialogue();
@@ -233,7 +241,7 @@ function showDialogue() {
   addChoice("Ask about his hair", () => {
     dialogueText.textContent = "It’s a nerve ending.";
     choices.innerHTML = "";
-    addChoice("Pull it", death);
+    addChoice("Pull it", explode);
     addChoice("Don't pull it", () => {
       dialogueText.textContent = "Then ask about the door.";
       choices.innerHTML = "";
@@ -272,7 +280,7 @@ function checkDoors() {
 }
 
 /* ===== DEATH ===== */
-function death() {
+function explode() {
   document.body.innerHTML =
     "<img src='Explode.gif' style='width:100vw;height:100vh'>";
 }
