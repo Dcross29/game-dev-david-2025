@@ -8,7 +8,7 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #222;
+  background: #111;
   font-family: sans-serif;
 }
 
@@ -18,38 +18,70 @@ body {
   height: 100vh;
 }
 
-/* Sprites */
-#player, #goober {
+/* ===== HALLWAYS ===== */
+.hall {
+  position: absolute;
+  background: #333;
+}
+
+/* Main hallway up to goober */
+#hallUp {
+  width: 120px;
+  height: 45%;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+/* Left & right branches */
+#hallLeft {
+  width: 35%;
+  height: 120px;
+  top: 25%;
+  left: 0;
+}
+
+#hallRight {
+  width: 35%;
+  height: 120px;
+  top: 25%;
+  right: 0;
+}
+
+/* ===== SPRITES ===== */
+#player {
   position: absolute;
   width: 48px;
   height: 48px;
-}
-
-#player {
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 5;
 }
 
 #goober {
-  top: 40%;
+  position: absolute;
+  width: 72px;      /* BIGGER GOOBER */
+  height: 72px;
+  top: 25%;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 6;
 }
 
-/* Doors */
+/* ===== DOORS ===== */
 .door {
   position: absolute;
   width: 80px;
   height: 120px;
   background: #555;
-  border: 3px solid #333;
+  border: 3px solid #222;
 }
 
-#doorLeft { top: 10%; left: 20%; }
-#doorRight { top: 10%; right: 20%; }
+#doorLeft { top: 18%; left: 12%; }
+#doorRight { top: 18%; right: 12%; }
 
-/* Dialogue */
+/* ===== DIALOGUE ===== */
 #dialogueBox {
   position: fixed;
   bottom: 20px;
@@ -75,14 +107,21 @@ body {
 <body>
 
 <div id="game">
-  <img id="player" src="player.gif">
-  <img id="goober" src="goober.gif">
+  <!-- Hallways -->
+  <div id="hallUp" class="hall"></div>
+  <div id="hallLeft" class="hall"></div>
+  <div id="hallRight" class="hall"></div>
+
+  <!-- Doors -->
   <div id="doorLeft" class="door"></div>
   <div id="doorRight" class="door"></div>
+
+  <!-- Sprites -->
+  <img id="player" src="player.gif">
+  <img id="goober" src="goober.gif">
 </div>
 
 <div id="dialogueBox">
-  <!-- AUDIO PLACEHOLDERS -->
   <audio id="dialogueAudio"></audio>
   <audio id="deathAudio"></audio>
 
@@ -116,20 +155,14 @@ document.addEventListener("keydown", e => {
   checkDoors();
 });
 
-/* ===== DIALOGUE ENGINE ===== */
-const box = dialogueBox;
-const textEl = dialogueText;
-const choicesEl = choices;
-const dialogueAudio = document.getElementById("dialogueAudio");
-
+/* ===== DIALOGUE SYSTEM ===== */
 function typeText(text, done) {
-  textEl.textContent = "";
+  dialogueText.textContent = "";
   let i = 0;
-
-  const interval = setInterval(() => {
-    textEl.textContent += text[i++];
+  const t = setInterval(() => {
+    dialogueText.textContent += text[i++];
     if (i >= text.length) {
-      clearInterval(interval);
+      clearInterval(t);
       done && done();
     }
   }, 45);
@@ -137,26 +170,24 @@ function typeText(text, done) {
 
 function showDialogue(node) {
   locked = true;
-  box.style.display = "block";
-  choicesEl.innerHTML = "";
-
-  dialogueAudio.src = ""; // add later
-  dialogueAudio.play();
+  dialogueBox.style.display = "block";
+  choices.innerHTML = "";
 
   typeText(node.text, () => {
-    if (node.choices) {
-      node.choices.forEach(c => {
-        const btn = document.createElement("button");
-        btn.textContent = c.label;
-        btn.onclick = () => handleNode(c.next);
-        choicesEl.appendChild(btn);
-      });
-    } else {
+    if (!node.choices) {
       setTimeout(() => {
         locked = false;
-        box.style.display = "none";
+        dialogueBox.style.display = "none";
       }, 600);
+      return;
     }
+
+    node.choices.forEach(c => {
+      const b = document.createElement("button");
+      b.textContent = c.label;
+      b.onclick = () => handleNode(c.next);
+      choices.appendChild(b);
+    });
   });
 }
 
@@ -172,20 +203,14 @@ const dialogueTree = {
   choices: [
     {
       label: "Which door has the bubble?",
-      next: {
-        text: "The right door.",
-        learnDoor: true
-      }
+      next: { text: "The right door.", learnDoor: true }
     },
     {
       label: "What’s with your one hair?",
       next: {
         text: "It’s not hair. It’s a nerve ending.",
         choices: [
-          {
-            label: "Pull it",
-            next: { death: true }
-          },
+          { label: "Pull it", next: { death: true } },
           {
             label: "Don’t pull it",
             next: {
@@ -193,10 +218,7 @@ const dialogueTree = {
               choices: [
                 {
                   label: "Which door?",
-                  next: {
-                    text: "The right door.",
-                    learnDoor: true
-                  }
+                  next: { text: "The right door.", learnDoor: true }
                 }
               ]
             }
@@ -207,14 +229,14 @@ const dialogueTree = {
   ]
 };
 
-/* ===== PROXIMITY CHECK ===== */
+/* ===== PROXIMITY ===== */
 function checkGoober() {
   if (talkedToGoober) return;
 
   const dx = Math.abs(px - goober.offsetLeft);
   const dy = Math.abs(py - goober.offsetTop);
 
-  if (dx < 50 && dy < 50) {
+  if (dx < 60 && dy < 60) {
     talkedToGoober = true;
     showDialogue(dialogueTree);
   }
