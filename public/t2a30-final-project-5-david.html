@@ -18,8 +18,8 @@ body{
 }
 #player{
   position:absolute;
-  top:500px;       /* initial numeric pixel top */
-  left:50%;        /* keep centered with transform */
+  top:500px;       /* numeric top in px */
+  left:50%;
   transform:translateX(-50%);
   z-index:3;
 }
@@ -27,7 +27,7 @@ body{
   width:120px;
   position:absolute;
   left:50%;
-  top:350px; /* numeric pixel top */
+  top:350px;
   transform:translate(-50%, -50%);
   z-index:2;
 }
@@ -128,7 +128,7 @@ const dialogue = {
   ]
 };
 
-// Typewriter
+// Typewriter effect
 function type(text, cb){
   textEl.textContent="";
   let i=0;
@@ -143,7 +143,7 @@ function type(text, cb){
 
 // Show dialogue
 function show(node){
-  locked = true;
+  locked = true; // lock player during dialogue
   dialogueBox.style.display = "block";
   choicesEl.innerHTML = "";
   type(node.text, ()=>{
@@ -185,37 +185,46 @@ document.addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
 
 function movePlayer(){
   if(!locked){
-    const rect = player.getBoundingClientRect();
     const speed = 4;
     let top = parseFloat(player.style.top);
-    let left = parseFloat(player.offsetLeft); // keep left in px
+    let left = parseFloat(player.offsetLeft);
 
     if(keys['w'] && top>0) player.style.top = (top-speed)+'px';
-    if(keys['s'] && rect.bottom<window.innerHeight) player.style.top = (top+speed)+'px';
+    if(keys['s'] && (top+player.offsetHeight)<window.innerHeight) player.style.top = (top+speed)+'px';
     if(keys['a'] && left>0) player.style.left = (left-speed)+'px';
-    if(keys['d'] && rect.right<window.innerWidth) player.style.left = (left+speed)+'px';
+    if(keys['d'] && (left+player.offsetWidth)<window.innerWidth) player.style.left = (left+speed)+'px';
   }
 
-  // Auto-talk if Y overlaps goober
-  const p = player.getBoundingClientRect();
-  const g = goober.getBoundingClientRect();
+  // Auto-talk to Goober if touching vertically & horizontally
   if(!gooberSpoken){
+    const p = player.getBoundingClientRect();
+    const g = goober.getBoundingClientRect();
     const pyCenter = p.top + p.height/2;
     const gyCenter = g.top + g.height/2;
-    if(Math.abs(pyCenter - gyCenter) < g.height/2){
+    const pxCenter = p.left + p.width/2;
+    const gxCenter = g.left + g.width/2;
+
+    const verticalOverlap = Math.abs(pyCenter - gyCenter) < (p.height/2 + g.height/2)/2;
+    const horizontalNear = Math.abs(pxCenter - gxCenter) < g.width/2;
+
+    if(verticalOverlap && horizontalNear){
       startDialogue();
     }
   }
 
-  // Door interactions after dialogue
+  // Doors
   const leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
   const rightDoor = document.getElementById("doorRight").getBoundingClientRect();
+  const pRect = player.getBoundingClientRect();
+
   if(dialogueFinished){
-    if(p.left<leftDoor.right && p.right>leftDoor.left && p.top<leftDoor.bottom && p.bottom>leftDoor.top){
+    if(pRect.left<leftDoor.right && pRect.right>leftDoor.left &&
+       pRect.top<leftDoor.bottom && pRect.bottom>leftDoor.top){
       overlay.style.display="block";
       overlay.innerHTML="PREJUDICE ENDING<br><button onclick='location.reload()'>Restart</button>";
     }
-    if(p.left<rightDoor.right && p.right>rightDoor.left && p.top<rightDoor.bottom && p.bottom>rightDoor.top){
+    if(pRect.left<rightDoor.right && pRect.right>rightDoor.left &&
+       pRect.top<rightDoor.bottom && pRect.bottom>rightDoor.top){
       overlay.style.display="block";
       overlay.innerHTML="NEXT LEVEL<br><button onclick=\"location.href='levelNext.html'\">Proceed</button>";
     }
