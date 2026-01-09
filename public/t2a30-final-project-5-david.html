@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Funny Little Goober - Functional T Hallway</title>
+<title>Funny Little Goober - Proper T Hallway</title>
 <style>
 body { margin:0; overflow:hidden; background:#bcbcbc; font-family:sans-serif; }
 #game { position:relative; width:100vw; height:100vh; }
@@ -10,15 +10,15 @@ body { margin:0; overflow:hidden; background:#bcbcbc; font-family:sans-serif; }
 /* ===== EDGE WALLS (VISIBLE) ===== */
 .wall {
   position:absolute;
-  background: rgba(0,0,0,0); /* invisible inside */
-  border: 2px solid black;   /* outline to see edges */
+  background: rgba(0,0,0,0);
+  border:2px solid black;
 }
 
-/* ===== VERTICAL STEM WALLS ===== */
+/* Vertical stem walls */
 #stemLeft { width:16px; height:400px; left:50%; bottom:0; transform:translateX(-100px); }
 #stemRight { width:16px; height:400px; left:50%; bottom:0; transform:translateX(84px); }
 
-/* ===== HORIZONTAL BAR WALLS ===== */
+/* Horizontal bar walls */
 #barTop { width:600px; height:16px; left:50%; bottom:400px; transform:translateX(-50%); }
 #barBottom { width:600px; height:16px; left:50%; bottom:484px; transform:translateX(-50%); }
 
@@ -111,7 +111,7 @@ document.addEventListener("keydown", e => {
     case "d": nx += speed; break;
   }
 
-  // Check collisions against walls
+  // collision check against walls
   const testRect = {left:nx, bottom:ny, width:48, height:48};
   if (!walls.some(w => collideWall(testRect,w))) {
     px = nx;
@@ -194,6 +194,5 @@ function explode(){
   document.body.innerHTML="<img src='Explode.gif' style='width:100vw;height:100vh'>"; 
 }
 </script>
-
 </body>
 </html>
