@@ -28,10 +28,10 @@ body{
   z-index:3;
 }
 #goober{
-  width:60px;
+  width:120px; /* bigger */
   position:absolute;
   left:50%;
-  top:40%;
+  top:50%;   /* center */
   transform:translate(-50%, -50%);
   z-index:2;
 }
@@ -44,8 +44,8 @@ body{
   background:#5a3b28;
   border:5px solid #3a2416;
 }
-#doorLeft{left:10%;}
-#doorRight{right:10%;}
+#doorLeft{left:30%;}
+#doorRight{right:30%;}
 
 #dialogueBox{
   position:fixed;
@@ -68,17 +68,6 @@ body{
   font-size:16px;
   cursor:pointer;
 }
-#overlay{
-  position:fixed;
-  inset:0;
-  background:black;
-  display:none;
-  z-index:2000;
-  text-align:center;
-  color:white;
-  font-size:28px;
-  padding-top:40vh;
-}
 </style>
 </head>
 <body>
@@ -95,16 +84,6 @@ body{
   <div id="choices"></div>
 </div>
 
-<div id="overlay"></div>
-
-<!-- Audio placeholders -->
-<audio id="a_intro"></audio>
-<audio id="a_doorAnswer"></audio>
-<audio id="a_hair"></audio>
-<audio id="a_angry"></audio>
-<audio id="a_success"></audio>
-<audio id="a_death"></audio>
-
 <script>
 // ===== GAME VARIABLES =====
 const player = document.getElementById("player");
@@ -112,7 +91,6 @@ const goober = document.getElementById("goober");
 const dialogueBox = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("choices");
-const overlay = document.getElementById("overlay");
 
 let keys = {};
 let gooberSpoken=false;
@@ -120,20 +98,18 @@ let gooberSpoken=false;
 // ===== DIALOGUE TREE =====
 const dialogue = {
   text:"Hi! I'm the funny little goober that tells lies.",
-  audio:"a_intro",
   choices:[
     {
       label:"Which door has the bubble?",
-      next:{text:"The bubble is behind the right door.", audio:"a_doorAnswer"}
+      next:{text:"The bubble is behind the right door."}
     },
     {
       label:"What's with your one hair?",
       next:{
         text:"Oh that? That's actually a nerve ending.",
-        audio:"a_hair",
         choices:[
-          {label:"Pull it", next:{death:true,text:"HEY—DON'T TOUCH THAT!"}},
-          {label:"Don't pull it", next:{text:"The bubble is behind the right door.", audio:"a_doorAnswer"}}
+          {label:"Pull it", next:{text:"HEY—DON'T TOUCH THAT!"}},
+          {label:"Don't pull it", next:{text:"The bubble is behind the right door."}}
         ]
       }
     }
@@ -159,7 +135,6 @@ function show(node){
   dialogueBox.style.display="block";
   choicesEl.innerHTML="";
   type(node.text,()=>{
-    if(node.audio) document.getElementById(node.audio).play();
     if(node.choices){
       node.choices.forEach(c=>{
         const b=document.createElement("button");
@@ -172,8 +147,6 @@ function show(node){
 }
 
 function handle(n){
-  if(n.death) return death(n.text);
-  if(n.success) return success();
   show(n);
 }
 
@@ -181,23 +154,6 @@ function startDialogue(){
   if(gooberSpoken) return;
   gooberSpoken=true;
   show(dialogue);
-}
-
-// ===== DEATH & SUCCESS =====
-function death(msg){
-  dialogueBox.style.display="none";
-  overlay.style.display="block";
-  document.getElementById("a_death").play();
-  overlay.innerHTML=`<img src="death.gif" style="width:100vw;height:100vh;">`;
-  setTimeout(()=>overlay.innerHTML=`GAME OVER<br><button onclick="location.reload()">Restart</button>`,2500);
-}
-
-function success(){
-  dialogueBox.style.display="none";
-  overlay.style.display="block";
-  document.getElementById("a_success").play();
-  overlay.innerHTML=`<img src="guardleave.gif" style="width:100vw;height:100vh;">`;
-  setTimeout(()=>overlay.innerHTML=`<button onclick="location.href='levelNext.html'">Proceed</button>`,1857);
 }
 
 // ===== PLAYER MOVEMENT =====
@@ -216,21 +172,8 @@ function movePlayer(){
   // interact with goober
   let p = player.getBoundingClientRect();
   let g = goober.getBoundingClientRect();
-  if(keys['e'] && !dialogueBox.style.display.includes("block") && 
-     p.left<g.right && p.right>g.left && p.top<g.bottom && p.bottom>g.top){
+  if(p.left<g.right && p.right>g.left && p.top<g.bottom && p.bottom>g.top){
     startDialogue();
-  }
-
-  // interact with doors
-  let leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
-  let rightDoor = document.getElementById("doorRight").getBoundingClientRect();
-
-  if(p.left<leftDoor.right && p.right>leftDoor.left && p.top<leftDoor.bottom && p.bottom>leftDoor.top){
-    overlay.style.display="block";
-    overlay.textContent="Dungeon of Eternal Suffering and Anti-Sillyness\nEnding Unlocked: Prejudice-Filled Anti-Goober Ending";
-  }
-  if(p.left<rightDoor.right && p.right>rightDoor.left && p.top<rightDoor.bottom && p.bottom>rightDoor.top){
-    success();
   }
 
   requestAnimationFrame(movePlayer);
