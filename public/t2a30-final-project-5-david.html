@@ -18,8 +18,8 @@ body{
 }
 #player{
   position:absolute;
-  top:80%;       /* initial numeric top */
-  left:50%;
+  top:500px;       /* initial numeric pixel top */
+  left:50%;        /* keep centered with transform */
   transform:translateX(-50%);
   z-index:3;
 }
@@ -27,7 +27,7 @@ body{
   width:120px;
   position:absolute;
   left:50%;
-  top:60%;
+  top:350px; /* numeric pixel top */
   transform:translate(-50%, -50%);
   z-index:2;
 }
@@ -35,7 +35,7 @@ body{
   width:80px;
   height:120px;
   position:absolute;
-  top:20%;
+  top:100px;  /* doors above goober */
   z-index:4;
   background:#5a3b28;
   border:5px solid #3a2416;
@@ -105,7 +105,7 @@ const overlay = document.getElementById("overlay");
 let keys = {};
 let gooberSpoken = false;
 let dialogueFinished = false;
-let locked = false; // locks player during dialogue
+let locked = false;
 
 // Dialogue tree
 const dialogue = {
@@ -128,23 +128,22 @@ const dialogue = {
   ]
 };
 
-// Typewriter effect
+// Typewriter
 function type(text, cb){
   textEl.textContent="";
   let i=0;
-  const speed=70;
   const t = setInterval(()=>{
     textEl.textContent+=text[i++];
     if(i>=text.length){
       clearInterval(t);
       cb && cb();
     }
-  },speed);
+  },70);
 }
 
 // Show dialogue
 function show(node){
-  locked = true; // lock player
+  locked = true;
   dialogueBox.style.display = "block";
   choicesEl.innerHTML = "";
   type(node.text, ()=>{
@@ -157,12 +156,12 @@ function show(node){
       });
     } else {
       dialogueFinished = true;
-      locked = false; // unlock player
+      locked = false;
     }
   });
 }
 
-// Handle dialogue choices
+// Handle choices
 function handle(node){
   if(node.anti){
     dialogueBox.style.display="none";
@@ -180,7 +179,7 @@ function startDialogue(){
   show(dialogue);
 }
 
-// Player movement
+// WASD movement
 document.addEventListener('keydown', e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
 
@@ -188,30 +187,27 @@ function movePlayer(){
   if(!locked){
     const rect = player.getBoundingClientRect();
     const speed = 4;
-
-    // Convert player.style.top/left to numbers
     let top = parseFloat(player.style.top);
-    let left = parseFloat(player.style.left);
+    let left = parseFloat(player.offsetLeft); // keep left in px
 
-    if(keys['w'] && top>0) player.style.top=(top-speed)+'px';
-    if(keys['s'] && rect.bottom<window.innerHeight) player.style.top=(top+speed)+'px';
-    if(keys['a'] && left>0) player.style.left=(left-speed)+'px';
-    if(keys['d'] && rect.right<window.innerWidth) player.style.left=(left+speed)+'px';
+    if(keys['w'] && top>0) player.style.top = (top-speed)+'px';
+    if(keys['s'] && rect.bottom<window.innerHeight) player.style.top = (top+speed)+'px';
+    if(keys['a'] && left>0) player.style.left = (left-speed)+'px';
+    if(keys['d'] && rect.right<window.innerWidth) player.style.left = (left+speed)+'px';
   }
 
-  // Auto-talk if Y overlap with Goober
+  // Auto-talk if Y overlaps goober
   const p = player.getBoundingClientRect();
   const g = goober.getBoundingClientRect();
   if(!gooberSpoken){
     const pyCenter = p.top + p.height/2;
     const gyCenter = g.top + g.height/2;
-    const overlapY = Math.abs(pyCenter - gyCenter) < (g.height/2 + p.height/2)/2;
-    if(overlapY){
+    if(Math.abs(pyCenter - gyCenter) < g.height/2){
       startDialogue();
     }
   }
 
-  // Doors interaction only after dialogue
+  // Door interactions after dialogue
   const leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
   const rightDoor = document.getElementById("doorRight").getBoundingClientRect();
   if(dialogueFinished){
@@ -230,6 +226,5 @@ function movePlayer(){
 
 requestAnimationFrame(movePlayer);
 </script>
-
 </body>
 </html>
