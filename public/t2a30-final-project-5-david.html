@@ -2,16 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Correct T Hallway</title>
+<title>Correct T Hallway - Full Collision</title>
 
 <style>
-body {
-  margin: 0;
-  overflow: hidden;
-  background: #bcbcbc;
-}
+body { margin:0; overflow:hidden; background:#bcbcbc; font-family:sans-serif; }
 
-/* ===== VISUAL DEBUG OUTLINES ===== */
+/* ===== VISUAL HALLWAY OUTLINES ===== */
 .outline {
   position: absolute;
   border: 3px solid black;
@@ -27,13 +23,12 @@ body {
   transform: translateX(-50%);
 }
 
-/* Horizontal bar */
+/* Horizontal bar - FULL WIDTH */
 #bar {
-  width: 720px;
+  width: 100vw;
   height: 220px;
-  left: 50%;
+  left: 0;
   top: 240px;
-  transform: translateX(-50%);
 }
 
 /* ===== PLAYER ===== */
@@ -65,15 +60,8 @@ body {
   border: 6px solid #333;
 }
 
-#doorLeft {
-  top: 260px;
-  left: 60px;
-}
-
-#doorRight {
-  top: 260px;
-  right: 60px;
-}
+#doorLeft { top: 260px; left: 0; }
+#doorRight { top: 260px; right: 0; }
 </style>
 </head>
 
@@ -83,7 +71,7 @@ body {
 <div id="stem" class="outline"></div>
 <div id="bar" class="outline"></div>
 
-<img id="player" src="player.gif">
+<img id="player" src="mc.png">
 <img id="goober" src="goober.gif">
 
 <div id="doorLeft" class="door"></div>
@@ -97,13 +85,13 @@ let px = window.innerWidth / 2 - 24;
 let py = window.innerHeight - 90;
 
 /* ===== T SHAPE DEFINITION ===== */
-function insideHallway(x, y) {
-  const pw = 48;
-  const ph = 48;
+function insideHallway(x, y, w, h) {
+  const cx = x; // left
+  const cy = y; // top
+  const right = x + w;
+  const bottom = y + h;
 
-  const cx = x + pw / 2;
-  const cy = y + ph / 2;
-
+  // vertical stem
   const stem = {
     left: window.innerWidth / 2 - 110,
     right: window.innerWidth / 2 + 110,
@@ -111,29 +99,31 @@ function insideHallway(x, y) {
     bottom: window.innerHeight
   };
 
+  // horizontal bar full width
   const bar = {
-    left: window.innerWidth / 2 - 360,
-    right: window.innerWidth / 2 + 360,
+    left: 0,
+    right: window.innerWidth,
     top: 240,
     bottom: 460
   };
 
+  // check for overlap of entire player rectangle with either stem or bar
   const inStem =
-    cx > stem.left &&
+    right > stem.left &&
     cx < stem.right &&
-    cy > stem.top &&
+    bottom > stem.top &&
     cy < stem.bottom;
 
   const inBar =
-    cx > bar.left &&
+    right > bar.left &&
     cx < bar.right &&
-    cy > bar.top &&
+    bottom > bar.top &&
     cy < bar.bottom;
 
   return inStem || inBar;
 }
 
-/* ===== MOVEMENT ===== */
+/* ===== PLAYER MOVEMENT ===== */
 document.addEventListener("keydown", e => {
   let nx = px;
   let ny = py;
@@ -143,7 +133,8 @@ document.addEventListener("keydown", e => {
   if (e.key === "a") nx -= speed;
   if (e.key === "d") nx += speed;
 
-  if (insideHallway(nx, ny)) {
+  // check collision using full sprite rectangle
+  if (insideHallway(nx, ny, player.offsetWidth, player.offsetHeight)) {
     px = nx;
     py = ny;
   }
