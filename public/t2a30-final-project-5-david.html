@@ -8,7 +8,7 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #111;
+  background: #777;
   font-family: sans-serif;
 }
 
@@ -18,35 +18,52 @@ body {
   height: 100vh;
 }
 
-/* ===== HALLWAYS ===== */
-.hall {
+/* ===== WALKABLE FLOOR ===== */
+.floor {
   position: absolute;
-  background: #333;
+  background: #bdbdbd;
 }
 
-/* Main hallway up to goober */
-#hallUp {
-  width: 120px;
-  height: 45%;
+/* Main hallway */
+#floorUp {
+  width: 140px;
+  height: 50%;
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
 }
 
-/* Left & right branches */
-#hallLeft {
-  width: 35%;
-  height: 120px;
-  top: 25%;
+/* Side halls */
+#floorLeft {
+  width: 40%;
+  height: 140px;
+  top: 26%;
   left: 0;
 }
 
-#hallRight {
-  width: 35%;
-  height: 120px;
-  top: 25%;
+#floorRight {
+  width: 40%;
+  height: 140px;
+  top: 26%;
   right: 0;
 }
+
+/* ===== WALLS ===== */
+.wall {
+  position: absolute;
+  background: #555;
+}
+
+/* Vertical walls */
+#wallUpL { left: 50%; bottom: 0; width: 10px; height: 50%; transform: translateX(-80px); }
+#wallUpR { left: 50%; bottom: 0; width: 10px; height: 50%; transform: translateX(70px); }
+
+/* Horizontal walls */
+#wallLeftTop { left: 0; top: 26%; width: 40%; height: 10px; }
+#wallLeftBot { left: 0; top: calc(26% + 140px); width: 40%; height: 10px; }
+
+#wallRightTop { right: 0; top: 26%; width: 40%; height: 10px; }
+#wallRightBot { right: 0; top: calc(26% + 140px); width: 40%; height: 10px; }
 
 /* ===== SPRITES ===== */
 #player {
@@ -61,9 +78,9 @@ body {
 
 #goober {
   position: absolute;
-  width: 72px;      /* BIGGER GOOBER */
-  height: 72px;
-  top: 25%;
+  width: 110px;   /* BIGGER AGAIN */
+  height: 110px;
+  top: 23%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 6;
@@ -72,14 +89,14 @@ body {
 /* ===== DOORS ===== */
 .door {
   position: absolute;
-  width: 80px;
-  height: 120px;
-  background: #555;
-  border: 3px solid #222;
+  width: 90px;
+  height: 140px;
+  background: #888;
+  border: 4px solid #444;
 }
 
-#doorLeft { top: 18%; left: 12%; }
-#doorRight { top: 18%; right: 12%; }
+#doorLeft { top: 19%; left: 12%; }
+#doorRight { top: 19%; right: 12%; }
 
 /* ===== DIALOGUE ===== */
 #dialogueBox {
@@ -107,46 +124,62 @@ body {
 <body>
 
 <div id="game">
-  <!-- Hallways -->
-  <div id="hallUp" class="hall"></div>
-  <div id="hallLeft" class="hall"></div>
-  <div id="hallRight" class="hall"></div>
 
-  <!-- Doors -->
+  <!-- FLOORS -->
+  <div id="floorUp" class="floor"></div>
+  <div id="floorLeft" class="floor"></div>
+  <div id="floorRight" class="floor"></div>
+
+  <!-- WALLS -->
+  <div id="wallUpL" class="wall"></div>
+  <div id="wallUpR" class="wall"></div>
+  <div id="wallLeftTop" class="wall"></div>
+  <div id="wallLeftBot" class="wall"></div>
+  <div id="wallRightTop" class="wall"></div>
+  <div id="wallRightBot" class="wall"></div>
+
+  <!-- DOORS -->
   <div id="doorLeft" class="door"></div>
   <div id="doorRight" class="door"></div>
 
-  <!-- Sprites -->
+  <!-- SPRITES -->
   <img id="player" src="player.gif">
   <img id="goober" src="goober.gif">
+
 </div>
 
 <div id="dialogueBox">
-  <audio id="dialogueAudio"></audio>
-  <audio id="deathAudio"></audio>
-
   <div id="dialogueText"></div>
   <div id="choices"></div>
 </div>
 
 <script>
-/* ===== STATE ===== */
 let px = window.innerWidth / 2 - 24;
 let py = window.innerHeight - 90;
 let speed = 4;
 
 let locked = false;
-let knowsRightDoor = false;
-let talkedToGoober = false;
+let talked = false;
+let knowsRight = false;
 
-/* ===== MOVEMENT ===== */
+const floors = document.querySelectorAll(".floor");
+
+/* ===== MOVEMENT + WALL CLAMP ===== */
 document.addEventListener("keydown", e => {
   if (locked) return;
 
-  if (e.key === "w") py -= speed;
-  if (e.key === "s") py += speed;
-  if (e.key === "a") px -= speed;
-  if (e.key === "d") px += speed;
+  let nx = px;
+  let ny = py;
+
+  if (e.key === "w") ny -= speed;
+  if (e.key === "s") ny += speed;
+  if (e.key === "a") nx -= speed;
+  if (e.key === "d") nx += speed;
+
+  if (onFloor(nx, ny)) {
+    px = nx;
+    py = ny;
+  }
 
   player.style.left = px + "px";
   player.style.top = py + "px";
@@ -155,104 +188,14 @@ document.addEventListener("keydown", e => {
   checkDoors();
 });
 
-/* ===== DIALOGUE SYSTEM ===== */
-function typeText(text, done) {
-  dialogueText.textContent = "";
-  let i = 0;
-  const t = setInterval(() => {
-    dialogueText.textContent += text[i++];
-    if (i >= text.length) {
-      clearInterval(t);
-      done && done();
-    }
-  }, 45);
+/* ===== FLOOR CHECK ===== */
+function onFloor(x, y) {
+  const temp = { offsetLeft:x, offsetTop:y, offsetWidth:48, offsetHeight:48 };
+
+  return [...floors].some(f => collide(temp, f));
 }
 
-function showDialogue(node) {
-  locked = true;
-  dialogueBox.style.display = "block";
-  choices.innerHTML = "";
-
-  typeText(node.text, () => {
-    if (!node.choices) {
-      setTimeout(() => {
-        locked = false;
-        dialogueBox.style.display = "none";
-      }, 600);
-      return;
-    }
-
-    node.choices.forEach(c => {
-      const b = document.createElement("button");
-      b.textContent = c.label;
-      b.onclick = () => handleNode(c.next);
-      choices.appendChild(b);
-    });
-  });
-}
-
-function handleNode(n) {
-  if (n.death) return death();
-  if (n.learnDoor) knowsRightDoor = true;
-  showDialogue(n);
-}
-
-/* ===== DIALOGUE TREE ===== */
-const dialogueTree = {
-  text: "I am the Funny Little Goober That Tells Lies.\nWhat brings you here?",
-  choices: [
-    {
-      label: "Which door has the bubble?",
-      next: { text: "The right door.", learnDoor: true }
-    },
-    {
-      label: "What’s with your one hair?",
-      next: {
-        text: "It’s not hair. It’s a nerve ending.",
-        choices: [
-          { label: "Pull it", next: { death: true } },
-          {
-            label: "Don’t pull it",
-            next: {
-              text: "Then ask about the door.",
-              choices: [
-                {
-                  label: "Which door?",
-                  next: { text: "The right door.", learnDoor: true }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    }
-  ]
-};
-
-/* ===== PROXIMITY ===== */
-function checkGoober() {
-  if (talkedToGoober) return;
-
-  const dx = Math.abs(px - goober.offsetLeft);
-  const dy = Math.abs(py - goober.offsetTop);
-
-  if (dx < 60 && dy < 60) {
-    talkedToGoober = true;
-    showDialogue(dialogueTree);
-  }
-}
-
-/* ===== DOORS ===== */
-function checkDoors() {
-  if (collide(player, doorRight) && knowsRightDoor) {
-    location.href = "levelNext.html";
-  }
-
-  if (collide(player, doorLeft)) {
-    antiGooberEnding();
-  }
-}
-
+/* ===== COLLISION ===== */
 function collide(a, b) {
   return !(
     a.offsetLeft > b.offsetLeft + b.offsetWidth ||
@@ -262,27 +205,76 @@ function collide(a, b) {
   );
 }
 
-/* ===== ENDINGS ===== */
-function death() {
-  document.body.innerHTML =
-    `<img src="Explode.gif" style="width:100vw;height:100vh;">`;
+/* ===== GOOBER ===== */
+function checkGoober() {
+  if (talked) return;
 
-  setTimeout(() => {
-    document.body.innerHTML =
-      `<h1 style="color:red;text-align:center;margin-top:40vh">
-        Game Over<br>
-        <button onclick="location.reload()">Restart</button>
-      </h1>`;
-  }, 2500);
+  if (collide(player, goober)) {
+    talked = true;
+    locked = true;
+    showDialogue();
+  }
 }
 
-function antiGooberEnding() {
+/* ===== DIALOGUE ===== */
+function showDialogue() {
+  dialogueBox.style.display = "block";
+  dialogueText.textContent =
+    "I am the Funny Little Goober That Tells Lies.\nWhich door do you think has the bubble?";
+
+  choices.innerHTML = "";
+
+  addChoice("Ask which door", () => {
+    dialogueText.textContent = "The right door.";
+    knowsRight = true;
+    endDialogue();
+  });
+
+  addChoice("Ask about his hair", () => {
+    dialogueText.textContent = "It’s a nerve ending.";
+    choices.innerHTML = "";
+    addChoice("Pull it", death);
+    addChoice("Don't pull it", () => {
+      dialogueText.textContent = "Then ask about the door.";
+      choices.innerHTML = "";
+      addChoice("Which door?", () => {
+        dialogueText.textContent = "The right door.";
+        knowsRight = true;
+        endDialogue();
+      });
+    });
+  });
+}
+
+function addChoice(text, fn) {
+  const b = document.createElement("button");
+  b.textContent = text;
+  b.onclick = fn;
+  choices.appendChild(b);
+}
+
+function endDialogue() {
+  setTimeout(() => {
+    locked = false;
+    dialogueBox.style.display = "none";
+  }, 600);
+}
+
+/* ===== DOORS ===== */
+function checkDoors() {
+  if (knowsRight && collide(player, doorRight)) {
+    location.href = "levelNext.html";
+  }
+  if (collide(player, doorLeft)) {
+    document.body.innerHTML =
+      "<h1 style='text-align:center;margin-top:40vh'>Dungeon of Eternal Suffering<br>Ending: Prejudice-Filled Anti-Goober</h1>";
+  }
+}
+
+/* ===== DEATH ===== */
+function death() {
   document.body.innerHTML =
-    `<h1 style="color:white;text-align:center;margin-top:40vh">
-      Dungeon of Eternal Suffering and Anti-Sillyness<br><br>
-      Ending Unlocked:<br>
-      <b>Prejudice-Filled Anti-Goober</b>
-    </h1>`;
+    "<img src='Explode.gif' style='width:100vw;height:100vh'>";
 }
 </script>
 
