@@ -2,67 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Funny Little Goober - Black Outline Hallway</title>
+<title>Funny Little Goober - Functional T Hallway</title>
 <style>
-body {
-  margin:0;
-  overflow:hidden;
-  background:#bcbcbc;
-  font-family:sans-serif;
-}
+body { margin:0; overflow:hidden; background:#bcbcbc; font-family:sans-serif; }
+#game { position:relative; width:100vw; height:100vh; }
 
-#game {
-  position:relative;
-  width:100vw;
-  height:100vh;
-}
-
-/* ===== EDGE COLLISION WALLS (VISIBLE) ===== */
+/* ===== EDGE WALLS (VISIBLE) ===== */
 .wall {
-  position: absolute;
-  background: rgba(0,0,0,0); /* transparent inside */
-  border: 2px solid black;   /* black outline */
+  position:absolute;
+  background: rgba(0,0,0,0); /* invisible inside */
+  border: 2px solid black;   /* outline to see edges */
 }
 
-/* Vertical stem walls */
-#stemLeft { width:16px; height:400px; left:50%; bottom:0; transform:translateX(-150px); }
-#stemRight { width:16px; height:400px; left:50%; bottom:0; transform:translateX(134px); }
+/* ===== VERTICAL STEM WALLS ===== */
+#stemLeft { width:16px; height:400px; left:50%; bottom:0; transform:translateX(-100px); }
+#stemRight { width:16px; height:400px; left:50%; bottom:0; transform:translateX(84px); }
 
-/* Horizontal bar walls */
+/* ===== HORIZONTAL BAR WALLS ===== */
 #barTop { width:600px; height:16px; left:50%; bottom:400px; transform:translateX(-50%); }
 #barBottom { width:600px; height:16px; left:50%; bottom:484px; transform:translateX(-50%); }
 
 /* ===== PLAYER ===== */
-#player {
-  position:absolute;
-  width:48px;
-  height:48px;
-  left:50%;
-  bottom:20px;
-  transform:translateX(-50%);
-  z-index:5;
-}
+#player { position:absolute; width:48px; height:48px; left:50%; bottom:20px; transform:translateX(-50%); z-index:5; }
 
 /* ===== GOOBER ===== */
-#goober {
-  position:absolute;
-  width:120px;
-  height:120px;
-  left:50%;
-  bottom:490px;
-  transform:translateX(-50%);
-  z-index:6;
-}
+#goober { position:absolute; width:120px; height:120px; left:50%; bottom:490px; transform:translateX(-50%); z-index:6; }
 
 /* ===== DOORS ===== */
-.door {
-  position:absolute;
-  width:100px;
-  height:150px;
-  background:#aaa;
-  border:6px solid #333;
-}
-
+.door { position:absolute; width:100px; height:150px; background:#aaa; border:6px solid #333; }
 #doorLeft { bottom:490px; left:0; }
 #doorRight { bottom:490px; right:0; }
 
@@ -80,11 +47,7 @@ body {
   display:none;
   z-index:1000;
 }
-
-#choices button {
-  display:block;
-  margin:8px auto;
-}
+#choices button { display:block; margin:8px auto; }
 </style>
 </head>
 <body>
@@ -111,7 +74,6 @@ body {
 </div>
 
 <script>
-/* ===== ELEMENTS ===== */
 const player = document.getElementById("player");
 const goober = document.getElementById("goober");
 const doorLeft = document.getElementById("doorLeft");
@@ -127,7 +89,7 @@ const walls = [
   document.getElementById("barBottom")
 ];
 
-let px = window.innerWidth / 2 - 24;
+let px = window.innerWidth/2 - 24;
 let py = 20;
 const speed = 4;
 
@@ -135,7 +97,7 @@ let locked = false;
 let talked = false;
 let knowsRight = false;
 
-/* ===== MOVEMENT ===== */
+/* ===== PLAYER MOVEMENT ===== */
 document.addEventListener("keydown", e => {
   if (locked) return;
 
@@ -143,13 +105,13 @@ document.addEventListener("keydown", e => {
   let ny = py;
 
   switch(e.key.toLowerCase()){
-    case "w": ny += speed; break; // bottom-based y increases upward
+    case "w": ny += speed; break;
     case "s": ny -= speed; break;
     case "a": nx -= speed; break;
     case "d": nx += speed; break;
   }
 
-  // check collisions against walls
+  // Check collisions against walls
   const testRect = {left:nx, bottom:ny, width:48, height:48};
   if (!walls.some(w => collideWall(testRect,w))) {
     px = nx;
@@ -175,7 +137,7 @@ function collideWall(p, wall) {
   );
 }
 
-/* ===== GOOBER ===== */
+/* ===== GOOBER COLLISION ===== */
 function checkGoober() {
   if (talked) return;
   if (collideElement(player, goober)) {
@@ -232,5 +194,6 @@ function explode(){
   document.body.innerHTML="<img src='Explode.gif' style='width:100vw;height:100vh'>"; 
 }
 </script>
+
 </body>
 </html>
