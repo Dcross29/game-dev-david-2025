@@ -18,7 +18,7 @@ body{
 }
 #player{
   position:absolute;
-  bottom:50px;
+  top:80%;       /* initial numeric top */
   left:50%;
   transform:translateX(-50%);
   z-index:3;
@@ -189,10 +189,14 @@ function movePlayer(){
     const rect = player.getBoundingClientRect();
     const speed = 4;
 
-    if(keys['w'] && rect.top>0) player.style.top=(player.offsetTop-speed)+'px';
-    if(keys['s'] && rect.bottom<window.innerHeight) player.style.top=(player.offsetTop+speed)+'px';
-    if(keys['a'] && rect.left>0) player.style.left=(player.offsetLeft-speed)+'px';
-    if(keys['d'] && rect.right<window.innerWidth) player.style.left=(player.offsetLeft+speed)+'px');
+    // Convert player.style.top/left to numbers
+    let top = parseFloat(player.style.top);
+    let left = parseFloat(player.style.left);
+
+    if(keys['w'] && top>0) player.style.top=(top-speed)+'px';
+    if(keys['s'] && rect.bottom<window.innerHeight) player.style.top=(top+speed)+'px';
+    if(keys['a'] && left>0) player.style.left=(left-speed)+'px';
+    if(keys['d'] && rect.right<window.innerWidth) player.style.left=(left+speed)+'px';
   }
 
   // Auto-talk if Y overlap with Goober
@@ -201,7 +205,7 @@ function movePlayer(){
   if(!gooberSpoken){
     const pyCenter = p.top + p.height/2;
     const gyCenter = g.top + g.height/2;
-    const overlapY = Math.abs(pyCenter - gyCenter) < (g.height/2 + p.height/2)/2; // partial overlap
+    const overlapY = Math.abs(pyCenter - gyCenter) < (g.height/2 + p.height/2)/2;
     if(overlapY){
       startDialogue();
     }
