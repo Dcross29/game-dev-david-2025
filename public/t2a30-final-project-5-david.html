@@ -14,9 +14,7 @@ body{
   width:100vw;
   height:100vh;
   position:relative;
-  background-image:url('BubbleGuard.gif');
-  background-size:cover;
-  background-position:center;
+  background:#222; /* no background image */
 }
 #player{
   width:60px;
@@ -31,7 +29,7 @@ body{
   width:120px; /* bigger */
   position:absolute;
   left:50%;
-  top:50%;   /* center */
+  top:60%;   /* lower on the screen */
   transform:translate(-50%, -50%);
   z-index:2;
 }
@@ -39,10 +37,11 @@ body{
   width:80px;
   height:120px;
   position:absolute;
-  bottom:50px;
-  z-index:1;
+  top:20%; /* doors above goober */
+  z-index:4; /* above goober */
   background:#5a3b28;
   border:5px solid #3a2416;
+  cursor:pointer;
 }
 #doorLeft{left:30%;}
 #doorRight{right:30%;}
@@ -94,6 +93,7 @@ const choicesEl = document.getElementById("choices");
 
 let keys = {};
 let gooberSpoken=false;
+let dialogueFinished=false;
 
 // ===== DIALOGUE TREE =====
 const dialogue = {
@@ -142,6 +142,8 @@ function show(node){
         b.onclick=()=>handle(c.next);
         choicesEl.appendChild(b);
       });
+    } else {
+      dialogueFinished=true; // mark dialogue as finished
     }
   });
 }
@@ -169,11 +171,27 @@ function movePlayer(){
   if(keys['a'] && rect.left>0) player.style.left=(player.offsetLeft-speed)+'px';
   if(keys['d'] && rect.right<window.innerWidth) player.style.left=(player.offsetLeft+speed)+'px';
 
-  // interact with goober
   let p = player.getBoundingClientRect();
   let g = goober.getBoundingClientRect();
+
+  // interact with goober
   if(p.left<g.right && p.right>g.left && p.top<g.bottom && p.bottom>g.top){
     startDialogue();
+  }
+
+  // interact with doors only after dialogue finished
+  const leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
+  const rightDoor = document.getElementById("doorRight").getBoundingClientRect();
+
+  if(dialogueFinished){
+    if(p.left<leftDoor.right && p.right>leftDoor.left && p.top<leftDoor.bottom && p.bottom>leftDoor.top){
+      alert("Left Door: Wrong! Try the right door.");
+    }
+    if(p.left<rightDoor.right && p.right>rightDoor.left && p.top<rightDoor.bottom && p.bottom>rightDoor.top){
+      alert("Right Door: Correct! Proceed to next level.");
+      // Uncomment the next line to go to next level
+      // location.href='levelNext.html';
+    }
   }
 
   requestAnimationFrame(movePlayer);
