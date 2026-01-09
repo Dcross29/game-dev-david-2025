@@ -8,7 +8,7 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #8a8a8a;
+  background: #bcbcbc;
   font-family: sans-serif;
 }
 
@@ -21,59 +21,63 @@ body {
 /* ===== HALLWAYS (VISUAL + HITBOX) ===== */
 .hall {
   position: absolute;
-  background: #d6d6d6;
+  background: #e6e6e6;
 }
 
-/* Main hallway (bottom → goober) */
-#hallMain {
-  width: 160px;
+/* Vertical stem of T */
+#hallStem {
+  width: 180px;
   height: 420px;
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
 }
 
-/* Left hallway */
-#hallLeft {
-  width: 360px;
-  height: 160px;
-  left: 0;
+/* Horizontal bar of T */
+#hallBar {
+  width: 600px;
+  height: 180px;
   top: 240px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-/* Right hallway */
-#hallRight {
-  width: 360px;
-  height: 160px;
-  right: 0;
-  top: 240px;
-}
-
-/* ===== WALLS (visual only) ===== */
+/* ===== WALLS (IRON TEXTURE) ===== */
 .wall {
   position: absolute;
-  background: #555;
+  background-image: url("iron.jpg");
+  background-size: cover;
 }
 
-.wallV {
-  width: 12px;
+/* Stem walls */
+#wallStemL {
+  width: 16px;
   height: 420px;
+  left: calc(50% - 98px);
+  bottom: 0;
+}
+#wallStemR {
+  width: 16px;
+  height: 420px;
+  left: calc(50% + 82px);
   bottom: 0;
 }
 
-#wallMainL { left: calc(50% - 86px); }
-#wallMainR { left: calc(50% + 74px); }
-
-.wallH {
-  height: 12px;
-  width: 360px;
+/* Bar walls */
+#wallBarT {
+  height: 16px;
+  width: 600px;
+  top: 224px;
+  left: 50%;
+  transform: translateX(-50%);
 }
-
-#wallLeftT { left: 0; top: 228px; }
-#wallLeftB { left: 0; top: 400px; }
-
-#wallRightT { right: 0; top: 228px; }
-#wallRightB { right: 0; top: 400px; }
+#wallBarB {
+  height: 16px;
+  width: 600px;
+  top: 420px;
+  left: 50%;
+  transform: translateX(-50%);
+}
 
 /* ===== SPRITES ===== */
 #player {
@@ -88,9 +92,9 @@ body {
 
 #goober {
   position: absolute;
-  width: 140px; /* BIGGER */
-  height: 140px;
-  top: 200px;
+  width: 180px; /* BIG GOOBER */
+  height: 180px;
+  top: 210px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 6;
@@ -99,14 +103,21 @@ body {
 /* ===== DOORS ===== */
 .door {
   position: absolute;
-  width: 90px;
-  height: 140px;
-  background: #999;
-  border: 4px solid #444;
+  width: 100px;
+  height: 150px;
+  background: #aaa;
+  border: 6px solid #333;
 }
 
-#doorLeft { top: 250px; left: 120px; }
-#doorRight { top: 250px; right: 120px; }
+/* Left & Right ends of T */
+#doorLeft {
+  top: 255px;
+  left: 40px;
+}
+#doorRight {
+  top: 255px;
+  right: 40px;
+}
 
 /* ===== DIALOGUE ===== */
 #dialogueBox {
@@ -134,20 +145,15 @@ body {
 
 <div id="game">
 
-  <!-- HALLWAYS (ALSO HITBOXES) -->
-  <div id="hallMain" class="hall"></div>
-  <div id="hallLeft" class="hall"></div>
-  <div id="hallRight" class="hall"></div>
+  <!-- HALLWAYS -->
+  <div id="hallStem" class="hall"></div>
+  <div id="hallBar" class="hall"></div>
 
   <!-- WALLS -->
-  <div id="wallMainL" class="wall wallV"></div>
-  <div id="wallMainR" class="wall wallV"></div>
-
-  <div id="wallLeftT" class="wall wallH"></div>
-  <div id="wallLeftB" class="wall wallH"></div>
-
-  <div id="wallRightT" class="wall wallH"></div>
-  <div id="wallRightB" class="wall wallH"></div>
+  <div id="wallStemL" class="wall"></div>
+  <div id="wallStemR" class="wall"></div>
+  <div id="wallBarT" class="wall"></div>
+  <div id="wallBarB" class="wall"></div>
 
   <!-- DOORS -->
   <div id="doorLeft" class="door"></div>
@@ -167,13 +173,13 @@ body {
 <script>
 let px = window.innerWidth / 2 - 24;
 let py = window.innerHeight - 80;
-let speed = 4;
+const speed = 4;
 
 let locked = false;
 let talked = false;
 let knowsRight = false;
 
-const halls = document.querySelectorAll(".hall");
+const halls = [hallStem, hallBar];
 
 /* ===== MOVEMENT ===== */
 document.addEventListener("keydown", e => {
@@ -202,7 +208,7 @@ document.addEventListener("keydown", e => {
 /* ===== COLLISION ===== */
 function onHall(x, y) {
   const p = { offsetLeft:x, offsetTop:y, offsetWidth:48, offsetHeight:48 };
-  return [...halls].some(h => collide(p, h));
+  return halls.some(h => collide(p, h));
 }
 
 function collide(a, b) {
@@ -220,25 +226,25 @@ function checkGoober() {
   if (collide(player, goober)) {
     talked = true;
     locked = true;
-    showDialogue();
+    startDialogue();
   }
 }
 
 /* ===== DIALOGUE ===== */
-function showDialogue() {
+function startDialogue() {
   dialogueBox.style.display = "block";
   dialogueText.textContent =
     "I am the funny little goober that tells lies.";
 
   choices.innerHTML = "";
 
-  addChoice("Ask which door has the bubble", () => {
+  addChoice("Which door has the bubble?", () => {
     dialogueText.textContent = "The right door.";
     knowsRight = true;
     endDialogue();
   });
 
-  addChoice("Ask about his hair", () => {
+  addChoice("What's with your one hair?", () => {
     dialogueText.textContent = "It’s a nerve ending.";
     choices.innerHTML = "";
     addChoice("Pull it", explode);
