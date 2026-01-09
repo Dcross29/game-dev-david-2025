@@ -1,297 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Funny Little Goober</title>
+<html>
+<body id="myBody" style="background-repeat:repeat; background-size: 80%" background="marble.jpg">
 
-<style>
-body {
-  margin: 0;
-  overflow: hidden;
-  background: #bcbcbc;
-  font-family: sans-serif;
-}
-
-#game {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* ===== HALLWAYS (VISUAL + HITBOX) ===== */
-.hall {
-  position: absolute;
-  background: #e6e6e6;
-}
-
-/* Vertical stem of T */
-#hallStem {
-  width: 180px;
-  height: 420px;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-}
-
-/* Horizontal bar of T */
-#hallBar {
-  width: 600px;
-  height: 180px;
-  top: 240px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* ===== WALLS (IRON TEXTURE) ===== */
-.wall {
-  position: absolute;
-  background-image: url("iron.jpg");
-  background-size: cover;
-}
-
-/* Stem walls */
-#wallStemL {
-  width: 16px;
-  height: 420px;
-  left: calc(50% - 98px);
-  bottom: 0;
-}
-#wallStemR {
-  width: 16px;
-  height: 420px;
-  left: calc(50% + 82px);
-  bottom: 0;
-}
-
-/* Bar walls */
-#wallBarT {
-  height: 16px;
-  width: 600px;
-  top: 224px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-#wallBarB {
-  height: 16px;
-  width: 600px;
-  top: 420px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* ===== SPRITES ===== */
-#player {
-  position: absolute;
-  width: 48px;
-  height: 48px;
-  left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
-  z-index: 5;
-}
-
-#goober {
-  position: absolute;
-  width: 180px; /* BIG GOOBER */
-  height: 180px;
-  top: 210px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 6;
-}
-
-/* ===== DOORS ===== */
-.door {
-  position: absolute;
-  width: 100px;
-  height: 150px;
-  background: #aaa;
-  border: 6px solid #333;
-}
-
-/* Left & Right ends of T */
-#doorLeft {
-  top: 255px;
-  left: 40px;
-}
-#doorRight {
-  top: 255px;
-  right: 40px;
-}
-
-/* ===== DIALOGUE ===== */
-#dialogueBox {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.85);
-  color: white;
-  padding: 16px;
-  border-radius: 10px;
-  max-width: 520px;
-  display: none;
-  z-index: 1000;
-}
-
-#choices button {
-  display: block;
-  margin: 8px auto;
-}
-</style>
-</head>
-
-<body>
-
-<div id="game">
-
-  <!-- HALLWAYS -->
-  <div id="hallStem" class="hall"></div>
-  <div id="hallBar" class="hall"></div>
-
-  <!-- WALLS -->
-  <div id="wallStemL" class="wall"></div>
-  <div id="wallStemR" class="wall"></div>
-  <div id="wallBarT" class="wall"></div>
-  <div id="wallBarB" class="wall"></div>
-
-  <!-- DOORS -->
-  <div id="doorLeft" class="door"></div>
-  <div id="doorRight" class="door"></div>
-
-  <!-- SPRITES -->
-  <img id="player" src="player.gif">
-  <img id="goober" src="goober.gif">
-
-</div>
-
-<div id="dialogueBox">
-  <div id="dialogueText"></div>
-  <div id="choices"></div>
-</div>
+<h1 align=center><font color=red>T4A07 Boundaries and Auto move from maze by Fred</font></h1>
 
 <script>
-let px = window.innerWidth / 2 - 24;
-let py = window.innerHeight - 80;
-const speed = 4;
 
-let locked = false;
-let talked = false;
-let knowsRight = false;
+let myGlobalX = 0
+let myClock
+let myTimer01
 
-const halls = [hallStem, hallBar];
+function myHitOther(my1,my2){
+   left1   = parseInt(document.getElementById(my1).style.left)
+   right1  = left1 + document.getElementById(my1).offsetWidth
+   top1    = parseInt(document.getElementById(my1).style.top)
+   bottom1 = top1 + document.getElementById(my1).offsetHeight
 
-/* ===== MOVEMENT ===== */
-document.addEventListener("keydown", e => {
-  if (locked) return;
+   left2   = parseInt(document.getElementById(my2).style.left)
+   right2  = left2 + document.getElementById(my2).offsetWidth
+   top2    = parseInt(document.getElementById(my2).style.top)
+   bottom2 = top2 + document.getElementById(my2).offsetHeight
 
-  let nx = px;
-  let ny = py;
-
-  if (e.key === "w") ny -= speed;
-  if (e.key === "s") ny += speed;
-  if (e.key === "a") nx -= speed;
-  if (e.key === "d") nx += speed;
-
-  if (onHall(nx, ny)) {
-    px = nx;
-    py = ny;
-  }
-
-  player.style.left = px + "px";
-  player.style.top = py + "px";
-
-  checkGoober();
-  checkDoors();
-});
-
-/* ===== COLLISION ===== */
-function onHall(x, y) {
-  const p = { offsetLeft:x, offsetTop:y, offsetWidth:48, offsetHeight:48 };
-  return halls.some(h => collide(p, h));
+   if ((right1  >= left2) &&
+       (bottom1 >= top2 ) &&
+       (left1   <= right2) &&
+       (top1    <= bottom2)){
+       return true
+   }
 }
 
-function collide(a, b) {
-  return !(
-    a.offsetLeft > b.offsetLeft + b.offsetWidth ||
-    a.offsetLeft + a.offsetWidth < b.offsetLeft ||
-    a.offsetTop > b.offsetTop + b.offsetHeight ||
-    a.offsetTop + a.offsetHeight < b.offsetTop
-  );
+function myCheckHit(){
+
+   if ( myHitOther('myImg01','myImg02') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+   }
+    if ( myHitOther('myImg01','myImg02.2') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+   }
+
+   if ( myHitOther('myImg01','myImg03') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+   }
+    if ( myHitOther('myImg01','myImg03.2') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+   }
+   if ( myHitOther('myImg01','myImg05') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+   }
+
+   if ( myHitOther('myImg01','myImg06') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+   }
+
+ if ( myHitOther('myImg01','myImg05.5') ){
+      document.getElementById('myImg01').style.left = '20px'
+            document.getElementById('myImg01').style.top = '250px'
+ }
+
+if ( myHitOther('myImg01','myImg07') ){
+   document.getElementById('myImg07').style.display = "none"
+   document.getElementById('myUnlock').innerText='You hear a door slide open...'
+   document.getElementById('myLock').innerText=''
+      document.getElementById('myImg04').src = 'dooropen.gif'
 }
 
-/* ===== GOOBER ===== */
-function checkGoober() {
-  if (talked) return;
-  if (collide(player, goober)) {
-    talked = true;
-    locked = true;
-    startDialogue();
-  }
+   if ( myHitOther('myImg01','myImg04') ){
+      const myImg2 = document.getElementById('myImg04');
+
+      if (myImg2.src.includes('doorclosed.gif')) { 
+         document.getElementById('myLock').innerText='This door is locked, if only there were a key...' }
+      else { location = "https://www.google.com"; }
+      else { location = "t2a30-Final-Project-2-david.html"; }
+
+   }
+
+   if( parseInt(document.getElementById('myImg01').style.left) >
+       window.innerWidth - document.getElementById('myImg01').width ){
+       document.getElementById('myImg01').style.left = '10px'
+        document.getElementById('myImg01').style.top = '250px'
+   }
+
+   if( parseInt(document.getElementById('myImg01').style.left) <0 ){
+       document.getElementById('myImg01').style.left = '10px'
+        document.getElementById('myImg01').style.top = '250px'
+   }
 }
 
-/* ===== DIALOGUE ===== */
-function startDialogue() {
-  dialogueBox.style.display = "block";
-  dialogueText.textContent =
-    "I am the funny little goober that tells lies.";
+function myWasdFunction(e) {
+    e.key = e.key.toLowerCase()
 
-  choices.innerHTML = "";
+    const myImg = document.getElementById('myImg01');
+    let left = parseInt(myImg.style.left) || 0;
+    let top = parseInt(myImg.style.top) || 0;
 
-  addChoice("Which door has the bubble?", () => {
-    dialogueText.textContent = "The right door.";
-    knowsRight = true;
-    endDialogue();
-  });
+    if (e.key === 'w') top -= 10;
+    if (e.key === 's') top += 10;
+    if (e.key === 'a') left -= 10;
+    if (e.key === 'd') left += 10;
 
-  addChoice("What's with your one hair?", () => {
-    dialogueText.textContent = "It’s a nerve ending.";
-    choices.innerHTML = "";
-    addChoice("Pull it", explode);
-    addChoice("Don't pull it", () => {
-      dialogueText.textContent = "Then ask about the door.";
-      choices.innerHTML = "";
-      addChoice("Which door?", () => {
-        dialogueText.textContent = "The right door.";
-        knowsRight = true;
-        endDialogue();
-      });
-    });
-  });
+    myImg.style.left = left + 'px';
+    myImg.style.top = top + 'px';
+
+    myCheckHit()
 }
 
-function addChoice(text, fn) {
-  const b = document.createElement("button");
-  b.textContent = text;
-  b.onclick = fn;
-  choices.appendChild(b);
-}
+document.addEventListener('keydown', myWasdFunction)
 
-function endDialogue() {
-  setTimeout(() => {
-    locked = false;
-    dialogueBox.style.display = "none";
-  }, 600);
-}
-
-/* ===== DOORS ===== */
-function checkDoors() {
-  if (knowsRight && collide(player, doorRight)) {
-    location.href = "levelNext.html";
-  }
-  if (collide(player, doorLeft)) {
-    document.body.innerHTML =
-      "<h1 style='text-align:center;margin-top:40vh'>Dungeon of Eternal Suffering<br>Ending: Prejudice-Filled Anti-Goober</h1>";
-  }
-}
-
-/* ===== DEATH ===== */
-function explode() {
-  document.body.innerHTML =
-    "<img src='Explode.gif' style='width:100vw;height:100vh'>";
-}
 </script>
+
+<br><br>
+<img id="myImg01" src="mc.PNG" style="position:absolute; width:28px; height:84px; left:50px; top:290px;"> 
+
+
+   <img id="myImg02" src="iron.jpg" style="position:absolute; width:10px; height:650px; left:600px; top:110px;"> 
+      <img id="myImg02.2" src="iron.jpg" style="position:absolute; width:10px; height:360px; left:450px; top:400px;"> 
+<img id="myImg03" src="iron.jpg" style="position:absolute; width:450px; height:10px; left:0px; top:200px;"> 
+   <img id="myImg03.2" src="iron.jpg" style="position:absolute; width:450px; height:10px; left:0px; top:400px;"> 
+<img id="myImg05" src="iron.jpg" style="position:absolute; width:150px; height:10px; left:450px; top:110px;"> 
+   <img id="myImg05.5" src="iron.jpg" style="position:absolute; width:160px; height:10px; left:450px; top:750px;">
+<img id="myImg06" src="iron.jpg" style="position:absolute; width:10px; height:100px; left:450px; top:110px;"> 
+
+   <img id="myImg07" src="key.gif" style="position:absolute; width:50px; height:50px; left:500px; top:650px;">
+<div id="myLock" style="position:absolute; width:100px; height:80px; left:650px; top:150px;"></div>
+   <div id="myUnlock" style="position:absolute; width:100px; height:80px; left:650px; top:650px;"></div>
+   <img id="myImg04" src="doorclosed.gif" style="position:absolute; width:100px; height:80px; left:480px; top: 120px;">
 
 </body>
 </html>
- 
