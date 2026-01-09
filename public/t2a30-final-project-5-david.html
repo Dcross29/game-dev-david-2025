@@ -4,78 +4,16 @@
 <meta charset="UTF-8">
 <title>Goober Room - Birdseye View</title>
 <style>
-body{
-  margin:0;
-  overflow:hidden;
-  background:#222;
-  font-family:sans-serif;
-}
-#gameArea{
-  width:100vw;
-  height:100vh;
-  position:relative;
-  background:#222;
-}
-#player{
-  position:absolute;
-  top:500px;       /* numeric top in px */
-  left:50%;
-  transform:translateX(-50%);
-  z-index:3;
-}
-#goober{
-  width:120px;
-  position:absolute;
-  left:50%;
-  top:350px;
-  transform:translate(-50%, -50%);
-  z-index:2;
-}
-.door{
-  width:80px;
-  height:120px;
-  position:absolute;
-  top:100px;  /* doors above goober */
-  z-index:4;
-  background:#5a3b28;
-  border:5px solid #3a2416;
-  cursor:pointer;
-}
+body{margin:0; overflow:hidden; background:#222; font-family:sans-serif;}
+#gameArea{width:100vw; height:100vh; position:relative; background:#222;}
+#player{position:absolute; top:500px; left:50%; transform:translateX(-50%); z-index:3;}
+#goober{width:120px; position:absolute; left:50%; top:350px; transform:translate(-50%, -50%); z-index:2;}
+.door{width:80px; height:120px; position:absolute; top:100px; z-index:4; background:#5a3b28; border:5px solid #3a2416; cursor:pointer;}
 #doorLeft{left:30%;}
 #doorRight{right:30%;}
-
-#dialogueBox{
-  position:fixed;
-  bottom:40px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(0,0,0,0.85);
-  color:white;
-  padding:20px;
-  border-radius:15px;
-  max-width:500px;
-  text-align:center;
-  display:none;
-  z-index:1000;
-}
-#choices button{
-  display:block;
-  margin:10px auto;
-  padding:10px 20px;
-  font-size:16px;
-  cursor:pointer;
-}
-#overlay{
-  position:fixed;
-  inset:0;
-  background:black;
-  color:white;
-  font-size:28px;
-  text-align:center;
-  padding-top:40vh;
-  display:none;
-  z-index:2000;
-}
+#dialogueBox{position:fixed; bottom:40px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:20px; border-radius:15px; max-width:500px; text-align:center; display:none; z-index:1000;}
+#choices button{display:block; margin:10px auto; padding:10px 20px; font-size:16px; cursor:pointer;}
+#overlay{position:fixed; inset:0; background:black; color:white; font-size:28px; text-align:center; padding-top:40vh; display:none; z-index:2000;}
 </style>
 </head>
 <body>
@@ -111,47 +49,38 @@ let locked = false;
 const dialogue = {
   text:"Hi! I'm the funny little goober that tells lies.",
   choices:[
-    {
-      label:"Which door has the bubble?",
-      next:{text:"The bubble is behind the right door."}
-    },
-    {
-      label:"What's with your one hair?",
-      next:{
-        text:"Oh that? That's actually a nerve ending.",
-        choices:[
-          {label:"Pull it", next:{anti:true,text:"HEY—YOU BLEW UP!"}},
-          {label:"Don't pull it", next:{text:"The bubble is behind the right door."}}
-        ]
-      }
-    }
+    {label:"Which door has the bubble?", next:{text:"The bubble is behind the right door."}},
+    {label:"What's with your one hair?", next:{
+      text:"Oh that? That's actually a nerve ending.",
+      choices:[
+        {label:"Pull it", next:{anti:true,text:"HEY—YOU BLEW UP!"}},
+        {label:"Don't pull it", next:{text:"The bubble is behind the right door."}}
+      ]
+    }}
   ]
 };
 
-// Typewriter effect
+// Typewriter
 function type(text, cb){
   textEl.textContent="";
   let i=0;
-  const t = setInterval(()=>{
+  const t=setInterval(()=>{
     textEl.textContent+=text[i++];
-    if(i>=text.length){
-      clearInterval(t);
-      cb && cb();
-    }
+    if(i>=text.length){ clearInterval(t); cb && cb(); }
   },70);
 }
 
 // Show dialogue
 function show(node){
-  locked = true; // lock player during dialogue
-  dialogueBox.style.display = "block";
-  choicesEl.innerHTML = "";
+  locked = true;
+  dialogueBox.style.display="block";
+  choicesEl.innerHTML="";
   type(node.text, ()=>{
     if(node.choices){
       node.choices.forEach(c=>{
-        const b = document.createElement("button");
-        b.textContent = c.label;
-        b.onclick = ()=> handle(c.next);
+        const b=document.createElement("button");
+        b.textContent=c.label;
+        b.onclick=()=>handle(c.next);
         choicesEl.appendChild(b);
       });
     } else {
@@ -165,9 +94,9 @@ function show(node){
 function handle(node){
   if(node.anti){
     dialogueBox.style.display="none";
-    locked = false;
-    overlay.style.display = "block";
-    overlay.innerHTML = "ANTI-GOOBER ENDING<br><button onclick='location.reload()'>Restart</button>";
+    locked=false;
+    overlay.style.display="block";
+    overlay.innerHTML="ANTI-GOOBER ENDING<br><button onclick='location.reload()'>Restart</button>";
     return;
   }
   show(node);
@@ -185,37 +114,31 @@ document.addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
 
 function movePlayer(){
   if(!locked){
-    const speed = 4;
-    let top = parseFloat(player.style.top);
-    let left = parseFloat(player.offsetLeft);
+    const speed=4;
+    let top=parseFloat(player.style.top);
+    let left=parseFloat(player.offsetLeft);
 
-    if(keys['w'] && top>0) player.style.top = (top-speed)+'px';
-    if(keys['s'] && (top+player.offsetHeight)<window.innerHeight) player.style.top = (top+speed)+'px';
-    if(keys['a'] && left>0) player.style.left = (left-speed)+'px';
-    if(keys['d'] && (left+player.offsetWidth)<window.innerWidth) player.style.left = (left+speed)+'px';
+    if(keys['w'] && top>0) player.style.top=(top-speed)+'px';
+    if(keys['s'] && (top+player.offsetHeight)<window.innerHeight) player.style.top=(top+speed)+'px';
+    if(keys['a'] && left>0) player.style.left=(left-speed)+'px';
+    if(keys['d'] && (left+player.offsetWidth)<window.innerWidth) player.style.left=(left+speed)+'px';
   }
 
-  // Auto-talk to Goober if touching vertically & horizontally
+  // Auto-talk: trigger dialogue only if player physically touches Goober
   if(!gooberSpoken){
-    const p = player.getBoundingClientRect();
-    const g = goober.getBoundingClientRect();
-    const pyCenter = p.top + p.height/2;
-    const gyCenter = g.top + g.height/2;
-    const pxCenter = p.left + p.width/2;
-    const gxCenter = g.left + g.width/2;
-
-    const verticalOverlap = Math.abs(pyCenter - gyCenter) < (p.height/2 + g.height/2)/2;
-    const horizontalNear = Math.abs(pxCenter - gxCenter) < g.width/2;
-
-    if(verticalOverlap && horizontalNear){
+    const p=player.getBoundingClientRect();
+    const g=goober.getBoundingClientRect();
+    const verticalTouch = p.bottom > g.top && p.top < g.bottom;
+    const horizontalTouch = p.right > g.left && p.left < g.right;
+    if(verticalTouch && horizontalTouch){
       startDialogue();
     }
   }
 
   // Doors
-  const leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
-  const rightDoor = document.getElementById("doorRight").getBoundingClientRect();
-  const pRect = player.getBoundingClientRect();
+  const leftDoor=document.getElementById("doorLeft").getBoundingClientRect();
+  const rightDoor=document.getElementById("doorRight").getBoundingClientRect();
+  const pRect=player.getBoundingClientRect();
 
   if(dialogueFinished){
     if(pRect.left<leftDoor.right && pRect.right>leftDoor.left &&
@@ -235,5 +158,6 @@ function movePlayer(){
 
 requestAnimationFrame(movePlayer);
 </script>
+
 </body>
 </html>
