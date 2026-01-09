@@ -2,134 +2,202 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Funny Little Goober - Level 5</title>
+<title>Funny Little Goober</title>
+
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    font-family: sans-serif;
-    background: #222;
-  }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #222;
+  font-family: sans-serif;
+}
 
-  #gameArea {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-  }
+#game {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
 
-  #player, #goober {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-  }
+/* Sprites */
+#player, #goober {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+}
 
-  #doorLeft, #doorRight {
-    position: absolute;
-    width: 80px;
-    height: 120px;
-    background: #555;
-    border: 3px solid #333;
-  }
+#player {
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
 
-  #dialogueBox {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 500px;
-    background: rgba(0,0,0,0.85);
-    color: white;
-    padding: 15px 20px;
-    border-radius: 10px;
-    display: none;
-    z-index: 1000;
-  }
+#goober {
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+}
 
-  #dialogueChoices button {
-    display: block;
-    margin: 8px auto;
-    padding: 8px 15px;
-    cursor: pointer;
-  }
+/* Doors */
+.door {
+  position: absolute;
+  width: 80px;
+  height: 120px;
+  background: #555;
+  border: 3px solid #333;
+}
+
+#doorLeft { top: 10%; left: 20%; }
+#doorRight { top: 10%; right: 20%; }
+
+/* Dialogue */
+#dialogueBox {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  display: none;
+  z-index: 1000;
+}
+
+#choices button {
+  display: block;
+  margin: 8px auto;
+  padding: 6px 14px;
+}
 </style>
 </head>
+
 <body>
 
-<div id="gameArea">
-  <img id="player" src="player.gif" style="left:50%; top:80%;">
-  <img id="goober" src="goober.gif" style="left:50%; top:40%; transform:translateX(-50%);">
-  <div id="doorLeft" style="left:20%; top:10%;"></div>
-  <div id="doorRight" style="left:70%; top:10%;"></div>
+<div id="game">
+  <img id="player" src="player.gif">
+  <img id="goober" src="goober.gif">
+
+  <div id="doorLeft" class="door"></div>
+  <div id="doorRight" class="door"></div>
 </div>
 
 <div id="dialogueBox">
+  <!-- AUDIO PLACEHOLDERS -->
   <audio id="dialogueAudio"></audio>
+  <audio id="deathAudio"></audio>
+
   <div id="dialogueText"></div>
-  <div id="dialogueChoices"></div>
+  <div id="choices"></div>
 </div>
 
 <script>
-const player = document.getElementById("player");
-let px = window.innerWidth/2 - 30;
-let py = window.innerHeight*0.8;
+/* ===== STATE ===== */
+let px = window.innerWidth / 2 - 24;
+let py = window.innerHeight - 90;
 let speed = 4;
-let dialogueActive = false;
+let locked = false;
+let knowsRightDoor = false;
 
-document.addEventListener('keydown', e => {
-  if(dialogueActive) return;
-  if(e.key==='w'||e.key==='W') py -= speed;
-  if(e.key==='s'||e.key==='S') py += speed;
-  if(e.key==='a'||e.key==='A') px -= speed;
-  if(e.key==='d'||e.key==='D') px += speed;
-  player.style.left = px+'px';
-  player.style.top = py+'px';
-  checkGooberProximity();
+/* ===== MOVEMENT ===== */
+document.addEventListener("keydown", e => {
+  if (locked) return;
+
+  if (e.key === "w") py -= speed;
+  if (e.key === "s") py += speed;
+  if (e.key === "a") px -= speed;
+  if (e.key === "d") px += speed;
+
+  player.style.left = px + "px";
+  player.style.top = py + "px";
+
+  checkGoober();
+  checkDoors();
 });
 
-const goober = document.getElementById("goober");
-const dialogueBox = document.getElementById("dialogueBox");
-const dialogueText = document.getElementById("dialogueText");
-const dialogueChoices = document.getElementById("dialogueChoices");
+/* ===== DIALOGUE ENGINE ===== */
+const box = dialogueBox;
+const textEl = dialogueText;
+const choicesEl = choices;
 const dialogueAudio = document.getElementById("dialogueAudio");
 
-function checkGooberProximity(){
-  let gx = goober.offsetLeft + 30;
-  let gy = goober.offsetTop + 30;
-  let dx = px+30 - gx;
-  let dy = py+30 - gy;
-  if(Math.abs(dx)<60 && Math.abs(dy)<60){
-    startDialogue();
-  }
+function typeText(text, done) {
+  textEl.textContent = "";
+  let i = 0;
+
+  const interval = setInterval(() => {
+    textEl.textContent += text[i++];
+    if (i >= text.length) {
+      clearInterval(interval);
+      done && done();
+    }
+  }, 45); // slow subtitles
 }
 
+function showDialogue(node) {
+  locked = true;
+  box.style.display = "block";
+  choicesEl.innerHTML = "";
+
+  dialogueAudio.src = ""; // add later
+  dialogueAudio.play();
+
+  typeText(node.text, () => {
+    if (node.choices) {
+      node.choices.forEach(c => {
+        const b = document.createElement("button");
+        b.textContent = c.label;
+        b.onclick = () => handleNode(c.next);
+        choicesEl.appendChild(b);
+      });
+    } else {
+      setTimeout(() => {
+        locked = false;
+        box.style.display = "none";
+      }, 600);
+    }
+  });
+}
+
+function handleNode(n) {
+  if (n.death) return death();
+  if (n.learnDoor) knowsRightDoor = true;
+  showDialogue(n);
+}
+
+/* ===== DIALOGUE TREE ===== */
 const dialogueTree = {
-  text: "Funny little goober that tells lies: What brings you here?",
-  audio: "audio/goober_intro.mp3",
+  text: "What brings you here.",
   choices: [
     {
       label: "Which door has the bubble?",
       next: {
-        text: "Funny little goober that tells lies: The right door is the correct one.",
-        audio: "audio/goober_door.mp3",
-        success: "rightDoor"
+        text: "The right door.",
+        learnDoor: true
       }
     },
     {
-      label: "Tell me about your one hair",
+      label: "What’s with your one hair?",
       next: {
-        text: "Funny little goober that tells lies: It's not a hair, it's a nerve ending!",
-        audio: "audio/goober_hair.mp3",
+        text: "It’s not hair. It’s a nerve ending.",
         choices: [
           {
-            label: "Pull it!",
-            next: { death: "deviousActs" }
+            label: "Pull it",
+            next: { death: true }
           },
           {
-            label: "Don't pull it",
+            label: "Don’t pull it",
             next: {
-              text: "Funny little goober that tells lies: Now, back to the door question. The right door is the correct one.",
-              audio: "audio/goober_door.mp3",
-              success: "rightDoor"
+              text: "Now ask about the door.",
+              choices: [
+                {
+                  label: "Which door?",
+                  next: {
+                    text: "The right door.",
+                    learnDoor: true
+                  }
+                }
+              ]
             }
           }
         ]
@@ -138,70 +206,58 @@ const dialogueTree = {
   ]
 };
 
-function typeWriter(text, done){
-  dialogueText.textContent = "";
-  let i = 0;
-  const speed = 40;
-  const interval = setInterval(()=>{
-    dialogueText.textContent += text[i++];
-    if(i>=text.length){ clearInterval(interval); done && done(); }
-  }, speed);
+/* ===== PROXIMITY CHECK ===== */
+function checkGoober() {
+  const dx = Math.abs(px - goober.offsetLeft);
+  const dy = Math.abs(py - goober.offsetTop);
+  if (dx < 50 && dy < 50 && !locked) {
+    showDialogue(dialogueTree);
+  }
 }
 
-function showDialogue(node){
-  dialogueActive = true;
-  dialogueBox.style.display="block";
-  dialogueChoices.innerHTML="";
-  if(node.audio){ dialogueAudio.src = node.audio; dialogueAudio.play(); }
-  typeWriter(node.text, ()=> {
-    if(node.choices){
-      node.choices.forEach(c=>{
-        const btn = document.createElement("button");
-        btn.textContent = c.label;
-        btn.onclick = ()=>handleNext(c.next);
-        dialogueChoices.appendChild(btn);
-      });
-    }
-  });
-}
-
-function handleNext(n){
-  if(!n) return;
-
-  if(n.death){
-    setTimeout(()=>{ playDeath(n.death); }, 500);
-    return;
+/* ===== DOORS ===== */
+function checkDoors() {
+  if (collide(player, doorRight) && knowsRightDoor) {
+    location.href = "levelNext.html";
   }
 
-  if(n.success){
-    setTimeout(()=>{ proceedNextLevel(n.success); }, 500);
-    return;
+  if (collide(player, doorLeft)) {
+    antiGooberEnding();
   }
-
-  showDialogue(n);
 }
 
-function playDeath(type){
-  dialogueBox.style.display="none";
-  dialogueActive=true;
-  document.body.innerHTML = `<img src="death.gif" style="width:100vw;height:100vh;">`;
-  setTimeout(()=>{ 
-    document.body.innerHTML = `<div style="color:red; text-align:center; font-size:40px; margin-top:40vh;">
-      Game Over<br><button onclick="location.reload()">Restart</button></div>`;
+function collide(a, b) {
+  return !(
+    a.offsetLeft > b.offsetLeft + b.offsetWidth ||
+    a.offsetLeft + a.offsetWidth < b.offsetLeft ||
+    a.offsetTop > b.offsetTop + b.offsetHeight ||
+    a.offsetTop + a.offsetHeight < b.offsetTop
+  );
+}
+
+/* ===== ENDINGS ===== */
+function death() {
+  document.body.innerHTML =
+    `<img src="Explode.gif" style="width:100vw;height:100vh;">`;
+
+  setTimeout(() => {
+    document.body.innerHTML =
+      `<h1 style="color:red;text-align:center;margin-top:40vh">
+        Game Over<br>
+        <button onclick="location.reload()">Restart</button>
+      </h1>`;
   }, 2500);
 }
 
-function proceedNextLevel(type){
-  dialogueBox.style.display="none";
-  dialogueActive=true;
-  // No Bubble Guard here, just go to next level
-  window.location.href = 'level6.html';
-}
-
-function startDialogue(){
-  if(dialogueActive) return;
-  showDialogue(dialogueTree);
+function antiGooberEnding() {
+  document.body.innerHTML =
+    `<h1 style="color:white;text-align:center;margin-top:40vh">
+      Dungeon of Eternal Suffering and Anti-Sillyness<br><br>
+      Ending Unlocked:<br>
+      <b>Prejudice-Filled Anti-Goober</b>
+    </h1>`;
 }
 </script>
+
 </body>
 </html>
