@@ -14,11 +14,9 @@ body{
   width:100vw;
   height:100vh;
   position:relative;
-  background:#222; /* no background image */
+  background:#222;
 }
 #player{
-  width:60px;
-  height:60px;
   position:absolute;
   bottom:50px;
   left:50%;
@@ -26,10 +24,10 @@ body{
   z-index:3;
 }
 #goober{
-  width:120px; /* bigger */
+  width:120px;
   position:absolute;
   left:50%;
-  top:60%;   /* lower on the screen */
+  top:60%;
   transform:translate(-50%, -50%);
   z-index:2;
 }
@@ -37,8 +35,8 @@ body{
   width:80px;
   height:120px;
   position:absolute;
-  top:20%; /* doors above goober */
-  z-index:4; /* above goober */
+  top:20%;
+  z-index:4;
   background:#5a3b28;
   border:5px solid #3a2416;
   cursor:pointer;
@@ -67,12 +65,23 @@ body{
   font-size:16px;
   cursor:pointer;
 }
+#overlay{
+  position:fixed;
+  inset:0;
+  background:black;
+  color:white;
+  font-size:28px;
+  text-align:center;
+  padding-top:40vh;
+  display:none;
+  z-index:2000;
+}
 </style>
 </head>
 <body>
 
 <div id="gameArea">
-  <img id="player" src="player.gif">
+  <img id="player" src="mc.PNG">
   <img id="goober" src="goober.gif">
   <div id="doorLeft" class="door"></div>
   <div id="doorRight" class="door"></div>
@@ -83,19 +92,22 @@ body{
   <div id="choices"></div>
 </div>
 
+<div id="overlay"></div>
+
 <script>
-// ===== GAME VARIABLES =====
 const player = document.getElementById("player");
 const goober = document.getElementById("goober");
 const dialogueBox = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("choices");
+const overlay = document.getElementById("overlay");
 
 let keys = {};
-let gooberSpoken=false;
-let dialogueFinished=false;
+let gooberSpoken = false;
+let dialogueFinished = false;
+let locked = false; // locks player during dialogue
 
-// ===== DIALOGUE TREE =====
+// Dialogue tree
 const dialogue = {
   text:"Hi! I'm the funny little goober that tells lies.",
   choices:[
@@ -108,7 +120,7 @@ const dialogue = {
       next:{
         text:"Oh that? That's actually a nerve ending.",
         choices:[
-          {label:"Pull it", next:{text:"HEY—DON'T TOUCH THAT!"}},
+          {label:"Pull it", next:{anti:true,text:"HEY—YOU BLEW UP!"}},
           {label:"Don't pull it", next:{text:"The bubble is behind the right door."}}
         ]
       }
@@ -116,12 +128,12 @@ const dialogue = {
   ]
 };
 
-// ===== TYPEWRITER =====
+// Typewriter effect
 function type(text, cb){
   textEl.textContent="";
   let i=0;
   const speed=70;
-  const t=setInterval(()=>{
+  const t = setInterval(()=>{
     textEl.textContent+=text[i++];
     if(i>=text.length){
       clearInterval(t);
@@ -130,67 +142,82 @@ function type(text, cb){
   },speed);
 }
 
-// ===== DIALOGUE FUNCTIONS =====
+// Show dialogue
 function show(node){
-  dialogueBox.style.display="block";
-  choicesEl.innerHTML="";
-  type(node.text,()=>{
+  locked = true; // lock player
+  dialogueBox.style.display = "block";
+  choicesEl.innerHTML = "";
+  type(node.text, ()=>{
     if(node.choices){
       node.choices.forEach(c=>{
-        const b=document.createElement("button");
-        b.textContent=c.label;
-        b.onclick=()=>handle(c.next);
+        const b = document.createElement("button");
+        b.textContent = c.label;
+        b.onclick = ()=> handle(c.next);
         choicesEl.appendChild(b);
       });
     } else {
-      dialogueFinished=true; // mark dialogue as finished
+      dialogueFinished = true;
+      locked = false; // unlock player
     }
   });
 }
 
-function handle(n){
-  show(n);
+// Handle dialogue choices
+function handle(node){
+  if(node.anti){
+    dialogueBox.style.display="none";
+    locked = false;
+    overlay.style.display = "block";
+    overlay.innerHTML = "ANTI-GOOBER ENDING<br><button onclick='location.reload()'>Restart</button>";
+    return;
+  }
+  show(node);
 }
 
 function startDialogue(){
   if(gooberSpoken) return;
-  gooberSpoken=true;
+  gooberSpoken = true;
   show(dialogue);
 }
 
-// ===== PLAYER MOVEMENT =====
+// Player movement
 document.addEventListener('keydown', e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
 
 function movePlayer(){
-  let rect = player.getBoundingClientRect();
-  let speed=4;
+  if(!locked){
+    const rect = player.getBoundingClientRect();
+    const speed = 4;
 
-  if(keys['w'] && rect.top>0) player.style.top=(player.offsetTop-speed)+'px';
-  if(keys['s'] && rect.bottom<window.innerHeight) player.style.top=(player.offsetTop+speed)+'px';
-  if(keys['a'] && rect.left>0) player.style.left=(player.offsetLeft-speed)+'px';
-  if(keys['d'] && rect.right<window.innerWidth) player.style.left=(player.offsetLeft+speed)+'px';
-
-  let p = player.getBoundingClientRect();
-  let g = goober.getBoundingClientRect();
-
-  // interact with goober
-  if(p.left<g.right && p.right>g.left && p.top<g.bottom && p.bottom>g.top){
-    startDialogue();
+    if(keys['w'] && rect.top>0) player.style.top=(player.offsetTop-speed)+'px';
+    if(keys['s'] && rect.bottom<window.innerHeight) player.style.top=(player.offsetTop+speed)+'px';
+    if(keys['a'] && rect.left>0) player.style.left=(player.offsetLeft-speed)+'px';
+    if(keys['d'] && rect.right<window.innerWidth) player.style.left=(player.offsetLeft+speed)+'px');
   }
 
-  // interact with doors only after dialogue finished
+  // Auto-talk if Y overlap with Goober
+  const p = player.getBoundingClientRect();
+  const g = goober.getBoundingClientRect();
+  if(!gooberSpoken){
+    const pyCenter = p.top + p.height/2;
+    const gyCenter = g.top + g.height/2;
+    const overlapY = Math.abs(pyCenter - gyCenter) < (g.height/2 + p.height/2)/2; // partial overlap
+    if(overlapY){
+      startDialogue();
+    }
+  }
+
+  // Doors interaction only after dialogue
   const leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
   const rightDoor = document.getElementById("doorRight").getBoundingClientRect();
-
   if(dialogueFinished){
     if(p.left<leftDoor.right && p.right>leftDoor.left && p.top<leftDoor.bottom && p.bottom>leftDoor.top){
-      alert("Left Door: Wrong! Try the right door.");
+      overlay.style.display="block";
+      overlay.innerHTML="PREJUDICE ENDING<br><button onclick='location.reload()'>Restart</button>";
     }
     if(p.left<rightDoor.right && p.right>rightDoor.left && p.top<rightDoor.bottom && p.bottom>rightDoor.top){
-      alert("Right Door: Correct! Proceed to next level.");
-      // Uncomment the next line to go to next level
-      // location.href='levelNext.html';
+      overlay.style.display="block";
+      overlay.innerHTML="NEXT LEVEL<br><button onclick=\"location.href='levelNext.html'\">Proceed</button>";
     }
   }
 
