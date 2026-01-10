@@ -115,7 +115,7 @@ h1 { text-align: center; color: red; }
 <audio id="g9" src="itsaverage.mov"></audio>
 <audio id="g10" src="muscle.mov"></audio>
 <audio id="g11" src="really.mov"></audio>
-<audio id="g12" src="dont care.mov"></audio>
+<audio id="g12" src="dontcare.mov"></audio>
 
 <script>
 /* ===== CONSTANTS ===== */
@@ -232,20 +232,22 @@ const box = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("dialogueChoices");
 
+let currentAudio = null; // keeps track of current playing audio
+
 function type(text, cb){
-  textEl.textContent="";
-  let i=0;
+  textEl.textContent = "";
+  let i = 0;
 
-  playGuardAudio(text);
+  playGuardAudio(text); // play audio for this line
 
-  const t=setInterval(()=>{
-    textEl.textContent+=text[i++];
-    if(i>=text.length){
+  const t = setInterval(()=>{
+    textEl.textContent += text[i++];
+    if(i >= text.length){
       clearInterval(t);
-      stopAllGuardAudio();
-      cb&&cb();
+      // don't stop audio; let it finish naturally
+      cb && cb();
     }
-  },TYPE_SPEED);
+  }, TYPE_SPEED);
 }
 
 function show(node){
@@ -254,25 +256,25 @@ function show(node){
   type(node.text, ()=>{
     node.choices?.forEach(c=>{
       const b=document.createElement("button");
-      b.textContent=c.label;
-      b.onclick=()=>resolve(c.next);
+      b.textContent = c.label;
+      b.onclick = () => resolve(c.next);
       choicesEl.appendChild(b);
     });
   });
 }
 
 function resolve(n){
-  choicesEl.innerHTML="";
+  choicesEl.innerHTML = "";
 
   if(n.rps){ startRPS(); return; }
 
   if(n.playerText){
-    type(n.playerText,()=>type(n.npcText,()=>endWithDelay(n)));
+    type(n.playerText, ()=>type(n.npcText, ()=>endWithDelay(n)));
     return;
   }
 
   if(n.npcText){
-    type(n.npcText,()=>endWithDelay(n));
+    type(n.npcText, ()=>endWithDelay(n));
     return;
   }
 
@@ -291,8 +293,8 @@ function startRPS(){
   type("Rock. Paper. Scissors.", ()=>{
     ["Rock","Paper","Scissors"].forEach(p=>{
       const b=document.createElement("button");
-      b.textContent=p;
-      b.onclick=()=>playRPS(p);
+      b.textContent = p;
+      b.onclick = ()=>playRPS(p);
       choicesEl.appendChild(b);
     });
   });
@@ -305,8 +307,8 @@ function playRPS(player){
     (player==="Paper"&&npc==="Rock")||
     (player==="Scissors"&&npc==="Paper");
 
-  type(`You chose ${player}. He chose ${npc}.`,()=>{
-    type(win?"Hmph. You win.":"Nope. I win.",()=>{
+  type(`You chose ${player}. He chose ${npc}.`, ()=>{
+    type(win?"Hmph. You win.":"Nope. I win.", ()=>{
       setTimeout(()=>win?success():death(), OUTCOME_DELAY);
     });
   });
@@ -332,17 +334,16 @@ function playGuardAudio(text){
   const id = map[text];
   if(!id) return;
 
-  stopAllGuardAudio();
+  // Stop previous audio only if a new line starts
+  if(currentAudio && currentAudio.id !== id){
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+
   const a = document.getElementById(id);
+  currentAudio = a;
   a.currentTime = 0;
   a.play();
-}
-
-function stopAllGuardAudio(){
-  for(let i=1;i<=12;i++){
-    const a=document.getElementById("g"+i);
-    a.pause();
-  }
 }
 
 /* ===== OUTCOMES ===== */
