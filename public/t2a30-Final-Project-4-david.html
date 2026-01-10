@@ -103,7 +103,7 @@ h1 { text-align: center; color: red; }
 <audio id="audioSuccess" src="slide.weba"></audio>
 <audio id="audioDeath" src="fahh.weba"></audio>
 
-<!-- GUARD VOICE LINES (PUT FILENAMES HERE) -->
+<!-- GUARD VOICE LINES -->
 <audio id="g1" src="whatbringsyouhere.mov"></audio>
 <audio id="g2" src="hello.mov"></audio>
 <audio id="g3" src="alrightimdonewaiting.mov"></audio>
@@ -116,6 +116,14 @@ h1 { text-align: center; color: red; }
 <audio id="g10" src="muscle.mov"></audio>
 <audio id="g11" src="really.mov"></audio>
 <audio id="g12" src="dontcare.mov"></audio>
+
+<!-- PLAYER VOICE LINES -->
+<audio id="p1" src="player_flaunt.mov"></audio>
+<audio id="p2" src="player_reason.mov"></audio>
+<audio id="p3" src="player_pockets.mov"></audio>
+<audio id="p4" src="player_intimidation.mov"></audio>
+<audio id="p5" src="player_spear.mov"></audio>
+<audio id="p6" src="player_legs.mov"></audio>
 
 <script>
 /* ===== CONSTANTS ===== */
@@ -232,19 +240,18 @@ const box = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("dialogueChoices");
 
-let currentAudio = null; // keeps track of current playing audio
+let currentAudio = null;
 
 function type(text, cb){
   textEl.textContent = "";
   let i = 0;
 
-  playGuardAudio(text); // play audio for this line
+  playVoiceAudio(text); // plays guard or player line
 
   const t = setInterval(()=>{
     textEl.textContent += text[i++];
     if(i >= text.length){
       clearInterval(t);
-      // don't stop audio; let it finish naturally
       cb && cb();
     }
   }, TYPE_SPEED);
@@ -255,9 +262,9 @@ function show(node){
   choicesEl.innerHTML="";
   type(node.text, ()=>{
     node.choices?.forEach(c=>{
-      const b=document.createElement("button");
+      const b = document.createElement("button");
       b.textContent = c.label;
-      b.onclick = () => resolve(c.next);
+      b.onclick = ()=>resolve(c.next);
       choicesEl.appendChild(b);
     });
   });
@@ -292,7 +299,7 @@ function endWithDelay(n){
 function startRPS(){
   type("Rock. Paper. Scissors.", ()=>{
     ["Rock","Paper","Scissors"].forEach(p=>{
-      const b=document.createElement("button");
+      const b = document.createElement("button");
       b.textContent = p;
       b.onclick = ()=>playRPS(p);
       choicesEl.appendChild(b);
@@ -315,8 +322,8 @@ function playRPS(player){
 }
 
 /* ===== AUDIO MAP ===== */
-function playGuardAudio(text){
-  const map = {
+function playVoiceAudio(text){
+  const guardMap = {
     "What brings you here. If it's the door, turn. Now.":"g1",
     "..... Hello?":"g2",
     "Alright. I'm done waiting.":"g3",
@@ -331,10 +338,18 @@ function playGuardAudio(text){
     "I don't care.":"g12"
   };
 
-  const id = map[text];
+  const playerMap = {
+    "Because I'm rich. If you go to that corner over there, I left some money.":"p1",
+    "You don't get paid enough for this.":"p2",
+    "Uhhh… I got some pocket lint and an old bubblegun wrapper.":"p3",
+    "You let me in, and I won't molly whop you right now.":"p4",
+    "Your spear is small.":"p5",
+    "Your legs are so thin, skip leg day?":"p6"
+  };
+
+  let id = guardMap[text] || playerMap[text];
   if(!id) return;
 
-  // Stop previous audio only if a new line starts
   if(currentAudio && currentAudio.id !== id){
     currentAudio.pause();
     currentAudio.currentTime = 0;
