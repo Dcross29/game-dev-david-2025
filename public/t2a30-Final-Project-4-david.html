@@ -99,14 +99,28 @@ h1 { text-align: center; color: red; }
   <button onclick="location.reload()">Restart</button>
 </div>
 
-<audio id="audioDialogue"></audio>
-<audio id="audioSuccess"></audio>
-<audio id="audioDeath"></audio>
+<!-- MAIN AUDIO -->
+<audio id="audioSuccess" src=""></audio>
+<audio id="audioDeath" src=""></audio>
+
+<!-- GUARD VOICE LINES (PUT FILENAMES HERE) -->
+<audio id="g1" src=""></audio>
+<audio id="g2" src=""></audio>
+<audio id="g3" src=""></audio>
+<audio id="g4" src=""></audio>
+<audio id="g5" src=""></audio>
+<audio id="g6" src=""></audio>
+<audio id="g7" src=""></audio>
+<audio id="g8" src=""></audio>
+<audio id="g9" src=""></audio>
+<audio id="g10" src=""></audio>
+<audio id="g11" src=""></audio>
+<audio id="g12" src=""></audio>
 
 <script>
 /* ===== CONSTANTS ===== */
 const TYPE_SPEED = 100;
-const OUTCOME_DELAY = 700;     // 👈 NEW delay after dialogue
+const OUTCOME_DELAY = 700;
 const GUARD_GIF_TIME = 1857;
 const DEATH_TIME = 2500;
 
@@ -221,9 +235,16 @@ const choicesEl = document.getElementById("dialogueChoices");
 function type(text, cb){
   textEl.textContent="";
   let i=0;
+
+  playGuardAudio(text);
+
   const t=setInterval(()=>{
     textEl.textContent+=text[i++];
-    if(i>=text.length){clearInterval(t);cb&&cb();}
+    if(i>=text.length){
+      clearInterval(t);
+      stopAllGuardAudio();
+      cb&&cb();
+    }
   },TYPE_SPEED);
 }
 
@@ -291,14 +312,49 @@ function playRPS(player){
   });
 }
 
+/* ===== AUDIO MAP ===== */
+function playGuardAudio(text){
+  const map = {
+    "What brings you here. If it's the door, turn. Now.":"g1",
+    "..... Hello?":"g2",
+    "Alright. I'm done waiting.":"g3",
+    "And why should I?":"g4",
+    "State your offer.":"g5",
+    "…Seriously?":"g6",
+    "Try it.":"g7",
+    "Say it.":"g8",
+    "No it's not! It's average… besides. It's how you use it.":"g9",
+    "Like you'd know anything about muscle, twig-bones.":"g10",
+    "Really!?":"g11",
+    "I don't care.":"g12"
+  };
+
+  const id = map[text];
+  if(!id) return;
+
+  stopAllGuardAudio();
+  const a = document.getElementById(id);
+  a.currentTime = 0;
+  a.play();
+}
+
+function stopAllGuardAudio(){
+  for(let i=1;i<=12;i++){
+    const a=document.getElementById("g"+i);
+    a.pause();
+  }
+}
+
 /* ===== OUTCOMES ===== */
 function success(){
+  document.getElementById("audioSuccess").play();
   box.style.display="none";
   document.getElementById("successScreen").style.display="block";
   setTimeout(()=>document.getElementById("proceedBtn").style.display="block",GUARD_GIF_TIME);
 }
 
 function death(){
+  document.getElementById("audioDeath").play();
   box.style.display="none";
   document.getElementById("deathScreen").style.display="block";
   setTimeout(()=>{
