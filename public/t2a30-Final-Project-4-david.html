@@ -103,7 +103,7 @@ h1 { text-align: center; color: red; }
 <audio id="audioSuccess" src="slide.weba"></audio>
 <audio id="audioDeath" src="fahh.weba"></audio>
 
-<!-- GUARD VOICE -->
+<!-- GUARD -->
 <audio id="g1" src="whatbringsyouhere.mov"></audio>
 <audio id="g2" src="hello.mov"></audio>
 <audio id="g3" src="alrightimdonewaiting.mov"></audio>
@@ -238,23 +238,27 @@ const choicesEl = document.getElementById("dialogueChoices");
 
 let currentAudio = null;
 
-/* FIXED */
 function type(text, cb){
   textEl.textContent = "";
   let i = 0;
+  let typingDone = false;
+  let audioDone = false;
 
   playVoiceAudio(text, ()=>{
-    const t = setInterval(()=>{
-      textEl.textContent += text[i++];
-      if(i >= text.length){
-        clearInterval(t);
-        cb && cb();
-      }
-    }, TYPE_SPEED);
+    audioDone = true;
+    if(typingDone) cb && cb();
   });
+
+  const t = setInterval(()=>{
+    textEl.textContent += text[i++];
+    if(i >= text.length){
+      clearInterval(t);
+      typingDone = true;
+      if(audioDone) cb && cb();
+    }
+  }, TYPE_SPEED);
 }
 
-/* FIXED */
 function playVoiceAudio(text, done){
   const guardMap = {
     "What brings you here. If it's the door, turn. Now.":"g1",
@@ -281,6 +285,7 @@ function playVoiceAudio(text, done){
   };
 
   let id = guardMap[text] || playerMap[text];
+
   if(!id){
     done && done();
     return;
@@ -293,19 +298,23 @@ function playVoiceAudio(text, done){
 
   const a = document.getElementById(id);
   currentAudio = a;
+
+  if(!a.src){
+    done && done();
+    return;
+  }
+
   a.currentTime = 0;
   a.play();
   a.onended = ()=>done && done();
 }
-
-/* REST UNCHANGED */
 
 function show(node){
   box.style.display="block";
   choicesEl.innerHTML="";
   type(node.text, ()=>{
     node.choices?.forEach(c=>{
-      const b = document.createElement("button");
+      const b=document.createElement("button");
       b.textContent = c.label;
       b.onclick = ()=>resolve(c.next);
       choicesEl.appendChild(b);
@@ -314,7 +323,8 @@ function show(node){
 }
 
 function resolve(n){
-  choicesEl.innerHTML = "";
+  choicesEl.innerHTML="";
+
   if(n.rps){ startRPS(); return; }
 
   if(n.playerText){
@@ -340,7 +350,7 @@ function endWithDelay(n){
 function startRPS(){
   type("Rock. Paper. Scissors.", ()=>{
     ["Rock","Paper","Scissors"].forEach(p=>{
-      const b = document.createElement("button");
+      const b=document.createElement("button");
       b.textContent = p;
       b.onclick = ()=>playRPS(p);
       choicesEl.appendChild(b);
