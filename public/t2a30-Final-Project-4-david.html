@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -243,62 +242,68 @@ const choicesEl = document.getElementById("dialogueChoices");
 
 let currentAudio = null;
 
-function type(text, cb){
-  textEl.textContent = "";
-  let i = 0;
+// TYPE function now returns a Promise to wait for audio & text
+function type(text){
+  return new Promise((resolve) => {
+    textEl.textContent = "";
+    let i = 0;
 
-  playVoiceAudio(text); // plays guard or player line
+    const audio = playVoiceAudio(text); // play audio and get <audio> element
 
-  const t = setInterval(()=>{
-    textEl.textContent += text[i++];
-    if(i >= text.length){
-      clearInterval(t);
-      cb && cb();
-    }
-  }, TYPE_SPEED);
+    const t = setInterval(()=>{
+      textEl.textContent += text[i++];
+      if(i >= text.length){
+        clearInterval(t);
+        if(audio){ // wait until audio ends
+          audio.onended = () => resolve();
+        } else {
+          resolve();
+        }
+      }
+    }, TYPE_SPEED);
+  });
 }
 
-function show(node){
+async function show(node){
   box.style.display="block";
   choicesEl.innerHTML="";
-  type(node.text, ()=>{
-    node.choices?.forEach(c=>{
+  await type(node.text);
+  if(node.choices){
+    node.choices.forEach(c=>{
       const b = document.createElement("button");
       b.textContent = c.label;
       b.onclick = ()=>resolve(c.next);
       choicesEl.appendChild(b);
     });
-  });
+  }
 }
 
-function resolve(n){
+async function resolve(n){
   choicesEl.innerHTML = "";
 
   if(n.rps){ startRPS(); return; }
 
   if(n.playerText){
-    type(n.playerText, ()=>type(n.npcText, ()=>endWithDelay(n)));
+    await type(n.playerText); // wait for player text + audio
+    if(n.npcText){
+      await type(n.npcText); // wait for guard text + audio
+    }
+    endWithDelay(n);
     return;
   }
 
   if(n.npcText){
-    type(n.npcText, ()=>endWithDelay(n));
+    await type(n.npcText); // just NPC text
+    endWithDelay(n);
     return;
   }
 
   show(n);
 }
 
-function endWithDelay(n){
-  setTimeout(()=>{
-    if(n.success) success();
-    if(n.death) death();
-  }, OUTCOME_DELAY);
-}
-
 /* ===== RPS ===== */
 function startRPS(){
-  type("Rock. Paper. Scissors.", ()=>{
+  type("Rock. Paper. Scissors.").then(()=>{
     ["Rock","Paper","Scissors"].forEach(p=>{
       const b = document.createElement("button");
       b.textContent = p;
@@ -315,8 +320,8 @@ function playRPS(player){
     (player==="Paper"&&npc==="Rock")||
     (player==="Scissors"&&npc==="Paper");
 
-  type(`You chose ${player}. He chose ${npc}.`, ()=>{
-    type(win?"Hmph. You win.":"Nope. I win.", ()=>{
+  type(`You chose ${player}. He chose ${npc}.`).then(()=>{
+    type(win?"Hmph. You win.":"Nope. I win.").then(()=>{
       setTimeout(()=>win?success():death(), OUTCOME_DELAY);
     });
   });
@@ -349,7 +354,7 @@ function playVoiceAudio(text){
   };
 
   let id = guardMap[text] || playerMap[text];
-  if(!id) return;
+  if(!id) return null;
 
   if(currentAudio && currentAudio.id !== id){
     currentAudio.pause();
@@ -360,6 +365,7 @@ function playVoiceAudio(text){
   currentAudio = a;
   a.currentTime = 0;
   a.play();
+  return a;
 }
 
 /* ===== OUTCOMES ===== */
