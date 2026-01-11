@@ -288,13 +288,13 @@ async function resolve(n){
     if(n.npcText){
       await type(n.npcText); // wait for guard text + audio
     }
-    endWithDelay(n);
+    await endWithDelay(n); // wait for success/death audio
     return;
   }
 
   if(n.npcText){
     await type(n.npcText); // just NPC text
-    endWithDelay(n);
+    await endWithDelay(n); // wait for success/death audio
     return;
   }
 
@@ -369,21 +369,25 @@ function playVoiceAudio(text){
 }
 
 /* ===== OUTCOMES ===== */
-function success(){
-  document.getElementById("audioSuccess").play();
+async function success(){
+  const audio = document.getElementById("audioSuccess");
+  audio.currentTime = 0;
+  audio.play();
   box.style.display="none";
   document.getElementById("successScreen").style.display="block";
-  setTimeout(()=>document.getElementById("proceedBtn").style.display="block",GUARD_GIF_TIME);
+  await new Promise(res => audio.onended = res);
+  document.getElementById("proceedBtn").style.display="block";
 }
 
-function death(){
-  document.getElementById("audioDeath").play();
+async function death(){
+  const audio = document.getElementById("audioDeath");
+  audio.currentTime = 0;
+  audio.play();
   box.style.display="none";
   document.getElementById("deathScreen").style.display="block";
-  setTimeout(()=>{
-    document.getElementById("deathScreen").style.display="none";
-    document.getElementById("gameOver").style.display="flex";
-  },DEATH_TIME);
+  await new Promise(res => audio.onended = res);
+  document.getElementById("deathScreen").style.display="none";
+  document.getElementById("gameOver").style.display="flex";
 }
 
 /* ===== START ===== */
