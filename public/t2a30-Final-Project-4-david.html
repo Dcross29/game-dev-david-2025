@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,7 +104,7 @@ h1 { text-align: center; color: red; }
 <audio id="audioSuccess" src="slide.weba"></audio>
 <audio id="audioDeath" src="fahh.weba"></audio>
 
-<!-- GUARD -->
+<!-- GUARD VOICE LINES -->
 <audio id="g1" src="whatbringsyouhere.mov"></audio>
 <audio id="g2" src="hello.mov"></audio>
 <audio id="g3" src="alrightimdonewaiting.mov"></audio>
@@ -117,7 +118,7 @@ h1 { text-align: center; color: red; }
 <audio id="g11" src="really.mov"></audio>
 <audio id="g12" src="dont care.mov"></audio>
 
-<!-- PLAYER -->
+<!-- PLAYER VOICE LINES -->
 <audio id="p1" src="imrich.mov"></audio>
 <audio id="p2" src="paidenough.mov"></audio>
 <audio id="p3" src="pockets.mov"></audio>
@@ -126,11 +127,13 @@ h1 { text-align: center; color: red; }
 <audio id="p6" src="legssmall.mov"></audio>
 
 <script>
+/* ===== CONSTANTS ===== */
 const TYPE_SPEED = 50;
 const OUTCOME_DELAY = 700;
 const GUARD_GIF_TIME = 1857;
 const DEATH_TIME = 2500;
 
+/* ===== FADE ===== */
 window.onload = () => {
   const f = document.getElementById("fadeOverlay");
   f.style.transition = "opacity 1s";
@@ -138,6 +141,7 @@ window.onload = () => {
   setTimeout(()=>f.remove(),1000);
 };
 
+/* ===== DIALOGUE TREE ===== */
 const dialogueTree = {
   text: "What brings you here. If it's the door, turn. Now.",
   choices: [
@@ -232,6 +236,7 @@ const dialogueTree = {
   ]
 };
 
+/* ===== ENGINE ===== */
 const box = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("dialogueChoices");
@@ -241,25 +246,84 @@ let currentAudio = null;
 function type(text, cb){
   textEl.textContent = "";
   let i = 0;
-  let typingDone = false;
-  let audioDone = false;
 
-  playVoiceAudio(text, ()=>{
-    audioDone = true;
-    if(typingDone) cb && cb();
-  });
+  playVoiceAudio(text); // plays guard or player line
 
   const t = setInterval(()=>{
     textEl.textContent += text[i++];
     if(i >= text.length){
       clearInterval(t);
-      typingDone = true;
-      if(audioDone) cb && cb();
+      cb && cb();
     }
   }, TYPE_SPEED);
 }
 
-function playVoiceAudio(text, done){
+function show(node){
+  box.style.display="block";
+  choicesEl.innerHTML="";
+  type(node.text, ()=>{
+    node.choices?.forEach(c=>{
+      const b = document.createElement("button");
+      b.textContent = c.label;
+      b.onclick = ()=>resolve(c.next);
+      choicesEl.appendChild(b);
+    });
+  });
+}
+
+function resolve(n){
+  choicesEl.innerHTML = "";
+
+  if(n.rps){ startRPS(); return; }
+
+  if(n.playerText){
+    type(n.playerText, ()=>type(n.npcText, ()=>endWithDelay(n)));
+    return;
+  }
+
+  if(n.npcText){
+    type(n.npcText, ()=>endWithDelay(n));
+    return;
+  }
+
+  show(n);
+}
+
+function endWithDelay(n){
+  setTimeout(()=>{
+    if(n.success) success();
+    if(n.death) death();
+  }, OUTCOME_DELAY);
+}
+
+/* ===== RPS ===== */
+function startRPS(){
+  type("Rock. Paper. Scissors.", ()=>{
+    ["Rock","Paper","Scissors"].forEach(p=>{
+      const b = document.createElement("button");
+      b.textContent = p;
+      b.onclick = ()=>playRPS(p);
+      choicesEl.appendChild(b);
+    });
+  });
+}
+
+function playRPS(player){
+  const npc=["Rock","Paper","Scissors"][Math.floor(Math.random()*3)];
+  const win =
+    (player==="Rock"&&npc==="Scissors")||
+    (player==="Paper"&&npc==="Rock")||
+    (player==="Scissors"&&npc==="Paper");
+
+  type(`You chose ${player}. He chose ${npc}.`, ()=>{
+    type(win?"Hmph. You win.":"Nope. I win.", ()=>{
+      setTimeout(()=>win?success():death(), OUTCOME_DELAY);
+    });
+  });
+}
+
+/* ===== AUDIO MAP ===== */
+function playVoiceAudio(text){
   const guardMap = {
     "What brings you here. If it's the door, turn. Now.":"g1",
     "..... Hello?":"g2",
@@ -285,93 +349,20 @@ function playVoiceAudio(text, done){
   };
 
   let id = guardMap[text] || playerMap[text];
+  if(!id) return;
 
-  if(!id){
-    done && done();
-    return;
-  }
-
-  if(currentAudio){
+  if(currentAudio && currentAudio.id !== id){
     currentAudio.pause();
     currentAudio.currentTime = 0;
   }
 
   const a = document.getElementById(id);
   currentAudio = a;
-
-  if(!a.src){
-    done && done();
-    return;
-  }
-
   a.currentTime = 0;
   a.play();
-  a.onended = ()=>done && done();
 }
 
-function show(node){
-  box.style.display="block";
-  choicesEl.innerHTML="";
-  type(node.text, ()=>{
-    node.choices?.forEach(c=>{
-      const b=document.createElement("button");
-      b.textContent = c.label;
-      b.onclick = ()=>resolve(c.next);
-      choicesEl.appendChild(b);
-    });
-  });
-}
-
-function resolve(n){
-  choicesEl.innerHTML="";
-
-  if(n.rps){ startRPS(); return; }
-
-  if(n.playerText){
-    type(n.playerText, ()=>type(n.npcText, ()=>endWithDelay(n)));
-    return;
-  }
-
-  if(n.npcText){
-    type(n.npcText, ()=>endWithDelay(n));
-    return;
-  }
-
-  show(n);
-}
-
-function endWithDelay(n){
-  setTimeout(()=>{
-    if(n.success) success();
-    if(n.death) death();
-  }, OUTCOME_DELAY);
-}
-
-function startRPS(){
-  type("Rock. Paper. Scissors.", ()=>{
-    ["Rock","Paper","Scissors"].forEach(p=>{
-      const b=document.createElement("button");
-      b.textContent = p;
-      b.onclick = ()=>playRPS(p);
-      choicesEl.appendChild(b);
-    });
-  });
-}
-
-function playRPS(player){
-  const npc=["Rock","Paper","Scissors"][Math.floor(Math.random()*3)];
-  const win =
-    (player==="Rock"&&npc==="Scissors")||
-    (player==="Paper"&&npc==="Rock")||
-    (player==="Scissors"&&npc==="Paper");
-
-  type(`You chose ${player}. He chose ${npc}.`, ()=>{
-    type(win?"Hmph. You win.":"Nope. I win.", ()=>{
-      setTimeout(()=>win?success():death(), OUTCOME_DELAY);
-    });
-  });
-}
-
+/* ===== OUTCOMES ===== */
 function success(){
   document.getElementById("audioSuccess").play();
   box.style.display="none";
@@ -389,6 +380,7 @@ function death(){
   },DEATH_TIME);
 }
 
+/* ===== START ===== */
 show(dialogueTree);
 </script>
 
