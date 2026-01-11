@@ -128,9 +128,8 @@ h1 { text-align: center; color: red; }
 <script>
 /* ===== CONSTANTS ===== */
 const TYPE_SPEED = 50;
-const OUTCOME_DELAY = 700;
-const GUARD_GIF_TIME = 1857;
-const DEATH_TIME = 2500;
+const SUCCESS_DELAY = 3000; // 3 seconds
+const DEATH_DELAY = 3000; // 3 seconds
 
 /* ===== FADE ===== */
 window.onload = () => {
@@ -239,26 +238,20 @@ const dialogueTree = {
 const box = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("dialogueChoices");
-
 let currentAudio = null;
 
-// TYPE function now returns a Promise to wait for audio & text
 function type(text){
   return new Promise((resolve) => {
     textEl.textContent = "";
     let i = 0;
 
-    const audio = playVoiceAudio(text); // play audio and get <audio> element
+    const audio = playVoiceAudio(text);
 
     const t = setInterval(()=>{
       textEl.textContent += text[i++];
       if(i >= text.length){
         clearInterval(t);
-        if(audio){ // wait until audio ends
-          audio.onended = () => resolve();
-        } else {
-          resolve();
-        }
+        resolve();
       }
     }, TYPE_SPEED);
   });
@@ -284,23 +277,63 @@ async function resolve(n){
   if(n.rps){ startRPS(); return; }
 
   if(n.playerText){
-    await type(n.playerText); // wait for player text + audio
+    await type(n.playerText);
     if(n.npcText){
-      await type(n.npcText); // wait for guard text + audio
+      await type(n.npcText);
     }
-    if(n.success || n.death){
-      await endWithDelay(n); // wait for success/death audio
+
+    // 3-second delay after option selection
+    if(n.success){
+      setTimeout(() => {
+        document.getElementById("successScreen").style.display="block";
+        document.getElementById("audioSuccess").play();
+        setTimeout(()=>document.getElementById("proceedBtn").style.display="block", 1000);
+        box.style.display="none";
+      }, 3000);
       return;
     }
+
+    if(n.death){
+      setTimeout(() => {
+        document.getElementById("deathScreen").style.display="block";
+        document.getElementById("audioDeath").play();
+        box.style.display="none";
+        setTimeout(()=>{
+          document.getElementById("deathScreen").style.display="none";
+          document.getElementById("gameOver").style.display="flex";
+        }, 1000);
+      }, 3000);
+      return;
+    }
+
     return;
   }
 
   if(n.npcText){
     await type(n.npcText);
-    if(n.success || n.death){
-      await endWithDelay(n);
+    if(n.success){
+      setTimeout(() => {
+        document.getElementById("successScreen").style.display="block";
+        document.getElementById("audioSuccess").play();
+        setTimeout(()=>document.getElementById("proceedBtn").style.display="block", 1000);
+        box.style.display="none";
+      }, 3000);
       return;
     }
+
+    if(n.death){
+      setTimeout(() => {
+        document.getElementById("deathScreen").style.display="block";
+        document.getElementById("audioDeath").play();
+        box.style.display="none";
+        setTimeout(()=>{
+          document.getElementById("deathScreen").style.display="none";
+          document.getElementById("gameOver").style.display="flex";
+        }, 1000);
+      }, 3000);
+      return;
+    }
+
     return;
   }
 
@@ -328,7 +361,7 @@ function playRPS(player){
 
   type(`You chose ${player}. He chose ${npc}.`).then(()=>{
     type(win?"Hmph. You win.":"Nope. I win.").then(()=>{
-      setTimeout(()=>win?success():death(), OUTCOME_DELAY);
+      setTimeout(()=>win?success():death(), 700);
     });
   });
 }
@@ -372,39 +405,6 @@ function playVoiceAudio(text){
   a.currentTime = 0;
   a.play();
   return a;
-}
-
-/* ===== OUTCOMES ===== */
-async function success(){
-  const audio = document.getElementById("audioSuccess");
-  audio.currentTime = 0;
-  audio.play();
-  box.style.display="none";
-  document.getElementById("successScreen").style.display="block";
-  await new Promise(res => audio.onended = res);
-  document.getElementById("proceedBtn").style.display="block";
-}
-
-async function death(){
-  const audio = document.getElementById("audioDeath");
-  audio.currentTime = 0;
-  audio.play();
-  box.style.display="none";
-  document.getElementById("deathScreen").style.display="block";
-  await new Promise(res => audio.onended = res);
-  document.getElementById("deathScreen").style.display="none";
-  document.getElementById("gameOver").style.display="flex";
-}
-
-// waits before calling success/death
-async function endWithDelay(n){
-  await new Promise(res => setTimeout(res, OUTCOME_DELAY));
-  if(n.success){
-    await success();
-  }
-  if(n.death){
-    await death();
-  }
 }
 
 /* ===== START ===== */
