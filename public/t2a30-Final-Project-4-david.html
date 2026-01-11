@@ -140,101 +140,6 @@ window.onload = () => {
   setTimeout(()=>f.remove(),1000);
 };
 
-/* ===== DIALOGUE TREE ===== */
-const dialogueTree = {
-  text: "What brings you here. If it's the door, turn. Now.",
-  choices: [
-    {
-      label: "*say nothing*",
-      next: {
-        text: "..... Hello?",
-        choices: [
-          {
-            label: "*say nothing*",
-            next: {
-              npcText: "Alright. I'm done waiting.",
-              death: true
-            }
-          },
-          {
-            label: "let me in",
-            next: {
-              text: "And why should I?",
-              choices: [
-                {
-                  label: "flaunt",
-                  next: {
-                    playerText: "Because I'm rich. If you go to that corner over there, I left some money.",
-                    npcText: "Really!?",
-                    success: true
-                  }
-                },
-                {
-                  label: "reason",
-                  next: {
-                    playerText: "You don't get paid enough for this.",
-                    npcText: "I don't care.",
-                    death: true
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      label: "*offer a proposition*",
-      next: {
-        text: "State your offer.",
-        choices: [
-          { label: "rock paper scissors", next: { rps: true } },
-          {
-            label: "give him whatever is in your pockets",
-            next: {
-              playerText: "Uhhh… I got some pocket lint and an old bubblegun wrapper.",
-              npcText: "…Seriously?",
-              death: true
-            }
-          },
-          {
-            label: "intimidation",
-            next: {
-              playerText: "You let me in, and I won't molly whop you right now.",
-              npcText: "Try it.",
-              death: true
-            }
-          }
-        ]
-      }
-    },
-    {
-      label: "*insult*",
-      next: {
-        text: "Say it.",
-        choices: [
-          {
-            label: "insult his spear",
-            next: {
-              playerText: "Your spear is small.",
-              npcText: "No it's not! It's average… besides. It's how you use it.",
-              success: true
-            }
-          },
-          {
-            label: "make fun of his legs",
-            next: {
-              playerText: "Your legs are so thin, skip leg day?",
-              npcText: "Like you'd know anything about muscle, twig-bones.",
-              death: true
-            }
-          }
-        ]
-      }
-    }
-  ]
-};
-
 /* ===== ENGINE ===== */
 const box = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
@@ -242,21 +147,30 @@ const choicesEl = document.getElementById("dialogueChoices");
 
 let currentAudio = null;
 
+/* ===== FIXED TYPE FUNCTION ===== */
 function type(text, cb){
   textEl.textContent = "";
   let i = 0;
 
-  playVoiceAudio(text); // plays guard or player line
+  playVoiceAudio(text);
 
   const t = setInterval(()=>{
     textEl.textContent += text[i++];
     if(i >= text.length){
       clearInterval(t);
-      cb && cb();
+
+      if(currentAudio){
+        currentAudio.onended = ()=>{
+          cb && cb();
+        };
+      } else {
+        cb && cb();
+      }
     }
   }, TYPE_SPEED);
 }
 
+/* ===== DIALOGUE ===== */
 function show(node){
   box.style.display="block";
   choicesEl.innerHTML="";
