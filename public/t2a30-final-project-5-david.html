@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Goober Room - Birdseye View</title>
-
 <style>
 body{margin:0;overflow:hidden;background:#222;font-family:sans-serif;}
 #gameArea{width:100vw;height:100vh;position:relative;}
@@ -14,10 +13,10 @@ body{margin:0;overflow:hidden;background:#222;font-family:sans-serif;}
 #doorRight{right:30%;}
 #dialogueBox{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:white;padding:20px;border-radius:15px;max-width:500px;text-align:center;display:none;z-index:1000;}
 #choices button{display:block;margin:10px auto;padding:10px 20px;font-size:16px;}
-#overlay{position:fixed;inset:0;background:black;color:white;font-size:28px;text-align:center;padding-top:40vh;display:none;z-index:2000;}
+#overlay{position:fixed;inset:0;background:black;color:white;font-size:28px;text-align:center;padding-top:20vh;display:none;z-index:2000;}
+#overlay img{display:block;margin:20px auto;width:200px;height:auto;}
 </style>
 </head>
-
 <body>
 
 <div id="gameArea">
@@ -46,6 +45,7 @@ let keys = {};
 let gooberSpoken = false;
 let dialogueFinished = false;
 let locked = false;
+let typeComplete = false; // NEW: flag to ensure typewriter finishes
 
 /* Dialogue tree */
 const dialogue = {
@@ -65,12 +65,14 @@ const dialogue = {
 /* Typewriter */
 function type(text,cb){
   textEl.textContent="";
+  typeComplete = false;
   let i=0;
   const t=setInterval(()=>{
     textEl.textContent+=text[i++];
     if(i>=text.length){
       clearInterval(t);
-      cb && cb();
+      typeComplete = true; // mark typewriting finished
+      if(cb) cb();
     }
   },70);
 }
@@ -80,7 +82,6 @@ function show(node){
   locked = true;
   dialogueBox.style.display="block";
   choicesEl.innerHTML="";
-
   type(node.text,()=>{
     if(node.choices){
       node.choices.forEach(c=>{
@@ -89,10 +90,11 @@ function show(node){
         b.onclick=()=>handle(c.next);
         choicesEl.appendChild(b);
       });
+      typeComplete = true; // allow choices after typing
     }else{
       dialogueFinished = true;
       locked = false;
-      dialogueBox.style.display="none"; // CLOSE BOX when finished
+      dialogueBox.style.display="none";
     }
   });
 }
@@ -103,8 +105,11 @@ function handle(node){
     dialogueBox.style.display="none";
     locked=false;
     overlay.style.display="block";
-    overlay.innerHTML=`ANTI-GOOBER ENDING<br>
-      <button onclick="location.reload()">Restart</button>`;
+    overlay.innerHTML = `
+      <img src="pull.gif" alt="Anti-Goober">
+      ANTI-GOOBER ENDING<br>
+      <button onclick="location.reload()">Restart</button>
+    `;
     return;
   }
   show(node);
@@ -137,14 +142,13 @@ function movePlayer(){
   if(!gooberSpoken){
     const p=player.getBoundingClientRect();
     const g=goober.getBoundingClientRect();
-    if(p.right>g.left && p.left<g.right &&
-       p.bottom>g.top && p.top<g.bottom){
+    if(p.right>g.left && p.left<g.right && p.bottom>g.top && p.top<g.bottom){
       startDialogue();
     }
   }
 
-  /* Door endings — ONLY after dialogue fully finished */
-  if(dialogueFinished && !locked){
+  /* Door endings — ONLY after dialogue is finished AND typewriting complete */
+  if(dialogueFinished && typeComplete && !locked){
     const p=player.getBoundingClientRect();
     const L=document.getElementById("doorLeft").getBoundingClientRect();
     const R=document.getElementById("doorRight").getBoundingClientRect();
@@ -152,15 +156,20 @@ function movePlayer(){
     if(p.right>L.left && p.left<L.right &&
        p.bottom>L.top && p.top<L.bottom){
       overlay.style.display="block";
-      overlay.innerHTML=`PREJUDICE ENDING<br>
-        <button onclick="location.reload()">Restart</button>`;
+      overlay.innerHTML = `
+        <img src="bad.gif" alt="Dungeon Ending">
+        DUNGEON OF ANTI-SILLY<br>
+        <button onclick="location.reload()">Restart</button>
+      `;
     }
 
     if(p.right>R.left && p.left<R.right &&
        p.bottom>R.top && p.top<R.bottom){
       overlay.style.display="block";
-      overlay.innerHTML=`NEXT LEVEL<br>
-        <button onclick="location.href='levelNext.html'">Proceed</button>`;
+      overlay.innerHTML = `
+        NEXT LEVEL<br>
+        <button onclick="location.href='levelNext.html'">Proceed</button>
+      `;
     }
   }
 
