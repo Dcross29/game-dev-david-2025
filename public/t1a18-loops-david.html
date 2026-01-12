@@ -7,6 +7,7 @@ let output = '';
 for (let i = 0; i < 3; i++) {
     output += 'Count: ' + i + '\n';
 }
+document.write('<pre>' + output + '</pre>')
 
 let output2 = '';
 let i = 0;
@@ -14,6 +15,7 @@ while (i < 3) {
     output2 += 'Index: ' + i + '\n';
     i++;
 }
+document.write('<pre>' + output2 + '</pre>')
 
 let output3 = '';
 let i2 = 5;
@@ -21,46 +23,56 @@ do {
     output3 += 'Run: ' + i2 + '\n';
     i2++;
 } while (i2 < 3);
+document.write('<pre>' + output3 + '</pre>')
 
 const user = { name: 'Alice', age: 30 };
 let output4 = '';
 for (const key in user) {
     output4 += key + ': ' + user[key] + '\n';
 }
+document.write('<pre>' + output4 + '</pre>')
 
 const fruits = ['Apple', 'Banana'];
 let output5 = '';
 for (const fruit of fruits) {
     output5 += 'Fruit: ' + fruit + '\n';
 }
+document.write('<pre>' + output5 + '</pre>')
 
 const numbers = [10, 20];
 numbers.forEach((num, index) => {
-});
+    document.write('<pre>' + num + '</pre>')
+})
 
 async function runAsyncLoop() {
     async function* generator() { yield 100; yield 200; }
     for await (const val of generator()) {
+        document.write('<pre>' + val + '</pre>')
     }
 }
 runAsyncLoop();
 
 const nums = [1, 2];
 const squared = nums.map(n => n * 2);
+document.write('<pre>' + squared + '</pre>')
 
 const ages = [10, 20];
 const adults = ages.filter(a => a >= 18);
+document.write('<pre>' + adults + '</pre>')
 
 const vals = [1, 2];
 const sum = vals.reduce((acc, curr) => acc + curr, 0);
+document.write('<pre>' + sum + '</pre>')
 
 let output6 = '';
 for (let i = 5; i > 0; i--) {
     output6 += 'Countdown: ' + i + '\n';
 }
+document.write('<pre>' + output6 + '</pre>')
 
 for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 2; j++) {
+        document.write('<pre>Nested ' + i + ',' + j + '</pre>')
     }
 }
 
@@ -71,13 +83,16 @@ while (true) {
     count++;
     if (count === 3) break;
 }
+document.write('<pre>' + output7 + '</pre>')
 
 const letters = ['a', 'b', 'c'];
 for (let i = 0; i < letters.length; i++) {
+    document.write('<pre>' + letters[i] + '</pre>')
 }
 
 const values = [1, 2, 3];
 for (let v of values) {
     if (v === 2) continue;
+    document.write('<pre>' + v + '</pre>')
 }
 </script>
