@@ -1,113 +1,83 @@
 <h1 align=center>t2a18-loops-david.html</h1>
 
-
 Use an LLM to make a one page html file that shows all the types of javascript loops, then print the page and circle the code you don't understand.
 
-
+<script>
 let output = '';
 for (let i = 0; i < 3; i++) {
     output += 'Count: ' + i + '\n';
 }
 
-
-
-let output = '';
+let output2 = '';
 let i = 0;
 while (i < 3) {
-    output += 'Index: ' + i + '\n';
+    output2 += 'Index: ' + i + '\n';
     i++;
 }
 
-
-
-let output = '';
-let i = 5; // Condition is false initially
+let output3 = '';
+let i2 = 5;
 do {
-    output += 'Run: ' + i + '\n';
-    i++;
-} while (i < 3);
-
-
+    output3 += 'Run: ' + i2 + '\n';
+    i2++;
+} while (i2 < 3);
 
 const user = { name: 'Alice', age: 30 };
-let output = '';
+let output4 = '';
 for (const key in user) {
-    output += key + ': ' + user[key] + '\n';
+    output4 += key + ': ' + user[key] + '\n';
 }
-
-
 
 const fruits = ['Apple', 'Banana'];
-let output = '';
+let output5 = '';
 for (const fruit of fruits) {
-    output += 'Fruit: ' + fruit + '\n';
+    output5 += 'Fruit: ' + fruit + '\n';
 }
-
 
 const numbers = [10, 20];
 numbers.forEach((num, index) => {
-    // Gets value and index
 });
 
-
-async function* generator() { yield 100; yield 200; }
-// Must be inside an async function
-for await (const val of generator()) {
-    
+async function runAsyncLoop() {
+    async function* generator() { yield 100; yield 200; }
+    for await (const val of generator()) {
+    }
 }
-
-
+runAsyncLoop();
 
 const nums = [1, 2];
 const squared = nums.map(n => n * 2);
 
-
-
 const ages = [10, 20];
 const adults = ages.filter(a => a >= 18);
-
-
 
 const vals = [1, 2];
 const sum = vals.reduce((acc, curr) => acc + curr, 0);
 
-
-
-
-let output = '';
+let output6 = '';
 for (let i = 5; i > 0; i--) {
-    output += 'Countdown: ' + i + '\n';
+    output6 += 'Countdown: ' + i + '\n';
 }
-
-
 
 for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 2; j++) {
-
     }
 }
 
-
-
-let output = '';
+let output7 = '';
 let count = 0;
 while (true) {
-    output += 'Loop count: ' + count + '\n';
+    output7 += 'Loop count: ' + count + '\n';
     count++;
     if (count === 3) break;
 }
 
-
-
 const letters = ['a', 'b', 'c'];
 for (let i = 0; i < letters.length; i++) {
-   
 }
-
-
 
 const values = [1, 2, 3];
 for (let v of values) {
     if (v === 2) continue;
-   
 }
+</script>
