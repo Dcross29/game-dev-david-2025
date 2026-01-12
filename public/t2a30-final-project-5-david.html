@@ -51,10 +51,10 @@ const dialogue = {
   choices:[
     {label:"Which door has the bubble?", next:{text:"The bubble is behind the right door."}},
     {label:"What's with your one hair?", next:{
-      text:"Oh that? That's actually a nerve ending.",
+      text:"Oh that? That's actually an exposed nerve ending.",
       choices:[
-        {label:"Pull it", next:{anti:true,text:"HEY—YOU BLEW UP!"}},
-        {label:"Don't pull it", next:{text:"The bubble is behind the right door."}}
+        {label:"Pull it", next:{anti:true,text:"HEY—YOU DON'T TOUCH THA-"}},
+        {label:"Don't pull it", next:{text:"The bubble is behind the right door, just fyi."}}
       ]
     }}
   ]
@@ -144,7 +144,8 @@ function movePlayer(){
     if(pRect.left<leftDoor.right && pRect.right>leftDoor.left &&
        pRect.top<leftDoor.bottom && pRect.bottom>leftDoor.top){
       overlay.style.display="block";
-      overlay.innerHTML="PREJUDICE ENDING<br><button onclick='location.reload()'>Restart</button>";
+      overlay.innerHTML="You enter the room behind the door and it shuts behind you with a click. the door has locked you into the dungeon of anti-silly and suffering. you should have trusted that Goober.<br>
+        PREJUDICE ENDING UNLOCKED<br><button onclick='location.reload()'>Restart</button>";
     }
     if(pRect.left<rightDoor.right && pRect.right>rightDoor.left &&
        pRect.top<rightDoor.bottom && pRect.bottom>rightDoor.top){
