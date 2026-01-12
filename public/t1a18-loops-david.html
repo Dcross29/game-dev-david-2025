@@ -53,21 +53,61 @@ numbers.forEach((num, index) => {
 async function* generator() { yield 100; yield 200; }
 // Must be inside an async function
 for await (const val of generator()) {
-    // Waits for each value
+    
 }
 
 
 
 const nums = [1, 2];
 const squared = nums.map(n => n * 2);
-// Result: [2, 4]
+
 
 
 const ages = [10, 20];
 const adults = ages.filter(a => a >= 18);
-// Result: [20]
+
 
 
 const vals = [1, 2];
 const sum = vals.reduce((acc, curr) => acc + curr, 0);
-// Result: 3
+
+
+
+
+let output = '';
+for (let i = 5; i > 0; i--) {
+    output += 'Countdown: ' + i + '\n';
+}
+
+
+
+for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 2; j++) {
+
+    }
+}
+
+
+
+let output = '';
+let count = 0;
+while (true) {
+    output += 'Loop count: ' + count + '\n';
+    count++;
+    if (count === 3) break;
+}
+
+
+
+const letters = ['a', 'b', 'c'];
+for (let i = 0; i < letters.length; i++) {
+   
+}
+
+
+
+const values = [1, 2, 3];
+for (let v of values) {
+    if (v === 2) continue;
+   
+}
