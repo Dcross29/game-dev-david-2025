@@ -3,19 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <title>Goober Room - Birdseye View</title>
+
 <style>
-body{margin:0; overflow:hidden; background:#222; font-family:sans-serif;}
-#gameArea{width:100vw; height:100vh; position:relative; background:#222;}
-#player{position:absolute; top:500px; left:50%; transform:translateX(-50%); z-index:3;}
-#goober{width:120px; position:absolute; left:50%; top:350px; transform:translate(-50%, -50%); z-index:2;}
-.door{width:80px; height:120px; position:absolute; top:100px; z-index:4; background:#5a3b28; border:5px solid #3a2416; cursor:pointer;}
-#doorLeft{left:30%;}
-#doorRight{right:30%;}
-#dialogueBox{position:fixed; bottom:40px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:20px; border-radius:15px; max-width:500px; text-align:center; display:none; z-index:1000;}
-#choices button{display:block; margin:10px auto; padding:10px 20px; font-size:16px; cursor:pointer;}
-#overlay{position:fixed; inset:0; background:black; color:white; font-size:28px; text-align:center; padding-top:40vh; display:none; z-index:2000;}
+body{
+  margin:0;
+  overflow:hidden;
+  background:#222;
+  font-family:sans-serif;
+}
+
+#gameArea{
+  width:100vw;
+  height:100vh;
+  position:relative;
+  background:#222;
+}
+
+#player{
+  position:absolute;
+  top:500px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:3;
+}
+
+#goober{
+  width:120px;
+  position:absolute;
+  left:50%;
+  top:350px;
+  transform:translate(-50%, -50%);
+  z-index:2;
+}
+
+.door{
+  width:80px;
+  height:120px;
+  position:absolute;
+  top:100px;
+  z-index:4;
+  background:#5a3b28;
+  border:5px solid #3a2416;
+  cursor:pointer;
+}
+
+#doorLeft{ left:30%; }
+#doorRight{ right:30%; }
+
+#dialogueBox{
+  position:fixed;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.85);
+  color:white;
+  padding:20px;
+  border-radius:15px;
+  max-width:500px;
+  text-align:center;
+  display:none;
+  z-index:1000;
+}
+
+#choices button{
+  display:block;
+  margin:10px auto;
+  padding:10px 20px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+#overlay{
+  position:fixed;
+  inset:0;
+  background:black;
+  color:white;
+  font-size:28px;
+  text-align:center;
+  padding-top:40vh;
+  display:none;
+  z-index:2000;
+}
 </style>
 </head>
+
 <body>
 
 <div id="gameArea">
@@ -45,42 +116,52 @@ let gooberSpoken = false;
 let dialogueFinished = false;
 let locked = false;
 
-// Dialogue tree
+/* Dialogue tree */
 const dialogue = {
   text:"Hi! I'm the funny little goober that tells lies.",
   choices:[
-    {label:"Which door has the bubble?", next:{text:"The bubble is behind the right door."}},
-    {label:"What's with your one hair?", next:{
-      text:"Oh that? That's actually an exposed nerve ending.",
-      choices:[
-        {label:"Pull it", next:{anti:true,text:"HEY—YOU DON'T TOUCH THA-"}},
-        {label:"Don't pull it", next:{text:"The bubble is behind the right door, just fyi."}}
-      ]
-    }}
+    {
+      label:"Which door has the bubble?",
+      next:{ text:"The bubble is behind the right door." }
+    },
+    {
+      label:"What's with your one hair?",
+      next:{
+        text:"Oh that? That's actually an exposed nerve ending.",
+        choices:[
+          { label:"Pull it", next:{ anti:true, text:"HEY—YOU DON'T TOUCH THA-" } },
+          { label:"Don't pull it", next:{ text:"The bubble is behind the right door, just fyi." } }
+        ]
+      }
+    }
   ]
 };
 
-// Typewriter
+/* Typewriter */
 function type(text, cb){
-  textEl.textContent="";
-  let i=0;
-  const t=setInterval(()=>{
-    textEl.textContent+=text[i++];
-    if(i>=text.length){ clearInterval(t); cb && cb(); }
+  textEl.textContent = "";
+  let i = 0;
+  const t = setInterval(()=>{
+    textEl.textContent += text[i++];
+    if(i >= text.length){
+      clearInterval(t);
+      if(cb) cb();
+    }
   },70);
 }
 
-// Show dialogue
+/* Show dialogue */
 function show(node){
   locked = true;
-  dialogueBox.style.display="block";
-  choicesEl.innerHTML="";
+  dialogueBox.style.display = "block";
+  choicesEl.innerHTML = "";
+
   type(node.text, ()=>{
     if(node.choices){
       node.choices.forEach(c=>{
-        const b=document.createElement("button");
-        b.textContent=c.label;
-        b.onclick=()=>handle(c.next);
+        const b = document.createElement("button");
+        b.textContent = c.label;
+        b.onclick = ()=>handle(c.next);
         choicesEl.appendChild(b);
       });
     } else {
@@ -90,13 +171,16 @@ function show(node){
   });
 }
 
-// Handle choices
+/* Handle choices */
 function handle(node){
   if(node.anti){
-    dialogueBox.style.display="none";
-    locked=false;
-    overlay.style.display="block";
-    overlay.innerHTML="ANTI-GOOBER ENDING<br><button onclick='location.reload()'>Restart</button>";
+    dialogueBox.style.display = "none";
+    locked = false;
+    overlay.style.display = "block";
+    overlay.innerHTML = `
+      ANTI-GOOBER ENDING<br>
+      <button onclick="location.reload()">Restart</button>
+    `;
     return;
   }
   show(node);
@@ -108,49 +192,65 @@ function startDialogue(){
   show(dialogue);
 }
 
-// WASD movement
-document.addEventListener('keydown', e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener('keyup', e=>keys[e.key.toLowerCase()]=false);
+/* Input */
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
+/* Movement + collision loop */
 function movePlayer(){
   if(!locked){
-    const speed=4;
-    let top=parseFloat(player.style.top);
-    let left=parseFloat(player.offsetLeft);
+    const speed = 4;
+    let top = player.offsetTop;
+    let left = player.offsetLeft;
 
-    if(keys['w'] && top>0) player.style.top=(top-speed)+'px';
-    if(keys['s'] && (top+player.offsetHeight)<window.innerHeight) player.style.top=(top+speed)+'px';
-    if(keys['a'] && left>0) player.style.left=(left-speed)+'px';
-    if(keys['d'] && (left+player.offsetWidth)<window.innerWidth) player.style.left=(left+speed)+'px';
+    if(keys['w'] && top > 0)
+      player.style.top = (top - speed) + "px";
+
+    if(keys['s'] && top + player.offsetHeight < window.innerHeight)
+      player.style.top = (top + speed) + "px";
+
+    if(keys['a'] && left > 0)
+      player.style.left = (left - speed) + "px";
+
+    if(keys['d'] && left + player.offsetWidth < window.innerWidth)
+      player.style.left = (left + speed) + "px";
   }
 
-  // Auto-talk: trigger dialogue only if player physically touches Goober
+  /* Goober collision */
   if(!gooberSpoken){
-    const p=player.getBoundingClientRect();
-    const g=goober.getBoundingClientRect();
-    const verticalTouch = p.bottom > g.top && p.top < g.bottom;
-    const horizontalTouch = p.right > g.left && p.left < g.right;
-    if(verticalTouch && horizontalTouch){
+    const p = player.getBoundingClientRect();
+    const g = goober.getBoundingClientRect();
+
+    if(p.right > g.left && p.left < g.right &&
+       p.bottom > g.top && p.top < g.bottom){
       startDialogue();
     }
   }
 
-  // Doors
-  const leftDoor=document.getElementById("doorLeft").getBoundingClientRect();
-  const rightDoor=document.getElementById("doorRight").getBoundingClientRect();
-  const pRect=player.getBoundingClientRect();
-
+  /* Doors */
   if(dialogueFinished){
-    if(pRect.left<leftDoor.right && pRect.right>leftDoor.left &&
-       pRect.top<leftDoor.bottom && pRect.bottom>leftDoor.top){
-      overlay.style.display="block";
-      overlay.innerHTML="You enter the room behind the door and it shuts behind you with a click. the door has locked you into the dungeon of anti-silly and suffering. you should have trusted that Goober.<br>
-        PREJUDICE ENDING UNLOCKED<br><button onclick='location.reload()'>Restart</button>";
+    const p = player.getBoundingClientRect();
+    const leftDoor = document.getElementById("doorLeft").getBoundingClientRect();
+    const rightDoor = document.getElementById("doorRight").getBoundingClientRect();
+
+    if(p.right > leftDoor.left && p.left < leftDoor.right &&
+       p.bottom > leftDoor.top && p.top < leftDoor.bottom){
+      overlay.style.display = "block";
+      overlay.innerHTML = `
+        You enter the room behind the door and it shuts behind you with a click.<br>
+        The door locks you into the dungeon of anti-silly and suffering.<br><br>
+        PREJUDICE ENDING UNLOCKED<br>
+        <button onclick="location.reload()">Restart</button>
+      `;
     }
-    if(pRect.left<rightDoor.right && pRect.right>rightDoor.left &&
-       pRect.top<rightDoor.bottom && pRect.bottom>rightDoor.top){
-      overlay.style.display="block";
-      overlay.innerHTML="NEXT LEVEL<br><button onclick=\"location.href='levelNext.html'\">Proceed</button>";
+
+    if(p.right > rightDoor.left && p.left < rightDoor.right &&
+       p.bottom > rightDoor.top && p.top < rightDoor.bottom){
+      overlay.style.display = "block";
+      overlay.innerHTML = `
+        NEXT LEVEL<br>
+        <button onclick="location.href='levelNext.html'">Proceed</button>
+      `;
     }
   }
 
