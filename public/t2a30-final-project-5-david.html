@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>I will pop that bubble - lvl 5</title>
-<h1 style="color:red; text-align:center; margin:10px 0; position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:100000;">
-  I will pop that bubble - lvl 5
-</h1>
 <style>
 body{
   margin:0;
@@ -15,15 +12,45 @@ body{
   opacity:0;
   transition:opacity 1s ease-in;
 }
+
 #gameArea{width:100vw;height:100vh;position:relative;}
 #player{position:absolute;top:500px;left:50%;transform:translateX(-50%);z-index:3;}
 #goober{width:120px;position:absolute;left:50%;top:350px;transform:translate(-50%,-50%);z-index:2;}
 .door{width:80px;height:120px;position:absolute;top:100px;z-index:4;background:#5a3b28;border:5px solid #3a2416;}
 #doorLeft{left:30%;}
 #doorRight{right:30%;}
-#dialogueBox{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:white;padding:20px;border-radius:15px;max-width:500px;text-align:center;display:none;z-index:1000;}
-#choices button{display:block;margin:10px auto;padding:10px 20px;font-size:16px;}
-#overlay{position:fixed;inset:0;background:black;color:white;font-size:28px;text-align:center;display:none;z-index:2000;}
+
+#dialogueBox{
+  position:fixed;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.85);
+  color:white;
+  padding:20px;
+  border-radius:15px;
+  max-width:500px;
+  text-align:center;
+  display:none;
+  z-index:1000;
+}
+
+#choices button{
+  display:block;
+  margin:10px auto;
+  padding:10px 20px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+#overlay{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:none;
+  z-index:2000;
+}
+
 #overlay img{
   position:absolute;
   top:0;
@@ -33,19 +60,36 @@ body{
   object-fit:cover;
   z-index:1000;
 }
-#overlay button{
+
+#overlayContent{
   position:absolute;
-  bottom:50px;
-  left:50%;
-  transform:translateX(-50%);
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  color:white;
+  font-size:28px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:2100; /* ABOVE image */
+}
+
+#overlayContent button{
+  margin-top:30px;
   padding:15px 30px;
-  font-size:20px;
+  font-size:22px;
   cursor:pointer;
-  z-index:1100;
 }
 </style>
 </head>
 <body>
+
+<h1 style="color:red; text-align:center; margin:10px 0; position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:100000;">
+I will pop that bubble - lvl 5
+</h1>
 
 <div id="gameArea">
   <img id="player" src="mc.PNG">
@@ -59,7 +103,9 @@ body{
   <div id="choices"></div>
 </div>
 
-<div id="overlay"></div>
+<div id="overlay">
+  <div id="overlayContent"></div>
+</div>
 
 <script>
 const player = document.getElementById("player");
@@ -68,14 +114,15 @@ const dialogueBox = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("choices");
 const overlay = document.getElementById("overlay");
+const overlayContent = document.getElementById("overlayContent");
 
 let keys = {};
 let gooberSpoken = false;
 let dialogueFinished = false;
 let locked = false;
-let typeComplete = false; // ensures typewriter finishes
+let typeComplete = false;
 
-/* Fade-in effect on page load */
+/* Fade-in effect on load */
 window.addEventListener("load", () => {
   document.body.style.opacity = "1";
 });
@@ -100,7 +147,7 @@ function type(text,cb){
   textEl.textContent="";
   typeComplete = false;
   let i=0;
-  const t=setInterval(()=>{
+  const t = setInterval(()=>{
     textEl.textContent += text[i++];
     if(i >= text.length){
       clearInterval(t);
@@ -113,13 +160,13 @@ function type(text,cb){
 /* Show dialogue */
 function show(node){
   locked = true;
-  dialogueBox.style.display="block";
-  choicesEl.innerHTML="";
-  type(node.text,()=>{
+  dialogueBox.style.display = "block";
+  choicesEl.innerHTML = "";
+  type(node.text, ()=>{
     if(node.choices){
       node.choices.forEach(c=>{
-        const b=document.createElement("button");
-        b.textContent=c.label;
+        const b = document.createElement("button");
+        b.textContent = c.label;
         b.onclick = ()=>handle(c.next);
         choicesEl.appendChild(b);
       });
@@ -138,8 +185,9 @@ function handle(node){
     dialogueBox.style.display = "none";
     locked = false;
     overlay.style.display = "block";
-    overlay.innerHTML = `
+    overlayContent.innerHTML = `
       <img src="pull.gif" alt="Anti-Goober Ending">
+      ANTI-GOOBER ENDING
       <button onclick="location.reload()">Restart</button>
     `;
     return;
@@ -154,8 +202,8 @@ function startDialogue(){
 }
 
 /* Input */
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()] = true);
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()] = false);
+document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
 /* Game loop */
 function movePlayer(){
@@ -187,16 +235,18 @@ function movePlayer(){
 
     if(p.right>L.left && p.left<L.right && p.bottom>L.top && p.top<L.bottom){
       overlay.style.display = "block";
-      overlay.innerHTML = `
+      overlayContent.innerHTML = `
         <img src="bad.gif" alt="Dungeon Ending">
+        DUNGEON OF ANTI-SILLY
         <button onclick="location.reload()">Restart</button>
       `;
     }
 
     if(p.right>R.left && p.left<R.right && p.bottom>R.top && p.top<R.bottom){
       overlay.style.display = "block";
-      overlay.innerHTML = `
+      overlayContent.innerHTML = `
         <img src="success.gif" alt="Next Level">
+        NEXT LEVEL
         <button onclick="location.href='levelNext.html'">Proceed</button>
       `;
     }
