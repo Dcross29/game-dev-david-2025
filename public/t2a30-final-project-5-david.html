@@ -2,12 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
-  <h1 style="color:red; text-align:center; margin:10px 0; position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:100000;">
-    I will pop that bubble - lvl 5
+<title>I will pop that bubble - lvl 5</title>
+<h1 style="color:red; text-align:center; margin:10px 0; position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:100000;">
+  I will pop that bubble - lvl 5
 </h1>
 <style>
-body{margin:0;overflow:hidden;background:#222;font-family:sans-serif;}
+body{
+  margin:0;
+  overflow:hidden;
+  background:#222;
+  font-family:sans-serif;
+  opacity:0;
+  transition:opacity 1s ease-in;
+}
 #gameArea{width:100vw;height:100vh;position:relative;}
 #player{position:absolute;top:500px;left:50%;transform:translateX(-50%);z-index:3;}
 #goober{width:120px;position:absolute;left:50%;top:350px;transform:translate(-50%,-50%);z-index:2;}
@@ -16,8 +23,26 @@ body{margin:0;overflow:hidden;background:#222;font-family:sans-serif;}
 #doorRight{right:30%;}
 #dialogueBox{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:white;padding:20px;border-radius:15px;max-width:500px;text-align:center;display:none;z-index:1000;}
 #choices button{display:block;margin:10px auto;padding:10px 20px;font-size:16px;}
-#overlay{position:fixed;inset:0;background:black;color:white;font-size:28px;text-align:center;padding-top:20vh;display:none;z-index:2000;}
-#overlay img{display:block;margin:20px auto;width:200px;height:auto;}
+#overlay{position:fixed;inset:0;background:black;color:white;font-size:28px;text-align:center;display:none;z-index:2000;}
+#overlay img{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  object-fit:cover;
+  z-index:1000;
+}
+#overlay button{
+  position:absolute;
+  bottom:50px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:15px 30px;
+  font-size:20px;
+  cursor:pointer;
+  z-index:1100;
+}
 </style>
 </head>
 <body>
@@ -48,7 +73,12 @@ let keys = {};
 let gooberSpoken = false;
 let dialogueFinished = false;
 let locked = false;
-let typeComplete = false; // NEW: flag to ensure typewriter finishes
+let typeComplete = false; // ensures typewriter finishes
+
+/* Fade-in effect on page load */
+window.addEventListener("load", () => {
+  document.body.style.opacity = "1";
+});
 
 /* Dialogue tree */
 const dialogue = {
@@ -71,10 +101,10 @@ function type(text,cb){
   typeComplete = false;
   let i=0;
   const t=setInterval(()=>{
-    textEl.textContent+=text[i++];
-    if(i>=text.length){
+    textEl.textContent += text[i++];
+    if(i >= text.length){
       clearInterval(t);
-      typeComplete = true; // mark typewriting finished
+      typeComplete = true;
       if(cb) cb();
     }
   },70);
@@ -90,14 +120,14 @@ function show(node){
       node.choices.forEach(c=>{
         const b=document.createElement("button");
         b.textContent=c.label;
-        b.onclick=()=>handle(c.next);
+        b.onclick = ()=>handle(c.next);
         choicesEl.appendChild(b);
       });
-      typeComplete = true; // allow choices after typing
-    }else{
+      typeComplete = true;
+    } else {
       dialogueFinished = true;
       locked = false;
-      dialogueBox.style.display="none";
+      dialogueBox.style.display = "none";
     }
   });
 }
@@ -105,12 +135,11 @@ function show(node){
 /* Handle choices */
 function handle(node){
   if(node.anti){
-    dialogueBox.style.display="none";
-    locked=false;
-    overlay.style.display="block";
+    dialogueBox.style.display = "none";
+    locked = false;
+    overlay.style.display = "block";
     overlay.innerHTML = `
-      <img src="pull.gif" alt="Anti-Goober">
-      ANTI-GOOBER ENDING<br>
+      <img src="pull.gif" alt="Anti-Goober Ending">
       <button onclick="location.reload()">Restart</button>
     `;
     return;
@@ -125,8 +154,8 @@ function startDialogue(){
 }
 
 /* Input */
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()] = false);
 
 /* Game loop */
 function movePlayer(){
@@ -135,42 +164,39 @@ function movePlayer(){
     let top=player.offsetTop;
     let left=player.offsetLeft;
 
-    if(keys.w && top>0) player.style.top=(top-speed)+"px";
-    if(keys.s && top+player.offsetHeight<innerHeight) player.style.top=(top+speed)+"px";
-    if(keys.a && left>0) player.style.left=(left-speed)+"px";
-    if(keys.d && left+player.offsetWidth<innerWidth) player.style.left=(left+speed)+"px";
+    if(keys.w && top>0) player.style.top = (top-speed) + "px";
+    if(keys.s && top+player.offsetHeight < innerHeight) player.style.top = (top+speed) + "px";
+    if(keys.a && left>0) player.style.left = (left-speed) + "px";
+    if(keys.d && left+player.offsetWidth < innerWidth) player.style.left = (left+speed) + "px";
   }
 
   /* Goober collision */
   if(!gooberSpoken){
-    const p=player.getBoundingClientRect();
-    const g=goober.getBoundingClientRect();
+    const p = player.getBoundingClientRect();
+    const g = goober.getBoundingClientRect();
     if(p.right>g.left && p.left<g.right && p.bottom>g.top && p.top<g.bottom){
       startDialogue();
     }
   }
 
-  /* Door endings — ONLY after dialogue is finished AND typewriting complete */
+  /* Door endings — only after dialogue finished AND typewriter done */
   if(dialogueFinished && typeComplete && !locked){
-    const p=player.getBoundingClientRect();
-    const L=document.getElementById("doorLeft").getBoundingClientRect();
-    const R=document.getElementById("doorRight").getBoundingClientRect();
+    const p = player.getBoundingClientRect();
+    const L = document.getElementById("doorLeft").getBoundingClientRect();
+    const R = document.getElementById("doorRight").getBoundingClientRect();
 
-    if(p.right>L.left && p.left<L.right &&
-       p.bottom>L.top && p.top<L.bottom){
-      overlay.style.display="block";
+    if(p.right>L.left && p.left<L.right && p.bottom>L.top && p.top<L.bottom){
+      overlay.style.display = "block";
       overlay.innerHTML = `
         <img src="bad.gif" alt="Dungeon Ending">
-        DUNGEON OF ANTI-SILLY<br>
         <button onclick="location.reload()">Restart</button>
       `;
     }
 
-    if(p.right>R.left && p.left<R.right &&
-       p.bottom>R.top && p.top<R.bottom){
-      overlay.style.display="block";
+    if(p.right>R.left && p.left<R.right && p.bottom>R.top && p.top<R.bottom){
+      overlay.style.display = "block";
       overlay.innerHTML = `
-        NEXT LEVEL<br>
+        <img src="success.gif" alt="Next Level">
         <button onclick="location.href='levelNext.html'">Proceed</button>
       `;
     }
