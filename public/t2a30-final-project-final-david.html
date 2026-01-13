@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Final Level</title>
+
+<style>
+body{
+  margin:0;
+  overflow:hidden;
+  background:#111;
+  font-family:sans-serif;
+  color:white;
+  opacity:0;
+  transition:opacity 1s ease-in;
+}
+
+/* Common */
+.hidden{display:none;}
+.center{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+}
+
+/* Player */
+#player{
+  position:absolute;
+  width:60px;
+  height:60px;
+  background:#ccc;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+/* Fade */
+#fade{
+  position:fixed;
+  inset:0;
+  background:black;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 1.5s ease;
+  z-index:2000;
+}
+#fade.show{opacity:1}
+
+/* Dialogue */
+#dialogue{
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.85);
+  padding:20px;
+  border-radius:12px;
+  max-width:600px;
+  text-align:center;
+  z-index:1000;
+}
+#dialogue button{
+  margin-top:10px;
+  padding:10px 20px;
+  font-size:16px;
+}
+
+/* Chase */
+#bubble{
+  position:absolute;
+  width:70px;
+  height:70px;
+  background:red;
+  border-radius:50%;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+/* Generator Room */
+#generatorRoom{
+  width:100vw;
+  height:100vh;
+  position:relative;
+}
+
+.door{
+  position:absolute;
+  top:100px;
+  width:120px;
+  height:200px;
+  border:4px solid #555;
+  background:#222;
+  text-align:center;
+  line-height:200px;
+  font-size:22px;
+}
+#doorA{left:15%;}
+#doorS{left:50%;transform:translateX(-50%);}
+#doorD{right:15%;}
+.door.active{
+  background:#400;
+  border-color:red;
+}
+
+#generator{
+  position:absolute;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  width:300px;
+  height:40px;
+  border:3px solid white;
+}
+#genFill{
+  height:100%;
+  width:0%;
+  background:#00ff88;
+}
+
+/* Ending */
+#ending{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:none;
+  z-index:3000;
+  text-align:center;
+  font-size:36px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
+#ending button{
+  margin-top:30px;
+  padding:15px 30px;
+  font-size:22px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="fade"></div>
+
+<!-- PLAYER -->
+<div id="player"></div>
+
+<!-- DIALOGUE -->
+<div id="dialogue" class="hidden"></div>
+
+<!-- BUBBLE (CHASE) -->
+<div id="bubble" class="hidden"></div>
+
+<!-- GENERATOR ROOM -->
+<div id="generatorRoom" class="hidden">
+  <div id="doorA" class="door">A</div>
+  <div id="doorS" class="door">S</div>
+  <div id="doorD" class="door">D</div>
+
+  <div id="generator">
+    <div id="genFill"></div>
+  </div>
+
+  <div class="center" style="top:40px;font-size:18px;">
+    HOLD <b>W</b> TO CHARGE<br>
+    CLOSE DOORS WITH <b>A / S / D</b>
+  </div>
+</div>
+
+<!-- ENDING -->
+<div id="ending"></div>
+
+<script>
+/* ---------- CORE ---------- */
+const player = document.getElementById("player");
+const dialogue = document.getElementById("dialogue");
+const fade = document.getElementById("fade");
+const bubble = document.getElementById("bubble");
+const generatorRoom = document.getElementById("generatorRoom");
+const ending = document.getElementById("ending");
+const genFill = document.getElementById("genFill");
+
+const doors = {
+  a: document.getElementById("doorA"),
+  s: document.getElementById("doorS"),
+  d: document.getElementById("doorD")
+};
+
+let keys = {};
+let phase = "wake"; // wake → downstairs → choice → chase → final
+let alive = true;
+
+/* Fade in */
+window.onload = ()=>document.body.style.opacity="1";
+
+/* Input */
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+/* ---------- DIALOGUE HELPERS ---------- */
+function showDialogue(html){
+  dialogue.innerHTML = html;
+  dialogue.classList.remove("hidden");
+}
+function hideDialogue(){
+  dialogue.classList.add("hidden");
+}
+
+/* ---------- PHASE 1: WAKE UP ---------- */
+setTimeout(()=>{
+  showDialogue(`
+    <div>You wake up.</div>
+    <button onclick="downstairs()">Go downstairs</button>
+  `);
+},1500);
+
+function downstairs(){
+  hideDialogue();
+  phase="choice";
+  setTimeout(bubbleReveal,1000);
+}
+
+/* ---------- PHASE 2: BUBBLE ---------- */
+function bubbleReveal(){
+  showDialogue(`
+    <div>You finally woke up.<br>Join me… or I shoot you.</div>
+    <button onclick="join()">Join him</button>
+    <button onclick="refuse()">Refuse</button>
+  `);
+}
+
+/* JOIN PATH */
+function join(){
+  showDialogue(`
+    <div>He lowers his guard.</div>
+    <button onclick="badEnding()">...</button>
+    <button onclick="snakeEnding()">Strike him while he's vulnerable</button>
+  `);
+}
+
+function badEnding(){
+  endScreen("BAD ENDING<br>YOU JOIN THE BUBBLE");
+}
+
+function snakeEnding(){
+  endScreen("SNAKE ENDING<br>YOU POPPED HIM");
+}
+
+/* REFUSE PATH */
+function refuse(){
+  hideDialogue();
+  phase="chase";
+  bubble.classList.remove("hidden");
+  startChase();
+}
+
+/* ---------- PHASE 3: CHASE ---------- */
+function startChase(){
+  let bubbleY = 0;
+  const chase = setInterval(()=>{
+    bubbleY += 3;
+    bubble.style.top = bubbleY+"px";
+    if(bubbleY > innerHeight-100){
+      clearInterval(chase);
+      lockRoom();
+    }
+  },16);
+}
+
+/* ---------- PHASE 4: LOCK ROOM ---------- */
+function lockRoom(){
+  bubble.classList.add("hidden");
+  fade.classList.add("show");
+  setTimeout(()=>{
+    fade.classList.remove("show");
+    startFinalSequence();
+  },1500);
+}
+
+/* ---------- FINAL SEQUENCE ---------- */
+let genProgress = 0;
+let activeDoor = null;
+
+function startFinalSequence(){
+  generatorRoom.classList.remove("hidden");
+
+  /* Generator */
+  function genLoop(){
+    if(keys.w && alive){
+      genProgress += 0.15;
+      genFill.style.width = genProgress+"%";
+      if(genProgress>=100){
+        endScreen("CHEATER OF CONSEQUENCE");
+        return;
+      }
+    }
+    requestAnimationFrame(genLoop);
+  }
+  genLoop();
+
+  /* Bubble Attacks */
+  setInterval(()=>{
+    if(activeDoor || !alive) return;
+    if(Math.random()<0.6) return;
+
+    const list=["a","s","d"];
+    activeDoor=list[Math.floor(Math.random()*3)];
+    doors[activeDoor].classList.add("active");
+
+    let reacted=false;
+    const timer=setTimeout(()=>die(),1500);
+
+    function handler(e){
+      if(e.key===activeDoor){
+        reacted=true;
+        clearTimeout(timer);
+        doors[activeDoor].classList.remove("active");
+        activeDoor=null;
+        document.removeEventListener("keydown",handler);
+      }
+    }
+    document.addEventListener("keydown",handler);
+  },5000);
+}
+
+function die(){
+  alive=false;
+  fade.classList.add("show");
+  setTimeout(()=>location.reload(),1500);
+}
+
+/* ---------- ENDING ---------- */
+function endScreen(text){
+  alive=false;
+  fade.classList.add("show");
+  setTimeout(()=>{
+    ending.style.display="flex";
+    ending.innerHTML=`
+      <div>${text}</div>
+      <button onclick="location.reload()">Restart</button>
+    `;
+  },1500);
+}
+</script>
+
+</body>
+</html>
