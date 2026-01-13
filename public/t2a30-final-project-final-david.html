@@ -21,11 +21,8 @@ body{
 /* Player */
 #player{
   position:absolute;
-  width:50px;
-  height:auto;
   left:100px; /* bed position */
   bottom:60px;
-  transform:translateX(0);
   z-index:10;
 }
 
@@ -134,36 +131,37 @@ document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
 /* Player movement */
 function movePlayer(){
-  let playerX = parseInt(player.style.left);
-  let playerY = parseInt(player.style.bottom);
+  let rect = player.getBoundingClientRect();
+  let px = rect.left;
+  let py = window.innerHeight - rect.bottom; // distance from bottom
 
-  if(keys.a) playerX -= 4;
-  if(keys.d) playerX += 4;
-  if(keys.w) playerY += 4;
-  if(keys.s) playerY -= 4;
+  if(keys.a) px -= 4;
+  if(keys.d) px += 4;
+  if(keys.w) py += 4;
+  if(keys.s) py -= 4;
 
   // constrain to window
-  if(playerX<0) playerX=0;
-  if(playerX>window.innerWidth-50) playerX = window.innerWidth-50;
-  if(playerY<0) playerY=0;
-  if(playerY>window.innerHeight-50) playerY = window.innerHeight-50;
+  if(px<0) px=0;
+  if(px>window.innerWidth - rect.width) px = window.innerWidth - rect.width;
+  if(py<0) py=0;
+  if(py>window.innerHeight - rect.height) py = window.innerHeight - rect.height;
 
-  player.style.left = playerX+"px";
-  player.style.bottom = playerY+"px";
+  player.style.left = px + "px";
+  player.style.bottom = py + "px";
 
   // check if player reached stairs
-  if(onFirstFloor && checkStairs(playerX, playerY)){
+  if(onFirstFloor && checkStairs()){
     showDialogue(`<button onclick="walkDownstairs()">Go downstairs</button>`);
   } else if(onFirstFloor) {
     hideDialogue();
   }
 }
 
-function checkStairs(px, py){
-  const rect = stairs.getBoundingClientRect();
+function checkStairs(){
+  const stairRect = stairs.getBoundingClientRect();
   const playerRect = player.getBoundingClientRect();
-  return !(playerRect.right < rect.left || playerRect.left > rect.right || 
-           playerRect.bottom < rect.top || playerRect.top > rect.bottom);
+  return !(playerRect.right < stairRect.left || playerRect.left > stairRect.right || 
+           playerRect.bottom < stairRect.top || playerRect.top > stairRect.bottom);
 }
 
 setInterval(movePlayer,16);
