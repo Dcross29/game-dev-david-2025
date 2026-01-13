@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>I will pop that bubble - lvl 5</title>
+
 <style>
 body{
   margin:0;
@@ -16,7 +17,16 @@ body{
 #gameArea{width:100vw;height:100vh;position:relative;}
 #player{position:absolute;top:500px;left:50%;transform:translateX(-50%);z-index:3;}
 #goober{width:120px;position:absolute;left:50%;top:350px;transform:translate(-50%,-50%);z-index:2;}
-.door{width:80px;height:120px;position:absolute;top:100px;z-index:4;background:#5a3b28;border:5px solid #3a2416;}
+
+.door{
+  width:80px;
+  height:120px;
+  position:absolute;
+  top:100px;
+  z-index:4;
+  background:#5a3b28;
+  border:5px solid #3a2416;
+}
 #doorLeft{left:30%;}
 #doorRight{right:30%;}
 
@@ -43,38 +53,47 @@ body{
   cursor:pointer;
 }
 
+/* === OVERLAY === */
 #overlay{
   position:fixed;
   inset:0;
   background:black;
-  display:none;
+  display:flex;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 1s ease-in;
   z-index:2000;
 }
 
-#overlay img{
+#overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* Image layer */
+#overlayImage{
   position:absolute;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
-  object-fit:cover;
+  inset:0;
   z-index:1000;
 }
 
+#overlayImage img{
+  width:100vw;
+  height:100vh;
+  object-fit:cover;
+}
+
+/* Text layer */
 #overlayContent{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
+  position:relative;
+  z-index:2000;
   color:white;
-  font-size:28px;
+  font-size:32px;
   text-align:center;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  z-index:2100; /* ABOVE image */
 }
 
 #overlayContent button{
@@ -85,6 +104,7 @@ body{
 }
 </style>
 </head>
+
 <body>
 
 <h1 style="color:red; text-align:center; margin:10px 0; position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:100000;">
@@ -104,6 +124,7 @@ I will pop that bubble - lvl 5
 </div>
 
 <div id="overlay">
+  <div id="overlayImage"></div>
   <div id="overlayContent"></div>
 </div>
 
@@ -114,6 +135,7 @@ const dialogueBox = document.getElementById("dialogueBox");
 const textEl = document.getElementById("dialogueText");
 const choicesEl = document.getElementById("choices");
 const overlay = document.getElementById("overlay");
+const overlayImage = document.getElementById("overlayImage");
 const overlayContent = document.getElementById("overlayContent");
 
 let keys = {};
@@ -122,12 +144,12 @@ let dialogueFinished = false;
 let locked = false;
 let typeComplete = false;
 
-/* Fade-in effect on load */
+/* Fade-in page */
 window.addEventListener("load", () => {
   document.body.style.opacity = "1";
 });
 
-/* Dialogue tree */
+/* Dialogue */
 const dialogue = {
   text:"Hi! I'm the funny little goober that tells lies.",
   choices:[
@@ -145,13 +167,13 @@ const dialogue = {
 /* Typewriter */
 function type(text,cb){
   textEl.textContent="";
-  typeComplete = false;
+  typeComplete=false;
   let i=0;
-  const t = setInterval(()=>{
-    textEl.textContent += text[i++];
-    if(i >= text.length){
+  const t=setInterval(()=>{
+    textEl.textContent+=text[i++];
+    if(i>=text.length){
       clearInterval(t);
-      typeComplete = true;
+      typeComplete=true;
       if(cb) cb();
     }
   },70);
@@ -159,37 +181,42 @@ function type(text,cb){
 
 /* Show dialogue */
 function show(node){
-  locked = true;
-  dialogueBox.style.display = "block";
-  choicesEl.innerHTML = "";
-  type(node.text, ()=>{
+  locked=true;
+  dialogueBox.style.display="block";
+  choicesEl.innerHTML="";
+  type(node.text,()=>{
     if(node.choices){
       node.choices.forEach(c=>{
-        const b = document.createElement("button");
-        b.textContent = c.label;
-        b.onclick = ()=>handle(c.next);
+        const b=document.createElement("button");
+        b.textContent=c.label;
+        b.onclick=()=>handle(c.next);
         choicesEl.appendChild(b);
       });
-      typeComplete = true;
-    } else {
-      dialogueFinished = true;
-      locked = false;
-      dialogueBox.style.display = "none";
+    }else{
+      dialogueFinished=true;
+      locked=false;
+      dialogueBox.style.display="none";
     }
   });
 }
 
-/* Handle choices */
+/* Show ending (FADE-IN) */
+function showEnding(img,text,buttonHTML){
+  locked=true;
+  overlayImage.innerHTML=`<img src="${img}">`;
+  overlayContent.innerHTML=`<div>${text}</div>${buttonHTML}`;
+  overlay.classList.add("show");
+}
+
+/* Handle choice */
 function handle(node){
   if(node.anti){
-    dialogueBox.style.display = "none";
-    locked = false;
-    overlay.style.display = "block";
-    overlayContent.innerHTML = `
-      <img src="pull.gif" alt="Anti-Goober Ending">
-      ANTI-GOOBER ENDING
-      <button onclick="location.reload()">Restart</button>
-    `;
+    dialogueBox.style.display="none";
+    showEnding(
+      "pull.gif",
+      "ANTI-GOOBER ENDING",
+      `<button onclick="location.reload()">Restart</button>`
+    );
     return;
   }
   show(node);
@@ -197,13 +224,13 @@ function handle(node){
 
 function startDialogue(){
   if(gooberSpoken) return;
-  gooberSpoken = true;
+  gooberSpoken=true;
   show(dialogue);
 }
 
 /* Input */
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
 /* Game loop */
 function movePlayer(){
@@ -212,43 +239,39 @@ function movePlayer(){
     let top=player.offsetTop;
     let left=player.offsetLeft;
 
-    if(keys.w && top>0) player.style.top = (top-speed) + "px";
-    if(keys.s && top+player.offsetHeight < innerHeight) player.style.top = (top+speed) + "px";
-    if(keys.a && left>0) player.style.left = (left-speed) + "px";
-    if(keys.d && left+player.offsetWidth < innerWidth) player.style.left = (left+speed) + "px";
+    if(keys.w && top>0) player.style.top=(top-speed)+"px";
+    if(keys.s && top+player.offsetHeight<innerHeight) player.style.top=(top+speed)+"px";
+    if(keys.a && left>0) player.style.left=(left-speed)+"px";
+    if(keys.d && left+player.offsetWidth<innerWidth) player.style.left=(left+speed)+"px";
   }
 
-  /* Goober collision */
   if(!gooberSpoken){
-    const p = player.getBoundingClientRect();
-    const g = goober.getBoundingClientRect();
+    const p=player.getBoundingClientRect();
+    const g=goober.getBoundingClientRect();
     if(p.right>g.left && p.left<g.right && p.bottom>g.top && p.top<g.bottom){
       startDialogue();
     }
   }
 
-  /* Door endings — only after dialogue finished AND typewriter done */
   if(dialogueFinished && typeComplete && !locked){
-    const p = player.getBoundingClientRect();
-    const L = document.getElementById("doorLeft").getBoundingClientRect();
-    const R = document.getElementById("doorRight").getBoundingClientRect();
+    const p=player.getBoundingClientRect();
+    const L=document.getElementById("doorLeft").getBoundingClientRect();
+    const R=document.getElementById("doorRight").getBoundingClientRect();
 
     if(p.right>L.left && p.left<L.right && p.bottom>L.top && p.top<L.bottom){
-      overlay.style.display = "block";
-      overlayContent.innerHTML = `
-        <img src="bad.gif" alt="Dungeon Ending">
-        DUNGEON OF ANTI-SILLY
-        <button onclick="location.reload()">Restart</button>
-      `;
+      showEnding(
+        "bad.gif",
+        "DUNGEON OF ANTI-SILLY",
+        `<button onclick="location.reload()">Restart</button>`
+      );
     }
 
     if(p.right>R.left && p.left<R.right && p.bottom>R.top && p.top<R.bottom){
-      overlay.style.display = "block";
-      overlayContent.innerHTML = `
-        <img src="success.gif" alt="Next Level">
-        NEXT LEVEL
-        <button onclick="location.href='levelNext.html'">Proceed</button>
-      `;
+      showEnding(
+        "success.gif",
+        "NEXT LEVEL",
+        `<button onclick="location.href='levelNext.html'">Proceed</button>`
+      );
     }
   }
 
