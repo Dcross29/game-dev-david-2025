@@ -21,11 +21,11 @@ body{
 /* Player */
 #player{
   position:absolute;
-  width:50px;       /* smaller */
+  width:50px;
   height:auto;
-  left:50%;
-  bottom:40px;
-  transform:translateX(-50%);
+  left:100px; /* bed position */
+  bottom:60px;
+  transform:translateX(0);
   z-index:10;
 }
 
@@ -33,7 +33,7 @@ body{
 #stairs{
   position:absolute;
   bottom:0;
-  left:50%;
+  left:60%;
   transform:translateX(-50%);
   width:200px;
   height:150px;
@@ -126,18 +126,47 @@ const finalDoor = document.getElementById("finalDoor");
 
 let keys = {};
 let alive = true;
+let onFirstFloor = true;
 
 /* Input */
 document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
-/* Show initial dialogue after load */
-setTimeout(()=>{
-  showDialogue(`
-    You wake up in a strange room.<br><br>
-    <button onclick="walkDownstairs()">Go downstairs</button>
-  `);
-},500);
+/* Player movement */
+function movePlayer(){
+  let playerX = parseInt(player.style.left);
+  let playerY = parseInt(player.style.bottom);
+
+  if(keys.a) playerX -= 4;
+  if(keys.d) playerX += 4;
+  if(keys.w) playerY += 4;
+  if(keys.s) playerY -= 4;
+
+  // constrain to window
+  if(playerX<0) playerX=0;
+  if(playerX>window.innerWidth-50) playerX = window.innerWidth-50;
+  if(playerY<0) playerY=0;
+  if(playerY>window.innerHeight-50) playerY = window.innerHeight-50;
+
+  player.style.left = playerX+"px";
+  player.style.bottom = playerY+"px";
+
+  // check if player reached stairs
+  if(onFirstFloor && checkStairs(playerX, playerY)){
+    showDialogue(`<button onclick="walkDownstairs()">Go downstairs</button>`);
+  } else if(onFirstFloor) {
+    hideDialogue();
+  }
+}
+
+function checkStairs(px, py){
+  const rect = stairs.getBoundingClientRect();
+  const playerRect = player.getBoundingClientRect();
+  return !(playerRect.right < rect.left || playerRect.left > rect.right || 
+           playerRect.bottom < rect.top || playerRect.top > rect.bottom);
+}
+
+setInterval(movePlayer,16);
 
 /* Dialogue helpers */
 function showDialogue(html){
@@ -151,11 +180,27 @@ function hideDialogue(){
 /* Walk down stairs */
 function walkDownstairs(){
   hideDialogue();
-  let bottom = parseInt(player.style.bottom) || 40;
+  onFirstFloor = false;
+  let bottom = parseInt(player.style.bottom) || 60;
   const interval = setInterval(()=>{
-    bottom += 3;
+    bottom -= 3; // move down visually
     player.style.bottom = bottom + "px";
-    if(bottom >= 200){ // stairs bottom
+    if(bottom <= 40){ // reached lower floor
+      clearInterval(interval);
+      bubbleWalkUp();
+    }
+  },16);
+}
+
+/* Bubble walks up before dialogue */
+function bubbleWalkUp(){
+  bubble.style.display="block";
+  bubble.style.top = window.innerHeight + "px"; // start from bottom
+  let bubbleY = window.innerHeight;
+  const interval = setInterval(()=>{
+    bubbleY -= 3;
+    bubble.style.top = bubbleY + "px";
+    if(bubbleY <= player.getBoundingClientRect().top){
       clearInterval(interval);
       bubbleConfront();
     }
