@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>I will pop that bubble - lvl 6</title>
+
+<style>
+body{
+  margin:0;
+  overflow:hidden;
+  background:#111;
+  font-family:sans-serif;
+  opacity:0;
+  transition:opacity 1s ease-in;
+}
+
+#gameArea{
+  width:100vw;
+  height:100vh;
+  position:relative;
+}
+
+#player{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  z-index:5;
+}
+
+/* Fade overlay */
+#fade{
+  position:fixed;
+  inset:0;
+  background:black;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 2s ease;
+  z-index:1000;
+}
+
+#fade.show{
+  opacity:1;
+}
+</style>
+</head>
+
+<body>
+
+<h1 style="color:red; text-align:center; position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:999;">
+I will pop that bubble - lvl 6
+</h1>
+
+<div id="gameArea">
+  <img id="player" src="mc.PNG">
+</div>
+
+<div id="fade"></div>
+
+<script>
+const player = document.getElementById("player");
+const fade = document.getElementById("fade");
+
+let keys = {};
+let locked = false;
+
+/* Page fade-in */
+window.addEventListener("load",()=>{
+  document.body.style.opacity="1";
+});
+
+/* Controls */
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+/* Movement */
+function move(){
+  if(!locked){
+    const speed=4;
+    let top=player.offsetTop;
+    let left=player.offsetLeft;
+
+    if(keys.w && top>0) player.style.top=(top-speed)+"px";
+    if(keys.s && top+player.offsetHeight<innerHeight) player.style.top=(top+speed)+"px";
+    if(keys.a && left>0) player.style.left=(left-speed)+"px";
+    if(keys.d && left+player.offsetWidth<innerWidth) player.style.left=(left+speed)+"px";
+  }
+  requestAnimationFrame(move);
+}
+
+requestAnimationFrame(move);
+
+/* TIMED FADE → FINAL LEVEL */
+setTimeout(()=>{
+  locked=true;
+  fade.classList.add("show");
+
+  setTimeout(()=>{
+    location.href="finalLevel.html";
+  },2000);
+
+},4000);
+</script>
+
+</body>
+</html>
