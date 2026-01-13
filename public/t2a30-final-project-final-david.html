@@ -124,6 +124,7 @@ const finalDoor = document.getElementById("finalDoor");
 let keys = {};
 let alive = true;
 let onFirstFloor = true;
+let atStairs = false;
 
 /* Input */
 document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
@@ -154,8 +155,12 @@ function movePlayer(){
 
   // check if player reached stairs
   if(onFirstFloor && checkStairs()){
-    showDialogue(`<button onclick="walkDownstairs()">Go downstairs</button>`);
-  } else if(onFirstFloor) {
+    if(!atStairs){ // show dialogue once when reaching stairs
+      atStairs = true;
+      showDialogue(`<button onclick="walkDownstairs()">Go downstairs</button>`);
+    }
+  } else {
+    atStairs = false;
     hideDialogue();
   }
 }
