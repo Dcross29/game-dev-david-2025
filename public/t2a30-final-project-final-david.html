@@ -8,21 +8,20 @@ body{
   margin:0;
   overflow:hidden;
   font-family:sans-serif;
-  background:black;
+  background:brown;
 }
 
-/* Wake-up room */
+/* Wake-up room container */
 #wakeRoom{
   width:100vw;
   height:100vh;
-  background: url('room.png') center/cover no-repeat;
   position:relative;
 }
 
 /* Player */
 #player{
   position:absolute;
-  width:80px;
+  width:50px;       /* smaller */
   height:auto;
   left:50%;
   bottom:40px;
@@ -30,14 +29,20 @@ body{
   z-index:10;
 }
 
-/* Stairs */
+/* Stairs (CSS) */
 #stairs{
   position:absolute;
   bottom:0;
   left:50%;
   transform:translateX(-50%);
-  width:300px;
+  width:200px;
+  height:150px;
   z-index:2;
+}
+#stairs div{
+  background:#654321; /* dark brown */
+  height:20px;
+  margin-top:5px;
 }
 
 /* Dialogue box */
@@ -64,7 +69,7 @@ body{
 /* Bubble (chase) */
 #bubble{
   position:absolute;
-  width:100px;
+  width:80px;
   height:auto;
   top:0;
   left:50%;
@@ -94,7 +99,18 @@ body{
 
 <div id="wakeRoom">
   <img id="player" src="mc.PNG">
-  <img id="stairs" src="stairs.png">
+  
+  <!-- CSS Stairs -->
+  <div id="stairs">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+  
   <img id="bubble" src="bubbleboss.gif">
   <div id="finalDoor">Door</div>
 </div>
@@ -118,7 +134,7 @@ document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 /* Show initial dialogue after load */
 setTimeout(()=>{
   showDialogue(`
-    You wake up.<br><br>
+    You wake up in a strange room.<br><br>
     <button onclick="walkDownstairs()">Go downstairs</button>
   `);
 },500);
@@ -139,7 +155,7 @@ function walkDownstairs(){
   const interval = setInterval(()=>{
     bottom += 3;
     player.style.bottom = bottom + "px";
-    if(bottom >= 200){ // adjust to stairs bottom
+    if(bottom >= 200){ // stairs bottom
       clearInterval(interval);
       bubbleConfront();
     }
@@ -158,7 +174,6 @@ function bubbleConfront(){
 
 function joinBubble(){
   hideDialogue();
-  // you can later add join paths / endings
   alert("Join path would go here (BAD or SNAKE endings).");
 }
 
@@ -173,19 +188,19 @@ function startChase(){
   bubble.style.top="0px";
   let bubbleY = 0;
   let playerX = parseInt(player.style.left);
-  let chaseInterval = setInterval(()=>{
+  const chaseInterval = setInterval(()=>{
     if(!alive) { clearInterval(chaseInterval); return; }
     bubbleY += 3;
     bubble.style.top = bubbleY+"px";
 
-    // simple player controls for left/right
+    // simple player left/right movement
     if(keys.a) playerX -= 4;
     if(keys.d) playerX += 4;
     if(playerX<0) playerX=0;
-    if(playerX>window.innerWidth-80) playerX = window.innerWidth-80;
+    if(playerX>window.innerWidth-50) playerX = window.innerWidth-50;
     player.style.left = playerX+"px";
 
-    // if bubble reaches bottom → show door
+    // bubble reaches bottom → show door
     if(bubbleY >= window.innerHeight-150){
       clearInterval(chaseInterval);
       bubble.style.display="none";
@@ -196,8 +211,7 @@ function startChase(){
 
 /* Click final door to proceed */
 finalDoor.addEventListener("click", ()=>{
-  // This triggers the final sequence page
-  location.href="finalSequence.html"; // page 2
+  location.href="finalSequence.html"; // Page 2
 });
 </script>
 
