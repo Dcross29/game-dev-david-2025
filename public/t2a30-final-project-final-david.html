@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -159,6 +159,7 @@ let atStairs=false;
 let onSecondFloor=false;
 let locked=false;
 let chasing=false;
+let autoScrolling=false;
 
 /* INPUT */
 document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
@@ -228,8 +229,8 @@ function goDown(){
   bubble.style.display = "block";
   bx = window.innerWidth/2;
   by = window.innerHeight - 120;
-  bubble.style.left = bx + "px";
-  bubble.style.bottom = by + "px";
+  bubble.style.left = bx+"px";
+  bubble.style.bottom = by+"px";
 
   locked = true;
   setTimeout(bubbleDialogue, 500);
@@ -249,7 +250,10 @@ function refuse(){
   runText.style.display = "block";
   locked = false;
   // 2 sec headstart
-  setTimeout(()=>{ chasing=true; }, 2000);
+  setTimeout(()=>{ 
+    chasing=true; 
+    autoScrolling=true;
+  }, 2000);
 }
 
 /* CHASE */
@@ -271,10 +275,19 @@ function chaseLogic(){
 
 /* AUTO SCROLL */
 function autoScroll(){
-  if(!chasing) return;
+  if(!autoScrolling) return;
 
   const scrollSpeed = 2;
-  worldY -= scrollSpeed; // move world down
+
+  // Stop scrolling when player reaches door
+  const doorTop = door.offsetTop;
+  const playerInWorldY = py - worldY; // player relative to world
+  if(playerInWorldY <= doorTop + 10){ // small buffer
+    autoScrolling = false;
+    return;
+  }
+
+  worldY -= scrollSpeed;
   world.style.top = worldY + "px";
 
   // Bubble moves with scroll
