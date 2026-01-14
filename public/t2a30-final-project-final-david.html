@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Final Level</title>
-
 <style>
 body{
   margin:0;
@@ -82,7 +81,7 @@ body{
 /* Door */
 #door{
   position:absolute;
-  bottom:-500px;
+  bottom:50px;
   left:50%;
   transform:translateX(-50%);
   width:140px;
@@ -122,23 +121,18 @@ body{
 }
 </style>
 </head>
-
 <body>
 
 <div id="world">
-
   <div id="firstFloor">
     <div id="bed"></div>
-
     <div id="stairs">
       <div></div><div></div><div></div><div></div><div></div>
     </div>
   </div>
-
   <div id="secondFloor">
     <div id="door">EXIT</div>
   </div>
-
 </div>
 
 <img id="player" src="mc.PNG">
@@ -167,8 +161,8 @@ let locked=false;
 let chasing=false;
 
 /* INPUT */
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
 /* START */
 player.style.left=px+"px";
@@ -190,8 +184,8 @@ function movePlayer(){
   if(keys.w) py+=4;
   if(keys.s) py-=4;
 
-  px=Math.max(0,Math.min(window.innerWidth-player.width,px));
-  py=Math.max(0,Math.min(window.innerHeight-player.height,py));
+  px=Math.max(0, Math.min(window.innerWidth-player.width, px));
+  py=Math.max(0, Math.min(window.innerHeight-player.height, py));
 
   player.style.left=px+"px";
   player.style.bottom=py+"px";
@@ -201,18 +195,16 @@ function movePlayer(){
 function stairCheck(){
   if(onSecondFloor) return;
 
-  let s=stairs.getBoundingClientRect();
-  let p=player.getBoundingClientRect();
-
-  let hit=!(p.right<s.left||p.left>s.right||p.bottom<s.top||p.top>s.bottom);
+  const s = stairs.getBoundingClientRect();
+  const p = player.getBoundingClientRect();
+  const hit = !(p.right < s.left || p.left > s.right || p.bottom < s.top || p.top > s.bottom);
 
   if(hit && !atStairs){
-    atStairs=true;
+    atStairs = true;
     show(`<button onclick="goDown()">Go downstairs</button>`);
   }
-
   if(!hit){
-    atStairs=false;
+    atStairs = false;
     hide();
   }
 }
@@ -222,25 +214,25 @@ function goDown(){
   hide();
   onSecondFloor=true;
 
+  // move world to show 2nd floor
   worldY = -window.innerHeight;
   world.style.top = worldY+"px";
 
-  px=window.innerWidth/2;
-  py=80;
+  // reset player to middle of screen
+  px = window.innerWidth/2;
+  py = 80;
+  player.style.left = px+"px";
+  player.style.bottom = py+"px";
 
-  player.style.left=px+"px";
-  player.style.bottom=py+"px";
-
-  bubble.style.display="block";
-
-  bx=window.innerWidth/2;
-  by=window.innerHeight-120;
-
-  bubble.style.left=bx+"px";
-  bubble.style.bottom=by+"px";
+  // bubble at top of screen
+  bubble.style.display = "block";
+  bx = window.innerWidth/2;
+  by = window.innerHeight - 120;
+  bubble.style.left = bx+"px";
+  bubble.style.bottom = by+"px";
 
   locked=true;
-  setTimeout(bubbleDialogue,500);
+  setTimeout(bubbleDialogue, 500);
 }
 
 /* DIALOGUE */
@@ -254,37 +246,40 @@ function bubbleDialogue(){
 /* REFUSE */
 function refuse(){
   hide();
-  runText.style.display="block";
-  locked=false;
-
-  setTimeout(()=>{
-    chasing=true;
-  },2000);
+  runText.style.display = "block";
+  locked = false;
+  // 2 sec headstart before bubble chases
+  setTimeout(()=>{ chasing=true; }, 2000);
 }
 
 /* CHASE */
 function chaseLogic(){
   if(!chasing) return;
 
-  let dx=px-bx;
-  let dy=py-by;
-  let dist=Math.sqrt(dx*dx+dy*dy);
+  // move bubble towards player
+  let dx = px - bx;
+  let dy = py - by;
+  let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+  let speed = 2.5;
+  bx += (dx/dist)*speed;
+  by += (dy/dist)*speed;
 
-  let speed=2.5;
-  bx+=(dx/dist)*speed;
-  by+=(dy/dist)*speed;
-
-  bubble.style.left=bx+"px";
-  bubble.style.bottom=by+"px";
+  // apply bubble position WITH world scroll
+  bubble.style.left = bx + "px";
+  bubble.style.bottom = by + worldY + "px";
 }
 
-/* AUTOSCROLL */
+/* AUTOSCROLL - only move down when running */
 function autoScroll(){
   if(!chasing) return;
 
+  const scrollSpeed = 2;
   if(keys.s){
-    worldY+=2;
-    world.style.top=worldY+"px";
+    worldY -= scrollSpeed; // move world DOWN
+    world.style.top = worldY + "px";
+
+    // adjust bubble with scroll
+    bubble.style.bottom = by + worldY + "px";
   }
 }
 
@@ -292,10 +287,9 @@ function autoScroll(){
 function doorCheck(){
   if(!chasing) return;
 
-  let d=door.getBoundingClientRect();
-  let p=player.getBoundingClientRect();
-
-  let hit=!(p.right<d.left||p.left>d.right||p.bottom<d.top||p.top>d.bottom);
+  const d = door.getBoundingClientRect();
+  const p = player.getBoundingClientRect();
+  const hit = !(p.right<d.left || p.left>d.right || p.bottom<d.top || p.top>d.bottom);
 
   if(hit){
     location.href="level2.html";
@@ -304,13 +298,12 @@ function doorCheck(){
 
 /* UI */
 function show(t){
-  dialogue.innerHTML=t;
-  dialogue.style.display="block";
+  dialogue.innerHTML = t;
+  dialogue.style.display = "block";
 }
 function hide(){
-  dialogue.style.display="none";
+  dialogue.style.display = "none";
 }
 </script>
-
 </body>
 </html>
