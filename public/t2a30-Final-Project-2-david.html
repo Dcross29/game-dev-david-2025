@@ -1,70 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>I will pop that bubble - lvl 2</title>
-  <style>
-    /* PAGE STYLES */
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      position: relative;
-    }
+<meta charset="UTF-8">
+<title>Floor 2 - Generator</title>
 
-    /* FADE-IN OVERLAY */
-    #fadeOverlay {
-      position: fixed;
-      inset: 0;
-      background: black;
-      z-index: 9999;
-      transition: opacity 1s;
-    }
+<style>
+body{
+  margin:0;
+  overflow:hidden;
+  background:#222;
+  font-family:arial;
+  height:100vh;
+  color:white;
+}
 
-    /* Example page content */
-    h1 { color: red; margin: 20px; }
-    h3 { margin-left: 20px; }
-    #mybutton { position: absolute; width:127px; height:127px; left:1178px; top:565px; cursor:pointer; }
-  </style>
+#generator{
+  position:absolute;
+  bottom:50px;
+  left:50%;
+  transform:translateX(-50%);
+  width:200px;
+  height:200px;
+  z-index:5;
+}
+
+#holdw{
+  position:absolute;
+  bottom:260px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:22px;
+  font-weight:bold;
+}
+
+.window-img{
+  position:absolute;
+  top:50px;
+  width:120px;
+  height:250px;
+}
+
+.window-label{
+  position:absolute;
+  top:320px;
+  width:120px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+}
+
+#window-left{left:50px;}
+#label-a{left:50px;}
+
+#window-center{left:calc(50% - 60px);}
+#label-s{left:calc(50% - 60px);}
+
+#window-right{right:50px;}
+#label-d{right:50px;}
+
+#progress-bar{
+  position:absolute;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  width:300px;
+  height:25px;
+  background:#333;
+  border:2px solid #888;
+}
+
+#progress-fill{
+  height:100%;
+  width:0%;
+  background:lime;
+}
+
+#briefing{
+  position:fixed;
+  top:15px;
+  right:15px;
+  width:260px;
+  background:rgba(0,0,0,0.7);
+  padding:12px;
+  font-size:14px;
+  line-height:1.4;
+  border:1px solid #666;
+}
+
+#victory-screen, #death-screen{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.9);
+  color:white;
+  font-size:48px;
+  text-align:center;
+  line-height:100vh;
+  display:none;
+  z-index:1000;
+}
+</style>
 </head>
-<body style="background-size:100%; background-image:url('lvl2doorclose.gif');">
 
-<!-- FULL SCREEN FADE OVERLAY -->
-<div id="fadeOverlay"></div>
+<body>
 
-<h1>I will pop that bubble - lvl 2</h1>
+<div id="briefing">
+<b>OBJECTIVE</b><br>
+Hold <b>W</b> to power the generator.<br><br>
+Bubbles will open windows.<br>
+Press <b>A</b>, <b>S</b>, or <b>D</b> to close them before time runs out.
+</div>
 
-<h3>
-<details open>
-  <summary>How to Progress</summary>
-  <ul>
-    <li>1. Click the red button</li>
-    <li>2. Press W when the door is open</li>
-  </ul>
-</details>
-</h3>
+<div id="holdw">HOLD W</div>
 
-<img id="mybutton" src="Button.gif" onclick="
-  event.stopPropagation();
-  doorOpen = true;
-  document.body.style.backgroundImage = 'url(lvl2dooropen.gif)';
-  this.style.display='none';
-">
+<img id="generator" src="generatoroff.gif">
+
+<img id="window-left" class="window-img" src="window.gif">
+<div id="label-a" class="window-label">A</div>
+
+<img id="window-center" class="window-img" src="window.gif">
+<div id="label-s" class="window-label">S</div>
+
+<img id="window-right" class="window-img" src="window.gif">
+<div id="label-d" class="window-label">D</div>
+
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<div id="victory-screen">VICTORY!</div>
+<div id="death-screen">DEATH!</div>
 
 <script>
-let doorOpen = false;
+const generator = document.getElementById("generator");
+const progressFill = document.getElementById("progress-fill");
 
-/* W key to leave */
-document.addEventListener('keydown', e => {
-  if (doorOpen && (e.key === 'w' || e.key === 'W')) {
-    location.href = 't2a30-Final-Project-3-david.html';
+const windows = {
+  a: document.getElementById("window-left"),
+  s: document.getElementById("window-center"),
+  d: document.getElementById("window-right")
+};
+
+let keys = {};
+let progress = 0;
+let gameOver = false;
+let bubbleActive = false;
+let bubbleWindow = null;
+let bubbleTimer = null;
+let genOn = false;
+
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup",   e => keys[e.key.toLowerCase()] = false);
+
+function spawnBubbleForKey(key){
+  if(gameOver || bubbleActive) return;
+
+  const winEl = windows[key];
+  winEl.src = "windowopen.gif";
+
+  bubbleWindow = key;
+  bubbleActive = true;
+
+  bubbleTimer = setTimeout(()=>{
+    if(winEl.src.includes("windowopen.gif")){
+      endGame(false);
+    }
+  },3000);
+}
+
+function endGame(victory){
+  gameOver = true;
+
+  document.getElementById(
+    victory ? "victory-screen" : "death-screen"
+  ).style.display = "block";
+
+  Object.values(windows).forEach(win => win.src = "window.gif");
+
+  if(genOn){
+    generator.src = "generatoroff.gif";
+    genOn = false;
   }
-});
 
-/* FADE-IN THE PAGE */
-const overlay = document.getElementById('fadeOverlay');
-window.addEventListener('load', () => {
-  overlay.style.opacity = 0;          // start fade
-  setTimeout(() => overlay.remove(), 1000); // remove overlay after fade
-});
+  if(bubbleTimer) clearTimeout(bubbleTimer);
+}
+
+setInterval(()=>{
+  if(gameOver || bubbleActive) return;
+
+  if(Math.random() < 0.9){
+    const keysArr = Object.keys(windows);
+    const key = keysArr[Math.floor(Math.random() * keysArr.length)];
+    spawnBubbleForKey(key);
+  }
+},5000);
+
+setInterval(()=>{
+  if(gameOver) return;
+
+  if(keys.w && progress < 100){
+    progress += 0.03;
+    progressFill.style.width = progress + "%";
+
+    if(!genOn){
+      generator.src = "generatoron.gif";
+      genOn = true;
+    }
+  } else {
+    if(genOn){
+      generator.src = "generatoroff.gif";
+      genOn = false;
+    }
+  }
+
+  if(bubbleActive && keys[bubbleWindow]){
+    windows[bubbleWindow].src = "window.gif";
+    clearTimeout(bubbleTimer);
+    bubbleActive = false;
+    bubbleWindow = null;
+  }
+
+  if(progress >= 100){
+    endGame(true);
+  }
+
+},16);
 </script>
 
 </body>
