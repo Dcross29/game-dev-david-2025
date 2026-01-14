@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -76,60 +76,52 @@ const stairs = document.getElementById("stairs");
 const dialogue = document.getElementById("dialogue");
 
 let keys = {};
-let px = 120;
-let py = 70;
+let px = 120, py = 70;
 
-// Wait for player image to load
+// Wait for image to load
 player.onload = () => {
   player.style.left = px + "px";
   player.style.bottom = py + "px";
 
-  // main loop
+  // Movement & collision loop
   setInterval(()=>{
-    // player movement
-    if(keys.a) px -=4;
-    if(keys.d) px +=4;
-    if(keys.w) py +=4;
-    if(keys.s) py -=4;
+    // WASD movement
+    if(keys.a) px-=4;
+    if(keys.d) px+=4;
+    if(keys.w) py+=4;
+    if(keys.s) py-=4;
 
-    px = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, px));
+    // keep inside window
+    px = Math.max(0, Math.min(window.innerWidth - player.width, px));
     py = Math.max(0, py);
 
     player.style.left = px + "px";
     player.style.bottom = py + "px";
 
-    // stairs collision
-    const stairsRect = {
-      left: stairs.offsetLeft,
-      right: stairs.offsetLeft + stairs.offsetWidth,
-      top: stairs.offsetTop,
-      bottom: stairs.offsetTop + stairs.offsetHeight
-    };
-    const playerRect = {
-      left: px,
-      right: px + player.offsetWidth,
-      top: py,
-      bottom: py + player.offsetHeight
-    };
+    // collision using getBoundingClientRect()
+    const pRect = player.getBoundingClientRect();
+    const sRect = stairs.getBoundingClientRect();
 
-    if (!(playerRect.right < stairsRect.left || playerRect.left > stairsRect.right || playerRect.bottom < stairsRect.top || playerRect.top > stairsRect.bottom)) {
+    if(!(pRect.right < sRect.left || pRect.left > sRect.right || pRect.bottom < sRect.top || pRect.top > sRect.bottom)){
       showDialogue(`<button onclick="goDown()">Go downstairs</button>`);
-    } else hideDialogue();
+    }else{
+      hideDialogue();
+    }
 
   },16);
 }
 
-// key input
-document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+// WASD key detection
+document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
-// teleport to floor 2 page
+// Go downstairs to new page
 function goDown(){
-  window.location.href="secondfloor.html"; // replace with your floor 2 file
+  window.location.href="secondfloor.html"; // replace with your floor 2 page
 }
 
-// dialogue helpers
-function showDialogue(html){dialogue.innerHTML = html; dialogue.style.display="block";}
+// Dialogue helpers
+function showDialogue(html){dialogue.innerHTML=html; dialogue.style.display="block";}
 function hideDialogue(){dialogue.style.display="none";}
 </script>
 
