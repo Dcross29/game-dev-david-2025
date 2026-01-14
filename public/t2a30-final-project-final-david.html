@@ -12,7 +12,6 @@ body{
 }
 #player{
   position:absolute;
-  width:50px;
   z-index:10;
 }
 #bed{
@@ -57,6 +56,10 @@ body{
   display:none;
   z-index:100;
 }
+button{
+  padding:10px 20px;
+  font-size:16px;
+}
 </style>
 </head>
 <body>
@@ -72,25 +75,30 @@ const player=document.getElementById("player");
 const stairs=document.getElementById("stairs");
 const dialogue=document.getElementById("dialogue");
 
-let px=120, py=70;
 let keys={};
+let px=120, py=70;
 
+// Wait until player image loads
 player.onload = () => {
   player.style.left = px + "px";
   player.style.bottom = py + "px";
 
-  setInterval(() => {
-    // move
-    if(keys.a) px -=4;
-    if(keys.d) px +=4;
-    if(keys.w) py +=4;
-    if(keys.s) py -=4;
+  // main loop
+  setInterval(()=>{
+    // move player
+    if(keys.a) px-=4;
+    if(keys.d) px+=4;
+    if(keys.w) py+=4;
+    if(keys.s) py-=4;
+
+    // keep inside screen
     px = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, px));
     py = Math.max(0, py);
+
     player.style.left = px + "px";
     player.style.bottom = py + "px";
 
-    // check stairs collision using player.offsetWidth/offsetHeight
+    // stairs collision
     const stairsRect = {
       left: stairs.offsetLeft,
       right: stairs.offsetLeft + stairs.offsetWidth,
@@ -111,16 +119,18 @@ player.onload = () => {
   },16);
 }
 
-document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+// key input
+document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
+// go to floor 2
 function goDown(){
-  window.location.href = "secondfloor.html";
+  window.location.href="secondfloor.html";
 }
+
 function showDialogue(html){dialogue.innerHTML=html; dialogue.style.display="block";}
 function hideDialogue(){dialogue.style.display="none";}
 </script>
-
 
 </body>
 </html>
