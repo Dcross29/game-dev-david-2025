@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -158,9 +158,11 @@ let camY = 0;
 let pX = 0, pY = 0;
 let bX = 0, bY = 0;
 
-/* INIT PLAYER ON BED */
-player.style.left = px + "px";
-player.style.bottom = py + "px";
+/* WAIT FOR PLAYER IMAGE TO LOAD */
+player.onload = () => {
+  player.style.left = px + "px";
+  player.style.bottom = py + "px";
+}
 
 /* MAIN LOOP */
 setInterval(() => {
@@ -217,9 +219,9 @@ function stairCheck(){
   };
   const playerRect = {
     left: px,
-    right: px + player.width,
+    right: px + player.naturalWidth,
     top: py,
-    bottom: py + 50
+    bottom: py + player.naturalHeight
   };
   if(hit(playerRect, stairsRect)){
     show(`<button onclick="goDown()">Go downstairs</button>`);
