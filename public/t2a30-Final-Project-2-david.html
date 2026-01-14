@@ -14,6 +14,21 @@ body{
   color:white;
 }
 
+/* FADE IN OVERLAY */
+#fade-in{
+  position:fixed;
+  inset:0;
+  background:black;
+  opacity:1;
+  pointer-events:none;
+  transition:opacity 2s ease;
+  z-index:2000;
+}
+
+#fade-in.hide{
+  opacity:0;
+}
+
 #generator{
   position:absolute;
   bottom:50px;
@@ -97,12 +112,14 @@ body{
   text-align:center;
   line-height:100vh;
   display:none;
-  z-index:1000;
+  z-index:3000;
 }
 </style>
 </head>
 
 <body>
+
+<div id="fade-in"></div>
 
 <div id="briefing">
 <b>OBJECTIVE</b><br>
@@ -132,6 +149,7 @@ Press <b>A</b>, <b>S</b>, or <b>D</b> to close them before time runs out.
 <script>
 const generator = document.getElementById("generator");
 const progressFill = document.getElementById("progress-fill");
+const fadeIn = document.getElementById("fade-in");
 
 const windows = {
   a: document.getElementById("window-left"),
@@ -146,6 +164,11 @@ let bubbleActive = false;
 let bubbleWindow = null;
 let bubbleTimer = null;
 let genOn = false;
+
+/* FADE IN ON LOAD */
+window.addEventListener("load",()=>{
+  requestAnimationFrame(()=>fadeIn.classList.add("hide"));
+});
 
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup",   e => keys[e.key.toLowerCase()] = false);
