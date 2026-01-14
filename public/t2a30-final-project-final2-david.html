@@ -2,88 +2,168 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Final Level - Floor 2</title>
+<title>Final Level - Floor 2 Generator</title>
 <style>
-body{margin:0; overflow:hidden; background:#111; font-family:arial;}
-#player{position:absolute; width:50px; z-index:10;}
-#bubble{position:absolute; width:90px; z-index:9;}
-#door{position:absolute; bottom:60px; left:50%; transform:translateX(-50%); width:140px; height:220px; background:#000; border:4px solid white; text-align:center; color:white; line-height:220px; font-size:22px;}
-#dialogue{position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.85); padding:15px 25px; color:white; border-radius:12px; display:none; z-index:100;}
-#run{position:fixed; top:20px; left:50%; transform:translateX(-50%); color:red; font-size:26px; display:none; z-index:200;}
+body{
+  margin:0;
+  overflow:hidden;
+  background:#222;
+  font-family:arial;
+}
+#player{
+  position:absolute;
+  left:50%;
+  bottom:50px;
+  transform:translateX(-50%);
+  width:60px;
+}
+#generator{
+  position:absolute;
+  bottom:50px;
+  left:50%;
+  transform:translateX(-50%);
+  width:200px;
+  height:200px;
+  background:#444;
+  border:4px solid #888;
+  border-radius:12px;
+  text-align:center;
+  line-height:200px;
+  font-size:20px;
+  color:white;
+}
+.window{
+  position:absolute;
+  top:50px;
+  width:100px;
+  height:200px;
+  background:#555;
+  border:3px solid #888;
+  text-align:center;
+  line-height:200px;
+  font-size:20px;
+  color:white;
+}
+#window-left{left:50px;}
+#window-center{left:calc(50% - 50px);}
+#window-right{right:50px;}
+#bubble{
+  position:absolute;
+  width:80px;
+  height:auto;
+  display:none;
+  z-index:10;
+}
+#progress-bar{
+  position:absolute;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  width:300px;
+  height:25px;
+  background:#333;
+  border:2px solid #888;
+}
+#progress-fill{
+  height:100%;
+  width:0%;
+  background:lime;
+}
+#message{
+  position:fixed;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  font-size:24px;
+}
 </style>
 </head>
 <body>
 
 <img id="player" src="mc.PNG">
+<div id="generator">GENERATOR</div>
+<div id="window-left" class="window">A</div>
+<div id="window-center" class="window">S</div>
+<div id="window-right" class="window">D</div>
 <img id="bubble" src="bubbleboss.gif">
-<div id="door">EXIT</div>
-<div id="dialogue"></div>
-<div id="run">RUN ↓</div>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="message"></div>
 
 <script>
-const player=document.getElementById("player");
-const bubble=document.getElementById("bubble");
-const door=document.getElementById("door");
-const dialogue=document.getElementById("dialogue");
-const run=document.getElementById("run");
+const player = document.getElementById("player");
+const generator = document.getElementById("generator");
+const bubble = document.getElementById("bubble");
+const message = document.getElementById("message");
+const progressFill = document.getElementById("progress-fill");
 
-let keys={};
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+const windows = {
+  a: document.getElementById("window-left"),
+  s: document.getElementById("window-center"),
+  d: document.getElementById("window-right")
+};
 
-let pX=window.innerWidth/2,pY=70;
-let bX=window.innerWidth/2,bY=window.innerHeight-120;
-player.onload = () => { player.style.left=pX+"px"; player.style.bottom=pY+"px"; bubble.style.left=bX+"px"; bubble.style.bottom=bY+"px"; bubble.style.display="block"; setTimeout(showDialogueBubble,500); }
+let keys = {};
+let progress = 0;
+let bubbleActive = false;
+let bubbleWindow = null;
+let gameOver = false;
 
-let locked=true;
-let chasing=false;
+// WASD key input
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()]=false);
 
-function showDialogueBubble(){
-  showDialogue(`"Join me or die."<br><br><button onclick="refuse()">Refuse</button>`);
-}
-
-function refuse(){
-  hideDialogue();
-  locked=false;
-  chasing=true;
-  run.style.display="block";
-}
-
+// Main loop
 setInterval(()=>{
-  if(!locked){
-    if(keys.a)pX-=4;
-    if(keys.d)pX+=4;
-    if(keys.w)pY+=4;
-    if(keys.s)pY-=4;
-    pX=Math.max(0,Math.min(window.innerWidth-player.width,pX));
-    pY=Math.max(0,pY);
+  if(gameOver) return;
+
+  // Holding W increases generator
+  if(keys.w && progress < 100) {
+    progress += 0.3; // adjust speed here
+    progressFill.style.width = progress + "%";
   }
-  if(chasing){
-    // bubble follow
-    let dx=pX-bX,dy=pY-bY,d=Math.sqrt(dx*dx+dy*dy)||1;
-    bX+=dx/d*2.5; bY+=dy/d*2.5;
 
-    // simple camera auto scroll
-    const scrollY=pY-200;
-    document.body.scrollTop=scrollY;document.documentElement.scrollTop=scrollY;
+  // Bubble random spawn
+  if(!bubbleActive && Math.random() < 0.002){ // low chance each frame
+    const options = ['a','s','d'];
+    bubbleWindow = options[Math.floor(Math.random()*3)];
+    const winEl = windows[bubbleWindow];
+    const rect = winEl.getBoundingClientRect();
+    bubble.style.left = rect.left + rect.width/2 - 40 + "px";
+    bubble.style.top = rect.top + "px";
+    bubble.style.display = "block";
+    bubbleActive = true;
+    message.innerText = "Bubble! Press " + bubbleWindow.toUpperCase() + "!";
+  }
 
-    // check door
-    const playerRect=player.getBoundingClientRect();
-    const doorRect=door.getBoundingClientRect();
-    if(!(playerRect.right<doorRect.left || playerRect.left>doorRect.right || playerRect.bottom<doorRect.top || playerRect.top>doorRect.bottom)){
-      window.location.href="level2.html";
+  // Check if player closes bubble
+  if(bubbleActive && keys[bubbleWindow]){
+    bubble.style.display = "none";
+    bubbleActive = false;
+    bubbleWindow = null;
+    message.innerText = "Good!";
+  }
+
+  // If bubble active too long, death
+  if(bubbleActive){
+    if(!bubble.timerStart) bubble.timerStart = Date.now();
+    if(Date.now() - bubble.timerStart > 1500){ // 1.5 seconds to close
+      gameOver = true;
+      message.innerText = "You got caught! GAME OVER";
+      alert("You died! Reload to try again.");
     }
+  } else bubble.timerStart = null;
+
+  // Check if generator completed
+  if(progress>=100){
+    gameOver = true;
+    message.innerText = "Generator complete! You survive!";
+    alert("You win! Move to next level.");
+    window.location.href = "nextlevel.html"; // change this to next level file
   }
-  render();
+
 },16);
-
-function render(){
-  player.style.left=pX+"px"; player.style.bottom=pY+"px";
-  bubble.style.left=bX+"px"; bubble.style.bottom=bY+"px";
-}
-
-function showDialogue(html){dialogue.innerHTML=html; dialogue.style.display="block";}
-function hideDialogue(){dialogue.style.display="none";}
 </script>
+
 </body>
 </html>
