@@ -81,9 +81,9 @@ body{
 
 <img id="generator" src="generatoroff.gif">
 
-<img id="window-left"   class="window-img" src="window.gif">
+<img id="window-left" class="window-img" src="window.gif">
 <img id="window-center" class="window-img" src="window.gif">
-<img id="window-right"  class="window-img" src="window.gif">
+<img id="window-right" class="window-img" src="window.gif">
 
 <div id="progress-bar"><div id="progress-fill"></div></div>
 
@@ -111,12 +111,11 @@ let gameOver = false;
 let bubbleActive = false;
 let bubbleWindow = null;
 let bubbleTimer = null;
+let genOn = false;
 
-/* WASD input */
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup",   e => keys[e.key.toLowerCase()] = false);
 
-/* Spawn bubble */
 function spawnBubbleForKey(key){
   if(gameOver || bubbleActive) return;
 
@@ -136,7 +135,6 @@ function spawnBubbleForKey(key){
   },3000);
 }
 
-/* End game */
 function endGame(victory){
   gameOver = true;
 
@@ -147,38 +145,45 @@ function endGame(victory){
   }
 
   Object.values(windows).forEach(win => win.src = "window.gif");
-  generator.src = "generatoroff.gif";
+
+  if(genOn){
+    generator.src = "generatoroff.gif";
+    genOn = false;
+  }
 
   if(bubbleTimer) clearTimeout(bubbleTimer);
   bubbleActive = false;
   bubbleWindow = null;
 }
 
-/* Bubble spawning */
 setInterval(()=>{
   if(gameOver || bubbleActive) return;
 
   if(Math.random() < 0.9){
-    const available = Object.keys(windows);
-    const key = available[Math.floor(Math.random() * available.length)];
+    const keysArr = Object.keys(windows);
+    const key = keysArr[Math.floor(Math.random() * keysArr.length)];
     spawnBubbleForKey(key);
   }
 },5000);
 
-/* Main loop */
 setInterval(()=>{
   if(gameOver) return;
 
-  /* Generator behavior */
   if(keys.w && progress < 100){
     progress += 0.03;
     progressFill.style.width = progress + "%";
-    generator.src = "generatoron.gif";
+
+    if(!genOn){
+      generator.src = "generatoron.gif";
+      genOn = true;
+    }
   } else {
-    generator.src = "generatoroff.gif";
+    if(genOn){
+      generator.src = "generatoroff.gif";
+      genOn = false;
+    }
   }
 
-  /* Close bubble */
   if(bubbleActive && keys[bubbleWindow]){
     windows[bubbleWindow].src = "window.gif";
     clearTimeout(bubbleTimer);
@@ -187,7 +192,6 @@ setInterval(()=>{
     message.innerText = "Window safe! Keep charging!";
   }
 
-  /* Victory */
   if(progress >= 100){
     endGame(true);
   }
