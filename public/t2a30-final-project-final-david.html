@@ -68,44 +68,59 @@ body{
 <div id="dialogue"></div>
 
 <script>
-const player = document.getElementById("player");
-const stairs = document.getElementById("stairs");
-const dialogue = document.getElementById("dialogue");
+const player=document.getElementById("player");
+const stairs=document.getElementById("stairs");
+const dialogue=document.getElementById("dialogue");
 
-let keys = {};
+let px=120, py=70;
+let keys={};
+
+player.onload = () => {
+  player.style.left = px + "px";
+  player.style.bottom = py + "px";
+
+  setInterval(() => {
+    // move
+    if(keys.a) px -=4;
+    if(keys.d) px +=4;
+    if(keys.w) py +=4;
+    if(keys.s) py -=4;
+    px = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, px));
+    py = Math.max(0, py);
+    player.style.left = px + "px";
+    player.style.bottom = py + "px";
+
+    // check stairs collision using player.offsetWidth/offsetHeight
+    const stairsRect = {
+      left: stairs.offsetLeft,
+      right: stairs.offsetLeft + stairs.offsetWidth,
+      top: stairs.offsetTop,
+      bottom: stairs.offsetTop + stairs.offsetHeight
+    };
+    const playerRect = {
+      left: px,
+      right: px + player.offsetWidth,
+      top: py,
+      bottom: py + player.offsetHeight
+    };
+
+    if (!(playerRect.right < stairsRect.left || playerRect.left > stairsRect.right || playerRect.bottom < stairsRect.top || playerRect.top > stairsRect.bottom)) {
+      showDialogue(`<button onclick="goDown()">Go downstairs</button>`);
+    } else hideDialogue();
+
+  },16);
+}
+
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-let px=120, py=70;
-player.onload = () => { player.style.left=px+"px"; player.style.bottom=py+"px"; }
-
-setInterval(()=>{
-  if(keys.a) px-=4;
-  if(keys.d) px+=4;
-  if(keys.w) py+=4;
-  if(keys.s) py-=4;
-  px = Math.max(0, Math.min(window.innerWidth-player.width, px));
-  py = Math.max(0, py);
-  player.style.left=px+"px";
-  player.style.bottom=py+"px";
-  checkStairs();
-},16);
-
-function checkStairs(){
-  const stairsRect = {left:stairs.offsetLeft,right:stairs.offsetLeft+stairs.offsetWidth,top:stairs.offsetTop,bottom:stairs.offsetTop+stairs.offsetHeight};
-  const playerRect = {left:px,right:px+player.naturalWidth,top:py,bottom:py+player.naturalHeight};
-  if(!(playerRect.right<stairsRect.left || playerRect.left>stairsRect.right || playerRect.bottom<stairsRect.top || playerRect.top>stairsRect.bottom)){
-    showDialogue(`<button onclick="goDown()">Go downstairs</button>`);
-  }else hideDialogue();
-}
-
 function goDown(){
-  window.location.href="t2a30-final-project-final2-david.html";
+  window.location.href = "secondfloor.html";
 }
-
 function showDialogue(html){dialogue.innerHTML=html; dialogue.style.display="block";}
 function hideDialogue(){dialogue.style.display="none";}
 </script>
+
 
 </body>
 </html>
