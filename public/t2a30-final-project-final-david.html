@@ -13,6 +13,8 @@ body{
 #player{
   position:absolute;
   z-index:10;
+  width:50px;
+  height:auto;
 }
 #bed{
   position:absolute;
@@ -78,49 +80,43 @@ const dialogue = document.getElementById("dialogue");
 let keys = {};
 let px = 120, py = 70;
 
-// Wait for image to load
-player.onload = () => {
+function init() {
   player.style.left = px + "px";
   player.style.bottom = py + "px";
 
-  // Movement & collision loop
   setInterval(()=>{
-    // WASD movement
     if(keys.a) px-=4;
     if(keys.d) px+=4;
     if(keys.w) py+=4;
     if(keys.s) py-=4;
 
-    // keep inside window
     px = Math.max(0, Math.min(window.innerWidth - player.width, px));
     py = Math.max(0, py);
 
     player.style.left = px + "px";
     player.style.bottom = py + "px";
 
-    // collision using getBoundingClientRect()
     const pRect = player.getBoundingClientRect();
     const sRect = stairs.getBoundingClientRect();
 
     if(!(pRect.right < sRect.left || pRect.left > sRect.right || pRect.bottom < sRect.top || pRect.top > sRect.bottom)){
       showDialogue(`<button onclick="goDown()">Go downstairs</button>`);
-    }else{
+    } else {
       hideDialogue();
     }
-
   },16);
 }
 
-// WASD key detection
+if (player.complete) init();
+else player.onload = init;
+
 document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
-// Go downstairs to the actual file
 function goDown(){
-  window.location.href="t2a30-final-project-final2-david.html"; // your actual floor 2 page
+  window.location.href="t2a30-final-project-final2-david.html";
 }
 
-// Dialogue helpers
 function showDialogue(html){dialogue.innerHTML = html; dialogue.style.display="block";}
 function hideDialogue(){dialogue.style.display="none";}
 </script>
