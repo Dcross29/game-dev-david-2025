@@ -159,7 +159,6 @@ let atStairs=false;
 let onSecondFloor=false;
 let locked=false;
 let chasing=false;
-let headstart=false;
 let autoScrolling=false;
 
 /* INPUT */
@@ -251,11 +250,9 @@ function refuse(){
   runText.style.display = "block";
   locked = false;
 
-  // 2-second headstart before bubble chases
-  setTimeout(()=>{
-    chasing = true;
-    autoScrolling = true;
-  }, 2000);
+  // Start chase immediately
+  chasing = true;
+  autoScrolling = true;
 }
 
 /* CHASE */
