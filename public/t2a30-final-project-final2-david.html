@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Floor 2 - Generator</title>
+
 <style>
 body{
   margin:0;
@@ -11,6 +12,7 @@ body{
   font-family:arial;
   height:100vh;
 }
+
 #generator{
   position:absolute;
   bottom:50px;
@@ -20,15 +22,18 @@ body{
   height:200px;
   z-index:5;
 }
+
 .window-img{
   position:absolute;
   top:50px;
   width:120px;
   height:250px;
 }
+
 #window-left{left:50px;}
 #window-center{left:calc(50% - 60px);}
 #window-right{right:50px;}
+
 #progress-bar{
   position:absolute;
   bottom:10px;
@@ -39,11 +44,13 @@ body{
   background:#333;
   border:2px solid #888;
 }
+
 #progress-fill{
   height:100%;
   width:0%;
   background:lime;
 }
+
 #message{
   position:fixed;
   top:10px;
@@ -54,6 +61,7 @@ body{
   text-align:center;
   width:100%;
 }
+
 #victory-screen, #death-screen{
   position:fixed;
   top:0; left:0;
@@ -68,15 +76,20 @@ body{
 }
 </style>
 </head>
+
 <body>
 
-<img id="generator" src="generator.png"> <!-- your generator image -->
-<img id="window-left" class="window-img" src="window.gif">
+<img id="generator" src="generatoroff.gif">
+
+<img id="window-left"   class="window-img" src="window.gif">
 <img id="window-center" class="window-img" src="window.gif">
-<img id="window-right" class="window-img" src="window.gif">
+<img id="window-right"  class="window-img" src="window.gif">
 
 <div id="progress-bar"><div id="progress-fill"></div></div>
-<div id="message">Hold W to charge generator. Close bubble windows with A (left), S (center), D (right)!</div>
+
+<div id="message">
+Hold W to charge generator. Close bubble windows with A (left), S (center), D (right)!
+</div>
 
 <div id="victory-screen">VICTORY!</div>
 <div id="death-screen">DEATH!</div>
@@ -99,66 +112,73 @@ let bubbleActive = false;
 let bubbleWindow = null;
 let bubbleTimer = null;
 
-// WASD input
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+/* WASD input */
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup",   e => keys[e.key.toLowerCase()] = false);
 
-// Spawn bubble in a specific window
+/* Spawn bubble */
 function spawnBubbleForKey(key){
   if(gameOver || bubbleActive) return;
+
   const winEl = windows[key];
-  winEl.src = "danger.gif";
+  winEl.src = "windowopen.gif";
+
   bubbleWindow = key;
   bubbleActive = true;
-  message.innerText = `Bubble in ${key.toUpperCase()}! Press ${key.toUpperCase()} to close!`;
 
-  // start 3-second death timer
+  message.innerText =
+    `Bubble in ${key.toUpperCase()}! Press ${key.toUpperCase()} to close!`;
+
   bubbleTimer = setTimeout(()=>{
-    if(winEl.src.includes("danger.gif")){
+    if(winEl.src.includes("windowopen.gif")){
       endGame(false);
     }
   },3000);
 }
 
-// End game
+/* End game */
 function endGame(victory){
   gameOver = true;
+
   if(victory){
-    document.getElementById("victory-screen").style.display="block";
+    document.getElementById("victory-screen").style.display = "block";
   } else {
-    document.getElementById("death-screen").style.display="block";
+    document.getElementById("death-screen").style.display = "block";
   }
-  // Clear any bubble timers
+
   Object.values(windows).forEach(win => win.src = "window.gif");
+  generator.src = "generatoroff.gif";
+
   if(bubbleTimer) clearTimeout(bubbleTimer);
   bubbleActive = false;
   bubbleWindow = null;
 }
 
-// Bubble spawning interval (every 5 seconds)
+/* Bubble spawning */
 setInterval(()=>{
-  if(gameOver) return;
-  if(!bubbleActive && Math.random() < 0.9){ // 90% chance
-    // pick a random idle window
-    const available = Object.keys(windows).filter(k => windows[k].src.includes("window.gif"));
-    if(available.length > 0){
-      const key = available[Math.floor(Math.random()*available.length)];
-      spawnBubbleForKey(key);
-    }
+  if(gameOver || bubbleActive) return;
+
+  if(Math.random() < 0.9){
+    const available = Object.keys(windows);
+    const key = available[Math.floor(Math.random() * available.length)];
+    spawnBubbleForKey(key);
   }
 },5000);
 
-// Main loop
+/* Main loop */
 setInterval(()=>{
   if(gameOver) return;
 
-  // Holding W charges generator slowly
+  /* Generator behavior */
   if(keys.w && progress < 100){
     progress += 0.03;
     progressFill.style.width = progress + "%";
+    generator.src = "generatoron.gif";
+  } else {
+    generator.src = "generatoroff.gif";
   }
 
-  // Check if player pressed correct key for active bubble
+  /* Close bubble */
   if(bubbleActive && keys[bubbleWindow]){
     windows[bubbleWindow].src = "window.gif";
     clearTimeout(bubbleTimer);
@@ -167,7 +187,7 @@ setInterval(()=>{
     message.innerText = "Window safe! Keep charging!";
   }
 
-  // Generator complete
+  /* Victory */
   if(progress >= 100){
     endGame(true);
   }
