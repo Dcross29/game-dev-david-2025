@@ -54,6 +54,7 @@ body{
   right:80px;
   bottom:0;
   width:160px;
+  height:120px;
 }
 #stairs div{
   height:18px;
@@ -180,15 +181,13 @@ function move(){
     if(keys.d)pX+=4;
     if(keys.w)pY+=4;
     if(keys.s)pY-=4;
-
     pX = Math.max(0,Math.min(window.innerWidth-player.width,pX));
-    pY = Math.max(camY, pY);
+    pY = Math.max(camY,pY);
   }else{
     if(keys.a)px-=4;
     if(keys.d)px+=4;
     if(keys.w)py+=4;
     if(keys.s)py-=4;
-
     px = Math.max(0,Math.min(window.innerWidth-player.width, px));
     py = Math.max(0,py);
   }
@@ -208,13 +207,23 @@ function render(){
   }
 }
 
-/* STAIRS */
+/* STAIRS COLLISION */
 function stairCheck(){
-  const s = stairs.getBoundingClientRect();
-  const p = player.getBoundingClientRect();
-  if (!(p.right<s.left||p.left>s.right||p.bottom<s.top||p.top>s.bottom)){
+  const stairsRect = {
+    left: stairs.offsetLeft,
+    right: stairs.offsetLeft + stairs.offsetWidth,
+    top: stairs.offsetTop,
+    bottom: stairs.offsetTop + stairs.offsetHeight
+  };
+  const playerRect = {
+    left: px,
+    right: px + player.width,
+    top: py,
+    bottom: py + 50
+  };
+  if(hit(playerRect, stairsRect)){
     show(`<button onclick="goDown()">Go downstairs</button>`);
-  }else hide();
+  } else hide();
 }
 
 /* GO DOWN */
@@ -259,8 +268,6 @@ function bubbleFollow(){
 /* CAMERA FOLLOW */
 function cameraFollow(){
   camY = pY - 200;
-
-  // stop when door reached bottom
   const doorScreen = door.offsetTop - camY;
   if(doorScreen < window.innerHeight - 260){
     camY = door.offsetTop - (window.innerHeight - 260);
@@ -269,15 +276,17 @@ function cameraFollow(){
 
 /* DOOR */
 function doorCheck(){
-  const d = door.getBoundingClientRect();
-  const p = player.getBoundingClientRect();
-  if (!(p.right<d.left||p.left>d.right||p.bottom<d.top||p.top>d.bottom)){
+  const doorRect = door.getBoundingClientRect();
+  const playerRect = player.getBoundingClientRect();
+  if(hit(playerRect,doorRect)){
     location.href="level2.html";
   }
 }
 
-/* UI */
-function hit(a,b){return !(a.right<b.left||a.left>b.right||a.bottom<b.top||a.top>b.bottom);}
+/* UTILS */
+function hit(a,b){
+  return !(a.right<b.left||a.left>b.right||a.bottom<b.top||a.top>b.bottom);
+}
 function show(t){dialogue.innerHTML=t; dialogue.style.display="block";}
 function hide(){dialogue.style.display="none";}
 </script>
