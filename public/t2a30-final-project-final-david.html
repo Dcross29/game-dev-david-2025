@@ -11,20 +11,28 @@ body{
   font-family:arial;
 }
 
-/* Floors */
-#firstFloor, #lowerFloor{
+/* WORLD */
+#world{
   position:absolute;
   width:100%;
-  height:100%;
+  height:200vh; /* tall world for scrolling */
+  top:0;
 }
 
+/* FLOORS */
 #firstFloor{
+  position:absolute;
+  width:100%;
+  height:100vh;
   background:#8B4513;
 }
 
 #lowerFloor{
+  position:absolute;
+  width:100%;
+  height:100vh;
+  top:100vh;
   background:#333;
-  display:none;
 }
 
 /* CSS Bed */
@@ -103,7 +111,7 @@ body{
 /* Door */
 #door{
   position:absolute;
-  bottom:20px;
+  bottom:0;
   left:50%;
   transform:translateX(-50%);
   width:140px;
@@ -114,22 +122,25 @@ body{
   color:white;
   line-height:220px;
   font-size:22px;
-  display:none;
 }
 </style>
 </head>
 
 <body>
 
-<div id="firstFloor">
-  <div id="bed"></div>
-  <div id="stairs">
-    <div></div><div></div><div></div><div></div><div></div>
-  </div>
-</div>
+<div id="world">
 
-<div id="lowerFloor">
-  <div id="door">EXIT</div>
+  <div id="firstFloor">
+    <div id="bed"></div>
+    <div id="stairs">
+      <div></div><div></div><div></div><div></div><div></div>
+    </div>
+  </div>
+
+  <div id="lowerFloor">
+    <div id="door">EXIT</div>
+  </div>
+
 </div>
 
 <img id="player" src="mc.PNG">
@@ -143,29 +154,30 @@ const player = document.getElementById("player");
 const bubble = document.getElementById("bubble");
 const dialogue = document.getElementById("dialogue");
 const stairs = document.getElementById("stairs");
-const firstFloor = document.getElementById("firstFloor");
-const lowerFloor = document.getElementById("lowerFloor");
+const world = document.getElementById("world");
 const runArrow = document.getElementById("runArrow");
 const door = document.getElementById("door");
 
 let keys = {};
-let onFirstFloor = true;
-let atStairs = false;
-let bubbleChasing = false;
-let autoScroll = false;
+let atStairs=false;
+let bubbleChasing=false;
+let autoScroll=false;
+
+/* WORLD OFFSET */
+let worldY = 0;
 
 /* Positions */
-let px = 100, py = 60;
-let bx = 0, by = 0;
+let px=100, py=60;
+let bx=0, by=0;
 
-player.style.left = px+"px";
-player.style.bottom = py+"px";
+player.style.left=px+"px";
+player.style.bottom=py+"px";
 
-/* Input */
+/* INPUT */
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-/* Main Loop */
+/* LOOP */
 setInterval(()=>{
   movePlayer();
   chaseLogic();
@@ -173,30 +185,30 @@ setInterval(()=>{
   doorCheck();
 },16);
 
-/* Movement */
+/* MOVE */
 function movePlayer(){
-  if(keys.a) px -=4;
-  if(keys.d) px +=4;
-  if(keys.w) py +=4;
-  if(keys.s) py -=4;
+  if(keys.a) px-=4;
+  if(keys.d) px+=4;
+  if(keys.w) py+=4;
+  if(keys.s) py-=4;
 
-  px = Math.max(0,Math.min(window.innerWidth-player.width,px));
-  py = Math.max(0,Math.min(window.innerHeight-player.height,py));
+  px=Math.max(0,Math.min(window.innerWidth-player.width,px));
+  py=Math.max(0,Math.min(window.innerHeight-player.height,py));
 
-  player.style.left = px+"px";
-  player.style.bottom = py+"px";
+  player.style.left=px+"px";
+  player.style.bottom=py+"px";
 
-  if(onFirstFloor) stairCheck();
+  stairCheck();
 }
 
-/* Stairs */
+/* STAIRS */
 function stairCheck(){
-  let s = stairs.getBoundingClientRect();
-  let p = player.getBoundingClientRect();
+  let s=stairs.getBoundingClientRect();
+  let p=player.getBoundingClientRect();
 
-  let hit = !(p.right<s.left||p.left>s.right||p.bottom<s.top||p.top>s.bottom);
+  let hit=!(p.right<s.left||p.left>s.right||p.bottom<s.top||p.top>s.bottom);
 
-  if(hit && !atStairs){
+  if(hit&&!atStairs){
     atStairs=true;
     show(`<button onclick="goDown()">Go downstairs</button>`);
   }
@@ -206,35 +218,33 @@ function stairCheck(){
   }
 }
 
-/* Downstairs */
+/* TRANSITION */
 function goDown(){
   hide();
-  onFirstFloor=false;
-  firstFloor.style.display="none";
-  lowerFloor.style.display="block";
 
-  px = window.innerWidth/2;
-  py = 40;
+  /* move world to lower floor */
+  worldY=-window.innerHeight;
+  world.style.top=worldY+"px";
+
+  px=window.innerWidth/2;
+  py=60;
 
   player.style.left=px+"px";
   player.style.bottom=py+"px";
 
   bubble.style.display="block";
 
-  /* Bubble starts TOP */
-  bx = window.innerWidth/2;
-  by = window.innerHeight-120;
+  /* bubble top */
+  bx=window.innerWidth/2;
+  by=window.innerHeight+120;
 
   bubble.style.left=bx+"px";
   bubble.style.bottom=by+"px";
 
-  door.style.display="block";
-  door.style.bottom="0px";
-
   setTimeout(confront,600);
 }
 
-/* Bubble talk */
+/* DIALOGUE */
 function confront(){
   show(`
   "Join me or die."<br><br>
@@ -242,53 +252,52 @@ function confront(){
   `);
 }
 
-/* Refuse */
+/* REFUSE */
 function refuse(){
   hide();
   runArrow.style.display="block";
 
-  /* 2 sec headstart */
   setTimeout(()=>{
     bubbleChasing=true;
     autoScroll=true;
   },2000);
 }
 
-/* CHASE FIX */
+/* CHASE */
 function chaseLogic(){
   if(!bubbleChasing) return;
 
-  let dx = px - bx;
-  let dy = py - by;
+  let dx=px-bx;
+  let dy=py-by;
+  let dist=Math.sqrt(dx*dx+dy*dy);
 
-  let dist = Math.sqrt(dx*dx+dy*dy);
-  let speed = 2.5;
+  let speed=2.5;
 
-  bx += (dx/dist)*speed;
-  by += (dy/dist)*speed;
+  bx+=(dx/dist)*speed;
+  by+=(dy/dist)*speed;
 
   bubble.style.left=bx+"px";
   bubble.style.bottom=by+"px";
 }
 
-/* AUTOSCROLL FIX */
+/* AUTOSCROLL WORLD */
 function scrollLogic(){
   if(!autoScroll) return;
 
-  py -= 2; /* force player down */
+  worldY+=1.5;  /* scroll down */
+  world.style.top=worldY+"px";
 }
 
-/* Door */
+/* DOOR */
 function doorCheck(){
   if(!autoScroll) return;
 
-  let d = door.getBoundingClientRect();
-  let p = player.getBoundingClientRect();
+  let d=door.getBoundingClientRect();
+  let p=player.getBoundingClientRect();
 
-  let hit = !(p.right<d.left||p.left>d.right||p.bottom<d.top||p.top>d.bottom);
+  let hit=!(p.right<d.left||p.left>d.right||p.bottom<d.top||p.top>d.bottom);
 
   if(hit){
-    alert("NEXT LEVEL");
     location.href="level2.html";
   }
 }
