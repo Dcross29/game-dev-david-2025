@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Final Level - Floor 2</title>
+<style>
+body{margin:0; overflow:hidden; background:#111; font-family:arial;}
+#player{position:absolute; width:50px; z-index:10;}
+#bubble{position:absolute; width:90px; z-index:9;}
+#door{position:absolute; bottom:60px; left:50%; transform:translateX(-50%); width:140px; height:220px; background:#000; border:4px solid white; text-align:center; color:white; line-height:220px; font-size:22px;}
+#dialogue{position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.85); padding:15px 25px; color:white; border-radius:12px; display:none; z-index:100;}
+#run{position:fixed; top:20px; left:50%; transform:translateX(-50%); color:red; font-size:26px; display:none; z-index:200;}
+</style>
+</head>
+<body>
+
+<img id="player" src="mc.PNG">
+<img id="bubble" src="bubbleboss.gif">
+<div id="door">EXIT</div>
+<div id="dialogue"></div>
+<div id="run">RUN ↓</div>
+
+<script>
+const player=document.getElementById("player");
+const bubble=document.getElementById("bubble");
+const door=document.getElementById("door");
+const dialogue=document.getElementById("dialogue");
+const run=document.getElementById("run");
+
+let keys={};
+document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+
+let pX=window.innerWidth/2,pY=70;
+let bX=window.innerWidth/2,bY=window.innerHeight-120;
+player.onload = () => { player.style.left=pX+"px"; player.style.bottom=pY+"px"; bubble.style.left=bX+"px"; bubble.style.bottom=bY+"px"; bubble.style.display="block"; setTimeout(showDialogueBubble,500); }
+
+let locked=true;
+let chasing=false;
+
+function showDialogueBubble(){
+  showDialogue(`"Join me or die."<br><br><button onclick="refuse()">Refuse</button>`);
+}
+
+function refuse(){
+  hideDialogue();
+  locked=false;
+  chasing=true;
+  run.style.display="block";
+}
+
+setInterval(()=>{
+  if(!locked){
+    if(keys.a)pX-=4;
+    if(keys.d)pX+=4;
+    if(keys.w)pY+=4;
+    if(keys.s)pY-=4;
+    pX=Math.max(0,Math.min(window.innerWidth-player.width,pX));
+    pY=Math.max(0,pY);
+  }
+  if(chasing){
+    // bubble follow
+    let dx=pX-bX,dy=pY-bY,d=Math.sqrt(dx*dx+dy*dy)||1;
+    bX+=dx/d*2.5; bY+=dy/d*2.5;
+
+    // simple camera auto scroll
+    const scrollY=pY-200;
+    document.body.scrollTop=scrollY;document.documentElement.scrollTop=scrollY;
+
+    // check door
+    const playerRect=player.getBoundingClientRect();
+    const doorRect=door.getBoundingClientRect();
+    if(!(playerRect.right<doorRect.left || playerRect.left>doorRect.right || playerRect.bottom<doorRect.top || playerRect.top>doorRect.bottom)){
+      window.location.href="level2.html";
+    }
+  }
+  render();
+},16);
+
+function render(){
+  player.style.left=pX+"px"; player.style.bottom=pY+"px";
+  bubble.style.left=bX+"px"; bubble.style.bottom=bY+"px";
+}
+
+function showDialogue(html){dialogue.innerHTML=html; dialogue.style.display="block";}
+function hideDialogue(){dialogue.style.display="none";}
+</script>
+</body>
+</html>
