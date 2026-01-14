@@ -71,27 +71,27 @@ button{
 <div id="dialogue"></div>
 
 <script>
-const player=document.getElementById("player");
-const stairs=document.getElementById("stairs");
-const dialogue=document.getElementById("dialogue");
+const player = document.getElementById("player");
+const stairs = document.getElementById("stairs");
+const dialogue = document.getElementById("dialogue");
 
-let keys={};
-let px=120, py=70;
+let keys = {};
+let px = 120;
+let py = 70;
 
-// Wait until player image loads
+// Wait for player image to load
 player.onload = () => {
   player.style.left = px + "px";
   player.style.bottom = py + "px";
 
   // main loop
   setInterval(()=>{
-    // move player
-    if(keys.a) px-=4;
-    if(keys.d) px+=4;
-    if(keys.w) py+=4;
-    if(keys.s) py-=4;
+    // player movement
+    if(keys.a) px -=4;
+    if(keys.d) px +=4;
+    if(keys.w) py +=4;
+    if(keys.s) py -=4;
 
-    // keep inside screen
     px = Math.max(0, Math.min(window.innerWidth - player.offsetWidth, px));
     py = Math.max(0, py);
 
@@ -120,15 +120,16 @@ player.onload = () => {
 }
 
 // key input
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// go to floor 2
+// teleport to floor 2 page
 function goDown(){
-  window.location.href="secondfloor.html";
+  window.location.href="secondfloor.html"; // replace with your floor 2 file
 }
 
-function showDialogue(html){dialogue.innerHTML=html; dialogue.style.display="block";}
+// dialogue helpers
+function showDialogue(html){dialogue.innerHTML = html; dialogue.style.display="block";}
 function hideDialogue(){dialogue.style.display="none";}
 </script>
 
