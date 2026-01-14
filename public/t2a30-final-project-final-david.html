@@ -5,7 +5,12 @@
 <title>Final Level</title>
 
 <style>
-body{margin:0;overflow:hidden;font-family:arial}
+body{
+  margin:0;
+  overflow:hidden;
+  font-family:arial;
+  background:black;
+}
 
 /* WORLD */
 #world{
@@ -16,56 +21,104 @@ body{margin:0;overflow:hidden;font-family:arial}
 }
 
 /* FLOORS */
-#firstFloor{height:100vh;background:#8B4513;position:relative}
-#secondFloor{height:100vh;background:#222;position:relative}
+#firstFloor{
+  height:100vh;
+  background:#8B4513;
+  position:relative;
+}
+#secondFloor{
+  height:100vh;
+  background:#222;
+  position:relative;
+}
 
 /* Bed */
 #bed{
-  position:absolute;width:180px;height:60px;
-  background:#5a2d0c;left:80px;bottom:40px;border-radius:10px
+  position:absolute;
+  width:180px;
+  height:60px;
+  background:#5a2d0c;
+  left:80px;
+  bottom:40px;
+  border-radius:10px;
 }
 #bed:before{
-  content:"";position:absolute;width:180px;height:25px;
-  background:#c68642;top:-25px;border-radius:10px 10px 0 0
+  content:"";
+  position:absolute;
+  width:180px;
+  height:25px;
+  background:#c68642;
+  top:-25px;
+  border-radius:10px 10px 0 0;
 }
 
 /* Stairs */
-#stairs{position:absolute;right:80px;bottom:0;width:200px}
-#stairs div{height:20px;background:#3b1f0b;margin-top:4px}
+#stairs{
+  position:absolute;
+  right:80px;
+  bottom:0;
+  width:200px;
+}
+#stairs div{
+  height:20px;
+  background:#3b1f0b;
+  margin-top:4px;
+}
 
 /* Player */
-#player{position:absolute;z-index:10}
+#player{
+  position:absolute;
+  z-index:10;
+}
 
 /* Bubble */
 #bubble{
-  position:absolute;width:90px;display:none;z-index:9
+  position:absolute;
+  width:90px;
+  display:none;
+  z-index:9;
 }
 
 /* Door */
 #door{
-  position:absolute;bottom:-500px;left:50%;
+  position:absolute;
+  bottom:-500px;
+  left:50%;
   transform:translateX(-50%);
-  width:140px;height:220px;
-  background:#111;border:4px solid white;
-  text-align:center;color:white;
-  line-height:220px;font-size:22px
+  width:140px;
+  height:220px;
+  background:#111;
+  border:4px solid white;
+  text-align:center;
+  color:white;
+  line-height:220px;
+  font-size:22px;
 }
 
 /* Dialogue */
 #dialogue{
-  position:fixed;bottom:30px;left:50%;
+  position:fixed;
+  bottom:30px;
+  left:50%;
   transform:translateX(-50%);
   background:rgba(0,0,0,.85);
-  padding:15px 25px;color:white;
-  border-radius:12px;display:none;z-index:100
+  padding:15px 25px;
+  color:white;
+  border-radius:12px;
+  display:none;
+  z-index:100;
 }
 
 /* Run text */
 #runText{
-  position:fixed;top:20px;left:50%;
+  position:fixed;
+  top:20px;
+  left:50%;
   transform:translateX(-50%);
-  color:red;font-size:26px;
-  display:none;z-index:200
+  color:red;
+  font-size:26px;
+  display:none;
+  z-index:200;
 }
 </style>
 </head>
@@ -73,8 +126,10 @@ body{margin:0;overflow:hidden;font-family:arial}
 <body>
 
 <div id="world">
+
   <div id="firstFloor">
     <div id="bed"></div>
+
     <div id="stairs">
       <div></div><div></div><div></div><div></div><div></div>
     </div>
@@ -83,6 +138,7 @@ body{margin:0;overflow:hidden;font-family:arial}
   <div id="secondFloor">
     <div id="door">EXIT</div>
   </div>
+
 </div>
 
 <img id="player" src="mc.PNG">
@@ -101,13 +157,13 @@ const door = document.getElementById("door");
 const runText = document.getElementById("runText");
 
 let keys = {};
-let px=100, py=60;
+let px=120, py=70;
 let bx=0, by=0;
 let worldY=0;
 
 let atStairs=false;
 let onSecondFloor=false;
-let locked=false;   // FIX: start UNLOCKED
+let locked=false;
 let chasing=false;
 
 /* INPUT */
@@ -118,7 +174,7 @@ document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 player.style.left=px+"px";
 player.style.bottom=py+"px";
 
-/* LOOP */
+/* MAIN LOOP */
 setInterval(()=>{
   if(!locked) movePlayer();
   stairCheck();
@@ -127,7 +183,7 @@ setInterval(()=>{
   doorCheck();
 },16);
 
-/* MOVE */
+/* PLAYER MOVE */
 function movePlayer(){
   if(keys.a) px-=4;
   if(keys.d) px+=4;
@@ -147,12 +203,14 @@ function stairCheck(){
 
   let s=stairs.getBoundingClientRect();
   let p=player.getBoundingClientRect();
+
   let hit=!(p.right<s.left||p.left>s.right||p.bottom<s.top||p.top>s.bottom);
 
-  if(hit&&!atStairs){
+  if(hit && !atStairs){
     atStairs=true;
     show(`<button onclick="goDown()">Go downstairs</button>`);
   }
+
   if(!hit){
     atStairs=false;
     hide();
@@ -164,8 +222,8 @@ function goDown(){
   hide();
   onSecondFloor=true;
 
-  worldY=-window.innerHeight;
-  world.style.top=worldY+"px";
+  worldY = -window.innerHeight;
+  world.style.top = worldY+"px";
 
   px=window.innerWidth/2;
   py=80;
@@ -173,15 +231,15 @@ function goDown(){
   player.style.left=px+"px";
   player.style.bottom=py+"px";
 
-  /* Bubble fixed at top */
   bubble.style.display="block";
+
   bx=window.innerWidth/2;
   by=window.innerHeight-120;
 
   bubble.style.left=bx+"px";
   bubble.style.bottom=by+"px";
 
-  locked=true; // LOCK player
+  locked=true;
   setTimeout(bubbleDialogue,500);
 }
 
@@ -197,10 +255,10 @@ function bubbleDialogue(){
 function refuse(){
   hide();
   runText.style.display="block";
-  locked=false; // UNLOCK movement
+  locked=false;
 
   setTimeout(()=>{
-    chasing=true; // 2 sec headstart
+    chasing=true;
   },2000);
 }
 
@@ -220,12 +278,12 @@ function chaseLogic(){
   bubble.style.bottom=by+"px";
 }
 
-/* AUTOSCROLL (only when player runs down) */
+/* AUTOSCROLL */
 function autoScroll(){
   if(!chasing) return;
 
   if(keys.s){
-    worldY+=2;        // scroll camera
+    worldY+=2;
     world.style.top=worldY+"px";
   }
 }
@@ -253,5 +311,6 @@ function hide(){
   dialogue.style.display="none";
 }
 </script>
+
 </body>
 </html>
