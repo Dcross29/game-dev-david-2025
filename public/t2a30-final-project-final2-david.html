@@ -11,6 +11,7 @@ body{
   background:#222;
   font-family:arial;
   height:100vh;
+  color:white;
 }
 
 #generator{
@@ -23,6 +24,15 @@ body{
   z-index:5;
 }
 
+#holdw{
+  position:absolute;
+  bottom:260px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:22px;
+  font-weight:bold;
+}
+
 .window-img{
   position:absolute;
   top:50px;
@@ -30,9 +40,23 @@ body{
   height:250px;
 }
 
+.window-label{
+  position:absolute;
+  top:320px;
+  width:120px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+}
+
 #window-left{left:50px;}
+#label-a{left:50px;}
+
 #window-center{left:calc(50% - 60px);}
+#label-s{left:calc(50% - 60px);}
+
 #window-right{right:50px;}
+#label-d{right:50px;}
 
 #progress-bar{
   position:absolute;
@@ -51,15 +75,16 @@ body{
   background:lime;
 }
 
-#message{
+#briefing{
   position:fixed;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  color:white;
-  font-size:20px;
-  text-align:center;
-  width:100%;
+  top:15px;
+  right:15px;
+  width:260px;
+  background:rgba(0,0,0,0.7);
+  padding:12px;
+  font-size:14px;
+  line-height:1.4;
+  border:1px solid #666;
 }
 
 #victory-screen, #death-screen{
@@ -79,24 +104,33 @@ body{
 
 <body>
 
+<div id="briefing">
+<b>OBJECTIVE</b><br>
+Hold <b>W</b> to power the generator.<br><br>
+Bubbles will open windows.<br>
+Press <b>A</b>, <b>S</b>, or <b>D</b> to close them before time runs out.
+</div>
+
+<div id="holdw">HOLD W</div>
+
 <img id="generator" src="generatoroff.gif">
 
 <img id="window-left" class="window-img" src="window.gif">
+<div id="label-a" class="window-label">A</div>
+
 <img id="window-center" class="window-img" src="window.gif">
+<div id="label-s" class="window-label">S</div>
+
 <img id="window-right" class="window-img" src="window.gif">
+<div id="label-d" class="window-label">D</div>
 
 <div id="progress-bar"><div id="progress-fill"></div></div>
-
-<div id="message">
-Hold W to charge generator. Close bubble windows with A (left), S (center), D (right)!
-</div>
 
 <div id="victory-screen">VICTORY!</div>
 <div id="death-screen">DEATH!</div>
 
 <script>
 const generator = document.getElementById("generator");
-const message = document.getElementById("message");
 const progressFill = document.getElementById("progress-fill");
 
 const windows = {
@@ -125,9 +159,6 @@ function spawnBubbleForKey(key){
   bubbleWindow = key;
   bubbleActive = true;
 
-  message.innerText =
-    `Bubble in ${key.toUpperCase()}! Press ${key.toUpperCase()} to close!`;
-
   bubbleTimer = setTimeout(()=>{
     if(winEl.src.includes("windowopen.gif")){
       endGame(false);
@@ -138,11 +169,9 @@ function spawnBubbleForKey(key){
 function endGame(victory){
   gameOver = true;
 
-  if(victory){
-    document.getElementById("victory-screen").style.display = "block";
-  } else {
-    document.getElementById("death-screen").style.display = "block";
-  }
+  document.getElementById(
+    victory ? "victory-screen" : "death-screen"
+  ).style.display = "block";
 
   Object.values(windows).forEach(win => win.src = "window.gif");
 
@@ -152,8 +181,6 @@ function endGame(victory){
   }
 
   if(bubbleTimer) clearTimeout(bubbleTimer);
-  bubbleActive = false;
-  bubbleWindow = null;
 }
 
 setInterval(()=>{
@@ -189,7 +216,6 @@ setInterval(()=>{
     clearTimeout(bubbleTimer);
     bubbleActive = false;
     bubbleWindow = null;
-    message.innerText = "Window safe! Keep charging!";
   }
 
   if(progress >= 100){
