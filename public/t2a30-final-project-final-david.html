@@ -5,11 +5,7 @@
 <title>Final Level</title>
 
 <style>
-body{
-  margin:0;
-  overflow:hidden;
-  font-family:arial;
-}
+body{margin:0;overflow:hidden;font-family:arial}
 
 /* WORLD */
 #world{
@@ -20,104 +16,56 @@ body{
 }
 
 /* FLOORS */
-#firstFloor{
-  height:100vh;
-  background:#8B4513;
-  position:relative;
-}
-#secondFloor{
-  height:100vh;
-  background:#222;
-  position:relative;
-}
+#firstFloor{height:100vh;background:#8B4513;position:relative}
+#secondFloor{height:100vh;background:#222;position:relative}
 
 /* Bed */
 #bed{
-  position:absolute;
-  width:180px;
-  height:60px;
-  background:#5a2d0c;
-  left:80px;
-  bottom:40px;
-  border-radius:10px;
+  position:absolute;width:180px;height:60px;
+  background:#5a2d0c;left:80px;bottom:40px;border-radius:10px
 }
 #bed:before{
-  content:"";
-  position:absolute;
-  width:180px;
-  height:25px;
-  background:#c68642;
-  top:-25px;
-  border-radius:10px 10px 0 0;
+  content:"";position:absolute;width:180px;height:25px;
+  background:#c68642;top:-25px;border-radius:10px 10px 0 0
 }
 
 /* Stairs */
-#stairs{
-  position:absolute;
-  right:80px;
-  bottom:0;
-  width:200px;
-}
-#stairs div{
-  height:20px;
-  background:#3b1f0b;
-  margin-top:4px;
-}
+#stairs{position:absolute;right:80px;bottom:0;width:200px}
+#stairs div{height:20px;background:#3b1f0b;margin-top:4px}
 
 /* Player */
-#player{
-  position:absolute;
-  z-index:10;
-}
+#player{position:absolute;z-index:10}
 
 /* Bubble */
 #bubble{
-  position:absolute;
-  width:90px;
-  display:none;
-  z-index:9;
+  position:absolute;width:90px;display:none;z-index:9
 }
 
 /* Door */
 #door{
-  position:absolute;
-  bottom:-400px;
-  left:50%;
+  position:absolute;bottom:-500px;left:50%;
   transform:translateX(-50%);
-  width:140px;
-  height:220px;
-  background:#111;
-  border:4px solid white;
-  text-align:center;
-  color:white;
-  line-height:220px;
-  font-size:22px;
+  width:140px;height:220px;
+  background:#111;border:4px solid white;
+  text-align:center;color:white;
+  line-height:220px;font-size:22px
 }
 
 /* Dialogue */
 #dialogue{
-  position:fixed;
-  bottom:30px;
-  left:50%;
+  position:fixed;bottom:30px;left:50%;
   transform:translateX(-50%);
   background:rgba(0,0,0,.85);
-  padding:15px 25px;
-  color:white;
-  border-radius:12px;
-  display:none;
-  z-index:100;
+  padding:15px 25px;color:white;
+  border-radius:12px;display:none;z-index:100
 }
 
 /* Run text */
 #runText{
-  position:fixed;
-  top:20px;
-  left:50%;
+  position:fixed;top:20px;left:50%;
   transform:translateX(-50%);
-  color:red;
-  font-size:26px;
-  display:none;
-  z-index:200;
+  color:red;font-size:26px;
+  display:none;z-index:200
 }
 </style>
 </head>
@@ -125,7 +73,6 @@ body{
 <body>
 
 <div id="world">
-
   <div id="firstFloor">
     <div id="bed"></div>
     <div id="stairs">
@@ -136,7 +83,6 @@ body{
   <div id="secondFloor">
     <div id="door">EXIT</div>
   </div>
-
 </div>
 
 <img id="player" src="mc.PNG">
@@ -161,7 +107,7 @@ let worldY=0;
 
 let atStairs=false;
 let onSecondFloor=false;
-let locked=true;
+let locked=false;   // FIX: start UNLOCKED
 let chasing=false;
 
 /* INPUT */
@@ -201,7 +147,6 @@ function stairCheck(){
 
   let s=stairs.getBoundingClientRect();
   let p=player.getBoundingClientRect();
-
   let hit=!(p.right<s.left||p.left>s.right||p.bottom<s.top||p.top>s.bottom);
 
   if(hit&&!atStairs){
@@ -214,7 +159,7 @@ function stairCheck(){
   }
 }
 
-/* DOWN */
+/* GO DOWN */
 function goDown(){
   hide();
   onSecondFloor=true;
@@ -236,15 +181,15 @@ function goDown(){
   bubble.style.left=bx+"px";
   bubble.style.bottom=by+"px";
 
-  locked=true;
+  locked=true; // LOCK player
   setTimeout(bubbleDialogue,500);
 }
 
 /* DIALOGUE */
 function bubbleDialogue(){
   show(`
-  "Join me or die."<br><br>
-  <button onclick="refuse()">Refuse</button>
+    "Join me or die."<br><br>
+    <button onclick="refuse()">Refuse</button>
   `);
 }
 
@@ -252,10 +197,10 @@ function bubbleDialogue(){
 function refuse(){
   hide();
   runText.style.display="block";
-  locked=false;
+  locked=false; // UNLOCK movement
 
   setTimeout(()=>{
-    chasing=true;
+    chasing=true; // 2 sec headstart
   },2000);
 }
 
@@ -275,12 +220,12 @@ function chaseLogic(){
   bubble.style.bottom=by+"px";
 }
 
-/* AUTO SCROLL ONLY WHEN PLAYER RUNS DOWN */
+/* AUTOSCROLL (only when player runs down) */
 function autoScroll(){
   if(!chasing) return;
 
   if(keys.s){
-    worldY+=2;
+    worldY+=2;        // scroll camera
     world.style.top=worldY+"px";
   }
 }
