@@ -1,8 +1,8 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Final Level - Floor 2 Generator</title>
+<title>Floor 2 - Generator</title>
 <style>
 body{
   margin:0;
@@ -11,14 +11,6 @@ body{
   font-family:arial;
   height:100vh;
 }
-#player{
-  position:absolute;
-  left:50%;
-  bottom:50px;
-  transform:translateX(-50%);
-  width:60px;
-  z-index:10;
-}
 #generator{
   position:absolute;
   bottom:50px;
@@ -26,27 +18,13 @@ body{
   transform:translateX(-50%);
   width:200px;
   height:200px;
-  background:#444;
-  border:4px solid #888;
-  border-radius:12px;
-  text-align:center;
-  line-height:200px;
-  font-size:20px;
-  color:white;
   z-index:5;
 }
-.window{
+.window-img{
   position:absolute;
   top:50px;
   width:120px;
   height:250px;
-  background:#555;
-  border:3px solid #888;
-  border-radius:6px;
-  text-align:center;
-  line-height:250px;
-  font-size:20px;
-  color:white;
 }
 #window-left{left:50px;}
 #window-center{left:calc(50% - 60px);}
@@ -56,8 +34,8 @@ body{
   width:80px;
   height:auto;
   display:none;
-  z-index:15;
-  transition: top 0.2s linear;
+  z-index:10;
+  transition: top 0.1s linear;
 }
 #progress-bar{
   position:absolute;
@@ -80,23 +58,38 @@ body{
   left:50%;
   transform:translateX(-50%);
   color:white;
-  font-size:24px;
+  font-size:20px;
+  text-align:center;
+  width:100%;
+}
+#victory-screen, #death-screen{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.9);
+  color:white;
+  font-size:48px;
+  text-align:center;
+  line-height:100vh;
+  display:none;
+  z-index:1000;
 }
 </style>
 </head>
 <body>
 
-<img id="player" src="mc.PNG">
-<div id="generator">GENERATOR</div>
-<div id="window-left" class="window">A</div>
-<div id="window-center" class="window">S</div>
-<div id="window-right" class="window">D</div>
+<img id="generator" src="generator.png"> <!-- your generator image -->
+<img id="window-left" class="window-img" src="window.png">
+<img id="window-center" class="window-img" src="window.png">
+<img id="window-right" class="window-img" src="window.png">
 <img id="bubble" src="bubbleboss.gif">
 <div id="progress-bar"><div id="progress-fill"></div></div>
-<div id="message"></div>
+<div id="message">Hold W to charge the generator. Close bubble windows with A (left), S (center), D (right)!</div>
+
+<div id="victory-screen">VICTORY!</div>
+<div id="death-screen">DEATH!</div>
 
 <script>
-const player = document.getElementById("player");
 const generator = document.getElementById("generator");
 const bubble = document.getElementById("bubble");
 const message = document.getElementById("message");
@@ -112,66 +105,86 @@ let keys = {};
 let progress = 0;
 let bubbleActive = false;
 let bubbleWindow = null;
+let bubbleTimer = null;
 let gameOver = false;
 
-// WASD key input
-document.addEventListener("keydown", e => keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e => keys[e.key.toLowerCase()]=false);
+// WASD input
+document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+
+function spawnBubble(){
+  if(gameOver) return;
+  const options = ['a','s','d'];
+  bubbleWindow = options[Math.floor(Math.random()*3)];
+  const winEl = windows[bubbleWindow];
+  const rect = winEl.getBoundingClientRect();
+  bubble.style.left = rect.left + rect.width/2 - 40 + "px";
+  bubble.style.top = rect.top + "px";
+  bubble.style.display = "block";
+  bubbleActive = true;
+  bubble.approach = 0;
+
+  // timer for player to react
+  bubbleTimer = setTimeout(()=>{ // 1.5s to react
+    if(bubbleActive){
+      endGame(false); // death
+    }
+  },1500);
+
+  message.innerText = `Bubble! Press ${bubbleWindow.toUpperCase()}!`;
+}
+
+function endGame(victory){
+  gameOver = true;
+  if(victory){
+    document.getElementById("victory-screen").style.display="block";
+  } else {
+    document.getElementById("death-screen").style.display="block";
+  }
+  bubble.style.display="none";
+}
 
 // Main loop
 setInterval(()=>{
   if(gameOver) return;
 
-  // Holding W increases generator slowly
-  if(keys.w && progress < 100) {
-    progress += 0.05; // slower now
+  // Holding W charges generator
+  if(keys.w && progress < 100){
+    progress += 0.03; // slower
     progressFill.style.width = progress + "%";
   }
 
-  // Bubble random spawn more frequently
-  if(!bubbleActive && Math.random() < 0.01){ // higher chance each frame
-    const options = ['a','s','d'];
-    bubbleWindow = options[Math.floor(Math.random()*3)];
-    const winEl = windows[bubbleWindow];
-    const rect = winEl.getBoundingClientRect();
-    bubble.style.left = rect.left + rect.width/2 - 40 + "px";
-    bubble.style.top = rect.top + "px";
-    bubble.style.display = "block";
-    bubbleActive = true;
-    bubble.approach = 0;
-    message.innerText = "Bubble! Press " + bubbleWindow.toUpperCase() + "!";
+  // Bubble spawns randomly more often
+  if(!bubbleActive && Math.random() < 0.02){
+    spawnBubble();
   }
 
-  // Move bubble closer to player as "threat"
+  // Bubble movement toward player
   if(bubbleActive){
-    bubble.approach += 2; // speed of approach
+    bubble.approach += 3; // speed down the hallway
     const winEl = windows[bubbleWindow];
     const rect = winEl.getBoundingClientRect();
     bubble.style.top = rect.top + bubble.approach + "px";
 
-    // Check if player presses correct key
+    // Check if correct key pressed
     if(keys[bubbleWindow]){
-      bubble.style.display = "none";
       bubbleActive = false;
+      bubble.style.display = "none";
+      clearTimeout(bubbleTimer);
       bubbleWindow = null;
-      message.innerText = "Good!";
+      message.innerText = "Good! Keep charging!";
     }
 
-    // If bubble reaches bottom = death
+    // If bubble reaches bottom, player dies
     const bubbleRect = bubble.getBoundingClientRect();
-    if(bubbleRect.bottom >= window.innerHeight - 60){
-      gameOver = true;
-      message.innerText = "You got caught! GAME OVER";
-      alert("You died! Reload to try again.");
+    if(bubbleRect.bottom >= window.innerHeight - 50){
+      endGame(false);
     }
   }
 
   // Check if generator completed
-  if(progress>=100){
-    gameOver = true;
-    message.innerText = "Generator complete! You survive!";
-    alert("You win! Move to next level.");
-    window.location.href = "nextlevel.html"; // change this to your next level file
+  if(progress >= 100){
+    endGame(true);
   }
 
 },16);
