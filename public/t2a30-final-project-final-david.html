@@ -18,24 +18,27 @@ body{
   position:relative;
 }
 
-/* First floor (bed room) */
+/* First floor */
 #firstFloor{
   position:absolute;
   top:0;
   left:0;
   width:100%;
   height:100%;
-  background:#8B4513; /* brown room */
+  background:#8B4513;
   z-index:1;
 }
 
-/* Bed */
+/* CSS Bed */
 #bed{
   position:absolute;
   width:150px;
-  height:auto;
+  height:60px;
   left:80px;
   bottom:40px;
+  background:#A0522D;
+  border-top:20px solid #D2691E; /* mattress */
+  border-radius:10px;
   z-index:2;
 }
 
@@ -61,8 +64,8 @@ body{
   top:0;
   left:0;
   width:100%;
-  height:100%;
-  background:#444; /* dark gray */
+  height:2000px; /* tall floor for running */
+  background:#444;
   display:none;
   z-index:0;
 }
@@ -73,7 +76,16 @@ body{
   z-index:10;
 }
 
-/* Dialogue box */
+/* Bubble */
+#bubble{
+  position:absolute;
+  width:80px;
+  height:auto;
+  display:none;
+  z-index:9;
+}
+
+/* Dialogue */
 #dialogue{
   position:fixed;
   bottom:30px;
@@ -94,16 +106,16 @@ body{
   font-size:16px;
 }
 
-/* Bubble */
-#bubble{
-  position:absolute;
-  width:80px;
-  height:auto;
-  top:0;
+/* Run arrow */
+#runArrow{
+  position:fixed;
+  top:10px;
   left:50%;
   transform:translateX(-50%);
+  font-size:24px;
+  color:red;
   display:none;
-  z-index:9;
+  z-index:101;
 }
 
 /* Final door */
@@ -111,8 +123,6 @@ body{
   position:absolute;
   width:120px;
   height:200px;
-  right:50px;
-  bottom:50px;
   background:#222;
   border:4px solid white;
   text-align:center;
@@ -120,6 +130,7 @@ body{
   font-size:22px;
   display:none;
   cursor:pointer;
+  z-index:10;
 }
 </style>
 </head>
@@ -128,14 +139,16 @@ body{
 <div id="wakeRoom">
   <!-- First floor -->
   <div id="firstFloor">
-    <img id="bed" src="bed.png">
+    <div id="bed"></div>
     <div id="stairs">
       <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
     </div>
   </div>
 
   <!-- Lower floor -->
-  <div id="lowerFloor"></div>
+  <div id="lowerFloor">
+    <div id="finalDoor" style="top:1800px; left:80%;">Door</div>
+  </div>
 
   <!-- Player -->
   <img id="player" src="mc.PNG">
@@ -143,8 +156,8 @@ body{
   <!-- Bubble -->
   <img id="bubble" src="bubbleboss.gif">
 
-  <!-- Final door -->
-  <div id="finalDoor">Door</div>
+  <!-- Run arrow -->
+  <div id="runArrow">RUN ↓</div>
 </div>
 
 <div id="dialogue"></div>
@@ -157,30 +170,32 @@ const stairs = document.getElementById("stairs");
 const dialogue = document.getElementById("dialogue");
 const bubble = document.getElementById("bubble");
 const finalDoor = document.getElementById("finalDoor");
+const runArrow = document.getElementById("runArrow");
 
 let keys = {};
 let alive = true;
 let onFirstFloor = true;
 let atStairs = false;
+let bubbleChasing = false;
+let autoScroll = false;
 
-/* Track player position */
-let playerX = 120; // start near bed
-let playerY = 60;  
+// Track player position
+let playerX = 120;
+let playerY = 60;
 player.style.left = playerX + "px";
 player.style.bottom = playerY + "px";
 
-/* Input */
+// Input
 document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
 
-/* Movement loop */
+// Movement
 function movePlayer(){
   if(keys.a) playerX -= 4;
   if(keys.d) playerX += 4;
   if(keys.w) playerY += 4;
   if(keys.s) playerY -= 4;
 
-  // constrain to window
   const rect = player.getBoundingClientRect();
   if(playerX < 0) playerX = 0;
   if(playerX > window.innerWidth - rect.width) playerX = window.innerWidth - rect.width;
@@ -190,7 +205,7 @@ function movePlayer(){
   player.style.left = playerX + "px";
   player.style.bottom = playerY + "px";
 
-  // check stairs on first floor
+  // First floor stairs check
   if(onFirstFloor && checkStairs()){
     if(!atStairs){
       atStairs = true;
@@ -199,6 +214,19 @@ function movePlayer(){
   } else {
     atStairs = false;
     if(onFirstFloor) hideDialogue();
+  }
+
+  // Bubble chasing logic
+  if(bubbleChasing){
+    if(playerX < bubble.offsetLeft) bubble.style.left = (parseInt(bubble.style.left)-2)+"px";
+    if(playerX > bubble.offsetLeft) bubble.style.left = (parseInt(bubble.style.left)+2)+"px";
+    if(playerY < bubble.offsetTop) bubble.style.top = (parseInt(bubble.style.top)-2)+"px";
+    if(playerY > bubble.offsetTop) bubble.style.top = (parseInt(bubble.style.top)+2)+"px";
+  }
+
+  // Auto scroll floor
+  if(autoScroll){
+    lowerFloor.scrollTop += 3;
   }
 }
 setInterval(movePlayer,16);
@@ -218,39 +246,28 @@ function hideDialogue(){
   dialogue.style.display="none";
 }
 
-/* Go downstairs function */
+// Go downstairs
 function goDownstairs(){
   hideDialogue();
   onFirstFloor = false;
-  firstFloor.style.display = "none";
-  lowerFloor.style.display = "block";
+  firstFloor.style.display="none";
+  lowerFloor.style.display="block";
 
-  // move player to bottom of lower floor
+  // Position player at bottom of lower floor
   playerX = window.innerWidth/2 - player.width/2;
   playerY = 40;
   player.style.left = playerX + "px";
   player.style.bottom = playerY + "px";
 
-  // start bubble walk up after short delay
-  setTimeout(()=>bubbleWalkUp(), 500);
-}
-
-/* Bubble walk up */
-function bubbleWalkUp(){
+  // Bubble appears at top
   bubble.style.display="block";
-  bubble.style.top = window.innerHeight + "px";
-  let bubbleY = window.innerHeight;
-  const interval = setInterval(()=>{
-    bubbleY -= 3;
-    bubble.style.top = bubbleY + "px";
-    if(bubbleY <= player.getBoundingClientRect().top){
-      clearInterval(interval);
-      bubbleConfront();
-    }
-  },16);
+  bubble.style.top = "0px";
+  bubble.style.left = (window.innerWidth/2)+"px";
+
+  setTimeout(bubbleConfront,500);
 }
 
-/* Bubble confrontation */
+// Bubble confrontation
 function bubbleConfront(){
   showDialogue(`
     The Bubble appears.<br>
@@ -267,39 +284,12 @@ function joinBubble(){
 
 function refuseBubble(){
   hideDialogue();
-  startChase();
+  runArrow.style.display="block";
+  setTimeout(()=>{ bubbleChasing=true; autoScroll=true; },2000); // 2 sec headstart
 }
 
-/* Chase sequence */
-function startChase(){
-  bubble.style.display="block";
-  bubble.style.top="0px";
-  let bubbleY = 0;
-  let chasePlayerX = playerX;
-  const chaseInterval = setInterval(()=>{
-    if(!alive) { clearInterval(chaseInterval); return; }
-    bubbleY += 3;
-    bubble.style.top = bubbleY+"px";
-
-    // WASD horizontal movement
-    if(keys.a) chasePlayerX -= 4;
-    if(keys.d) chasePlayerX += 4;
-    if(chasePlayerX<0) chasePlayerX=0;
-    if(chasePlayerX>window.innerWidth-50) chasePlayerX = window.innerWidth-50;
-    player.style.left = chasePlayerX+"px";
-    playerX = chasePlayerX;
-
-    // bubble reaches bottom
-    if(bubbleY >= window.innerHeight-150){
-      clearInterval(chaseInterval);
-      bubble.style.display="none";
-      finalDoor.style.display="block";
-    }
-  },16);
-}
-
-/* Final door click */
-finalDoor.addEventListener("click", ()=>{
+// Final door
+finalDoor.addEventListener("mouseenter", ()=>{
   location.href="finalSequence.html";
 });
 </script>
