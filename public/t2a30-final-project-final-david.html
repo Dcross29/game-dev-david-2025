@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Final Level</title>
+<title>Final Level - Chase</title>
 <style>
 body{
   margin:0;
@@ -15,7 +15,7 @@ body{
 #world{
   position:absolute;
   width:100%;
-  height:200vh;
+  height:300vh; /* giant vertical map */
   top:0;
 }
 
@@ -26,7 +26,7 @@ body{
   position:relative;
 }
 #secondFloor{
-  height:100vh;
+  height:200vh;
   background:#222;
   position:relative;
 }
@@ -81,7 +81,7 @@ body{
 /* Door */
 #door{
   position:absolute;
-  bottom:50px;
+  bottom:50px; /* very far down the second floor */
   left:50%;
   transform:translateX(-50%);
   width:140px;
@@ -214,24 +214,24 @@ function goDown(){
   hide();
   onSecondFloor=true;
 
-  // move world to show 2nd floor
+  // Move world to show second floor
   worldY = -window.innerHeight;
-  world.style.top = worldY+"px";
+  world.style.top = worldY + "px";
 
-  // reset player to middle of screen
+  // Player position
   px = window.innerWidth/2;
   py = 80;
-  player.style.left = px+"px";
-  player.style.bottom = py+"px";
+  player.style.left = px + "px";
+  player.style.bottom = py + "px";
 
-  // bubble at top of screen
+  // Bubble at top
   bubble.style.display = "block";
   bx = window.innerWidth/2;
   by = window.innerHeight - 120;
-  bubble.style.left = bx+"px";
-  bubble.style.bottom = by+"px";
+  bubble.style.left = bx + "px";
+  bubble.style.bottom = by + "px";
 
-  locked=true;
+  locked = true;
   setTimeout(bubbleDialogue, 500);
 }
 
@@ -248,7 +248,7 @@ function refuse(){
   hide();
   runText.style.display = "block";
   locked = false;
-  // 2 sec headstart before bubble chases
+  // 2 sec headstart
   setTimeout(()=>{ chasing=true; }, 2000);
 }
 
@@ -256,7 +256,7 @@ function refuse(){
 function chaseLogic(){
   if(!chasing) return;
 
-  // move bubble towards player
+  // Bubble moves toward player
   let dx = px - bx;
   let dy = py - by;
   let dist = Math.sqrt(dx*dx + dy*dy) || 1;
@@ -264,23 +264,21 @@ function chaseLogic(){
   bx += (dx/dist)*speed;
   by += (dy/dist)*speed;
 
-  // apply bubble position WITH world scroll
+  // Bubble position relative to world scroll
   bubble.style.left = bx + "px";
   bubble.style.bottom = by + worldY + "px";
 }
 
-/* AUTOSCROLL - only move down when running */
+/* AUTO SCROLL */
 function autoScroll(){
   if(!chasing) return;
 
   const scrollSpeed = 2;
-  if(keys.s){
-    worldY -= scrollSpeed; // move world DOWN
-    world.style.top = worldY + "px";
+  worldY -= scrollSpeed; // move world down
+  world.style.top = worldY + "px";
 
-    // adjust bubble with scroll
-    bubble.style.bottom = by + worldY + "px";
-  }
+  // Bubble moves with scroll
+  bubble.style.bottom = by + worldY + "px";
 }
 
 /* DOOR */
