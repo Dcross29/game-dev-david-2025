@@ -1,73 +1,63 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Final Level - Part 1</title>
+<title>Bubble Chase Level</title>
+
 <style>
 body{
   margin:0;
   overflow:hidden;
-  font-family:sans-serif;
-  background:brown;
+  font-family:arial;
 }
 
-/* Room container */
-#wakeRoom{
-  width:100vw;
-  height:100vh;
-  position:relative;
-}
-
-/* First floor */
-#firstFloor{
+/* Floors */
+#firstFloor, #lowerFloor{
   position:absolute;
-  top:0;
-  left:0;
   width:100%;
   height:100%;
+}
+
+#firstFloor{
   background:#8B4513;
-  z-index:1;
+}
+
+#lowerFloor{
+  background:#333;
+  display:none;
 }
 
 /* CSS Bed */
 #bed{
   position:absolute;
-  width:150px;
+  width:180px;
   height:60px;
+  background:#5a2d0c;
   left:80px;
   bottom:40px;
-  background:#A0522D;
-  border-top:20px solid #D2691E; /* mattress */
   border-radius:10px;
-  z-index:2;
+}
+#bed:before{
+  content:"";
+  position:absolute;
+  width:180px;
+  height:25px;
+  background:#c68642;
+  top:-25px;
+  border-radius:10px 10px 0 0;
 }
 
 /* Stairs */
 #stairs{
   position:absolute;
+  right:80px;
   bottom:0;
-  left:60%;
-  transform:translateX(-50%);
   width:200px;
-  height:150px;
-  z-index:2;
 }
 #stairs div{
-  background:#654321;
   height:20px;
-  margin-top:5px;
-}
-
-/* Lower floor */
-#lowerFloor{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:2000px; /* tall floor for running */
-  background:#444;
-  display:none;
-  z-index:0;
+  background:#3b1f0b;
+  margin-top:4px;
 }
 
 /* Player */
@@ -79,8 +69,7 @@ body{
 /* Bubble */
 #bubble{
   position:absolute;
-  width:80px;
-  height:auto;
+  width:90px;
   display:none;
   z-index:9;
 }
@@ -91,208 +80,227 @@ body{
   bottom:30px;
   left:50%;
   transform:translateX(-50%);
-  background:rgba(0,0,0,0.85);
-  padding:20px;
-  border-radius:12px;
-  max-width:600px;
-  text-align:center;
+  background:rgba(0,0,0,.85);
+  padding:15px 25px;
   color:white;
+  border-radius:12px;
   display:none;
   z-index:100;
 }
-#dialogue button{
-  margin-top:10px;
-  padding:10px 20px;
-  font-size:16px;
-}
 
-/* Run arrow */
+/* Run Arrow */
 #runArrow{
   position:fixed;
-  top:10px;
+  top:15px;
   left:50%;
   transform:translateX(-50%);
-  font-size:24px;
+  font-size:28px;
   color:red;
   display:none;
-  z-index:101;
+  z-index:200;
 }
 
-/* Final door */
-#finalDoor{
+/* Door */
+#door{
   position:absolute;
-  width:120px;
-  height:200px;
-  background:#222;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:140px;
+  height:220px;
+  background:#111;
   border:4px solid white;
   text-align:center;
-  line-height:200px;
+  color:white;
+  line-height:220px;
   font-size:22px;
   display:none;
-  cursor:pointer;
-  z-index:10;
 }
 </style>
 </head>
+
 <body>
 
-<div id="wakeRoom">
-  <!-- First floor -->
-  <div id="firstFloor">
-    <div id="bed"></div>
-    <div id="stairs">
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-    </div>
+<div id="firstFloor">
+  <div id="bed"></div>
+  <div id="stairs">
+    <div></div><div></div><div></div><div></div><div></div>
   </div>
-
-  <!-- Lower floor -->
-  <div id="lowerFloor">
-    <div id="finalDoor" style="top:1800px; left:80%;">Door</div>
-  </div>
-
-  <!-- Player -->
-  <img id="player" src="mc.PNG">
-
-  <!-- Bubble -->
-  <img id="bubble" src="bubbleboss.gif">
-
-  <!-- Run arrow -->
-  <div id="runArrow">RUN ↓</div>
 </div>
 
+<div id="lowerFloor">
+  <div id="door">EXIT</div>
+</div>
+
+<img id="player" src="mc.PNG">
+<img id="bubble" src="bubbleboss.gif">
+
+<div id="runArrow">RUN ↓</div>
 <div id="dialogue"></div>
 
 <script>
 const player = document.getElementById("player");
+const bubble = document.getElementById("bubble");
+const dialogue = document.getElementById("dialogue");
+const stairs = document.getElementById("stairs");
 const firstFloor = document.getElementById("firstFloor");
 const lowerFloor = document.getElementById("lowerFloor");
-const stairs = document.getElementById("stairs");
-const dialogue = document.getElementById("dialogue");
-const bubble = document.getElementById("bubble");
-const finalDoor = document.getElementById("finalDoor");
 const runArrow = document.getElementById("runArrow");
+const door = document.getElementById("door");
 
 let keys = {};
-let alive = true;
 let onFirstFloor = true;
 let atStairs = false;
 let bubbleChasing = false;
 let autoScroll = false;
 
-// Track player position
-let playerX = 120;
-let playerY = 60;
-player.style.left = playerX + "px";
-player.style.bottom = playerY + "px";
+/* Positions */
+let px = 100, py = 60;
+let bx = 0, by = 0;
 
-// Input
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+player.style.left = px+"px";
+player.style.bottom = py+"px";
 
-// Movement
+/* Input */
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+/* Main Loop */
+setInterval(()=>{
+  movePlayer();
+  chaseLogic();
+  scrollLogic();
+  doorCheck();
+},16);
+
+/* Movement */
 function movePlayer(){
-  if(keys.a) playerX -= 4;
-  if(keys.d) playerX += 4;
-  if(keys.w) playerY += 4;
-  if(keys.s) playerY -= 4;
+  if(keys.a) px -=4;
+  if(keys.d) px +=4;
+  if(keys.w) py +=4;
+  if(keys.s) py -=4;
 
-  const rect = player.getBoundingClientRect();
-  if(playerX < 0) playerX = 0;
-  if(playerX > window.innerWidth - rect.width) playerX = window.innerWidth - rect.width;
-  if(playerY < 0) playerY = 0;
-  if(playerY > window.innerHeight - rect.height) playerY = window.innerHeight - rect.height;
+  px = Math.max(0,Math.min(window.innerWidth-player.width,px));
+  py = Math.max(0,Math.min(window.innerHeight-player.height,py));
 
-  player.style.left = playerX + "px";
-  player.style.bottom = playerY + "px";
+  player.style.left = px+"px";
+  player.style.bottom = py+"px";
 
-  // First floor stairs check
-  if(onFirstFloor && checkStairs()){
-    if(!atStairs){
-      atStairs = true;
-      showDialogue(`<button onclick="goDownstairs()">Go downstairs</button>`);
-    }
-  } else {
-    atStairs = false;
-    if(onFirstFloor) hideDialogue();
+  if(onFirstFloor) stairCheck();
+}
+
+/* Stairs */
+function stairCheck(){
+  let s = stairs.getBoundingClientRect();
+  let p = player.getBoundingClientRect();
+
+  let hit = !(p.right<s.left||p.left>s.right||p.bottom<s.top||p.top>s.bottom);
+
+  if(hit && !atStairs){
+    atStairs=true;
+    show(`<button onclick="goDown()">Go downstairs</button>`);
   }
-
-  // Bubble chasing logic
-  if(bubbleChasing){
-    if(playerX < bubble.offsetLeft) bubble.style.left = (parseInt(bubble.style.left)-2)+"px";
-    if(playerX > bubble.offsetLeft) bubble.style.left = (parseInt(bubble.style.left)+2)+"px";
-    if(playerY < bubble.offsetTop) bubble.style.top = (parseInt(bubble.style.top)-2)+"px";
-    if(playerY > bubble.offsetTop) bubble.style.top = (parseInt(bubble.style.top)+2)+"px";
-  }
-
-  // Auto scroll floor
-  if(autoScroll){
-    lowerFloor.scrollTop += 3;
+  if(!hit){
+    atStairs=false;
+    hide();
   }
 }
-setInterval(movePlayer,16);
 
-function checkStairs(){
-  const stairRect = stairs.getBoundingClientRect();
-  const playerRect = player.getBoundingClientRect();
-  return !(playerRect.right < stairRect.left || playerRect.left > stairRect.right || 
-           playerRect.bottom < stairRect.top || playerRect.top > stairRect.bottom);
-}
-
-function showDialogue(html){
-  dialogue.innerHTML = html;
-  dialogue.style.display="block";
-}
-function hideDialogue(){
-  dialogue.style.display="none";
-}
-
-// Go downstairs
-function goDownstairs(){
-  hideDialogue();
-  onFirstFloor = false;
+/* Downstairs */
+function goDown(){
+  hide();
+  onFirstFloor=false;
   firstFloor.style.display="none";
   lowerFloor.style.display="block";
 
-  // Position player at bottom of lower floor
-  playerX = window.innerWidth/2 - player.width/2;
-  playerY = 40;
-  player.style.left = playerX + "px";
-  player.style.bottom = playerY + "px";
+  px = window.innerWidth/2;
+  py = 40;
 
-  // Bubble appears at top
+  player.style.left=px+"px";
+  player.style.bottom=py+"px";
+
   bubble.style.display="block";
-  bubble.style.top = "0px";
-  bubble.style.left = (window.innerWidth/2)+"px";
 
-  setTimeout(bubbleConfront,500);
+  /* Bubble starts TOP */
+  bx = window.innerWidth/2;
+  by = window.innerHeight-120;
+
+  bubble.style.left=bx+"px";
+  bubble.style.bottom=by+"px";
+
+  door.style.display="block";
+  door.style.bottom="0px";
+
+  setTimeout(confront,600);
 }
 
-// Bubble confrontation
-function bubbleConfront(){
-  showDialogue(`
-    The Bubble appears.<br>
-    "Join me… or I shoot you."<br><br>
-    <button onclick="joinBubble()">Join him</button>
-    <button onclick="refuseBubble()">Refuse</button>
+/* Bubble talk */
+function confront(){
+  show(`
+  "Join me or die."<br><br>
+  <button onclick="refuse()">Refuse</button>
   `);
 }
 
-function joinBubble(){
-  hideDialogue();
-  alert("Join path would go here (BAD or SNAKE endings).");
-}
-
-function refuseBubble(){
-  hideDialogue();
+/* Refuse */
+function refuse(){
+  hide();
   runArrow.style.display="block";
-  setTimeout(()=>{ bubbleChasing=true; autoScroll=true; },2000); // 2 sec headstart
+
+  /* 2 sec headstart */
+  setTimeout(()=>{
+    bubbleChasing=true;
+    autoScroll=true;
+  },2000);
 }
 
-// Final door
-finalDoor.addEventListener("mouseenter", ()=>{
-  location.href="finalSequence.html";
-});
-</script>
+/* CHASE FIX */
+function chaseLogic(){
+  if(!bubbleChasing) return;
 
+  let dx = px - bx;
+  let dy = py - by;
+
+  let dist = Math.sqrt(dx*dx+dy*dy);
+  let speed = 2.5;
+
+  bx += (dx/dist)*speed;
+  by += (dy/dist)*speed;
+
+  bubble.style.left=bx+"px";
+  bubble.style.bottom=by+"px";
+}
+
+/* AUTOSCROLL FIX */
+function scrollLogic(){
+  if(!autoScroll) return;
+
+  py -= 2; /* force player down */
+}
+
+/* Door */
+function doorCheck(){
+  if(!autoScroll) return;
+
+  let d = door.getBoundingClientRect();
+  let p = player.getBoundingClientRect();
+
+  let hit = !(p.right<d.left||p.left>d.right||p.bottom<d.top||p.top>d.bottom);
+
+  if(hit){
+    alert("NEXT LEVEL");
+    location.href="level2.html";
+  }
+}
+
+/* UI */
+function show(t){
+  dialogue.innerHTML=t;
+  dialogue.style.display="block";
+}
+function hide(){
+  dialogue.style.display="none";
+}
+</script>
 </body>
 </html>
