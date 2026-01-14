@@ -80,45 +80,64 @@ const dialogue = document.getElementById("dialogue");
 let keys = {};
 let px = 120, py = 70;
 
+// Initialize player and movement loop
 function init() {
   player.style.left = px + "px";
   player.style.bottom = py + "px";
 
-  setInterval(()=>{
-    if(keys.a) px-=4;
-    if(keys.d) px+=4;
-    if(keys.w) py+=4;
-    if(keys.s) py-=4;
+  setInterval(() => {
+    // WASD movement
+    if(keys.a) px -= 4;
+    if(keys.d) px += 4;
+    if(keys.w) py += 4;
+    if(keys.s) py -= 4;
 
+    // keep player inside window
     px = Math.max(0, Math.min(window.innerWidth - player.width, px));
     py = Math.max(0, py);
 
     player.style.left = px + "px";
     player.style.bottom = py + "px";
 
+    // collision detection
     const pRect = player.getBoundingClientRect();
     const sRect = stairs.getBoundingClientRect();
 
     if(!(pRect.right < sRect.left || pRect.left > sRect.right || pRect.bottom < sRect.top || pRect.top > sRect.bottom)){
-      showDialogue(`<button onclick="goDown()">Go downstairs</button>`);
+      showDialogueButton();
     } else {
       hideDialogue();
     }
-  },16);
+  }, 16);
 }
 
-if (player.complete) init();
+// Handle key input
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+// Show dialogue with button
+function showDialogueButton() {
+  // prevent creating multiple buttons
+  if(dialogue.firstChild) return;
+
+  dialogue.innerHTML = "";
+  const btn = document.createElement("button");
+  btn.textContent = "Go downstairs";
+  btn.onclick = () => {
+    window.location.href = "t2a30-final-project-final2-david.html";
+  };
+  dialogue.appendChild(btn);
+  dialogue.style.display = "block";
+}
+
+function hideDialogue() {
+  dialogue.innerHTML = "";
+  dialogue.style.display = "none";
+}
+
+// Start game once image is ready
+if(player.complete) init();
 else player.onload = init;
-
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
-
-function goDown(){
-  window.location.href="t2a30-final-project-final2-david.html";
-}
-
-function showDialogue(html){dialogue.innerHTML = html; dialogue.style.display="block";}
-function hideDialogue(){dialogue.style.display="none";}
 </script>
 
 </body>
