@@ -15,7 +15,7 @@ body{
 #world{
   position:absolute;
   width:100%;
-  height:300vh; /* vertical map */
+  height:300vh;
   top:0;
 }
 
@@ -267,7 +267,7 @@ function chaseLogic(){
   bx += (dx/dist)*speed;
   by += (dy/dist)*speed;
 
-  // Bubble follows camera
+  // Bubble follows camera properly
   bubble.style.left = bx + "px";
   bubble.style.bottom = by + worldY + "px";
 }
@@ -278,17 +278,20 @@ function autoScroll(){
 
   const scrollSpeed = 2;
 
-  // Stop scrolling when player reaches door
-  const playerWorldY = py - worldY;
-  if(playerWorldY <= door.offsetTop + 10){
+  // Stop scrolling when the door is near bottom of screen
+  const doorScreenY = door.offsetTop + worldY; // door relative to screen
+  const screenHeight = window.innerHeight;
+
+  if(doorScreenY <= screenHeight - door.offsetHeight - 10){
     autoScrolling = false;
     return;
   }
 
+  // Move world down
   worldY -= scrollSpeed;
   world.style.top = worldY + "px";
 
-  // Bubble moves with scroll
+  // Bubble moves with world
   bubble.style.bottom = by + worldY + "px";
 }
 
