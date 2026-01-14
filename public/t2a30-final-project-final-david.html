@@ -2,13 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Final Level - Chase</title>
+<title>Final Level</title>
 <style>
 body{
   margin:0;
   overflow:hidden;
-  font-family:arial;
   background:black;
+  font-family:arial;
+}
+
+/* CAMERA */
+#camera{
+  position:absolute;
+  width:100%;
+  height:100vh;
+  overflow:hidden;
 }
 
 /* WORLD */
@@ -16,29 +24,28 @@ body{
   position:absolute;
   width:100%;
   height:300vh;
-  top:0;
 }
 
-/* Floors */
-#firstFloor{
+/* FLOORS */
+#floor1{
   height:100vh;
-  background:#8B4513;
+  background:#7a4a1c;
   position:relative;
 }
-#secondFloor{
+#floor2{
   height:200vh;
-  background:#222;
+  background:#111;
   position:relative;
 }
 
-/* Bed */
+/* BED */
 #bed{
   position:absolute;
-  width:180px;
-  height:60px;
-  background:#5a2d0c;
-  left:80px;
+  left:60px;
   bottom:40px;
+  width:180px;
+  height:50px;
+  background:#5a2d0c;
   border-radius:10px;
 }
 #bed:before{
@@ -46,31 +53,31 @@ body{
   position:absolute;
   width:180px;
   height:25px;
-  background:#c68642;
   top:-25px;
+  background:#c68642;
   border-radius:10px 10px 0 0;
 }
 
-/* Stairs */
+/* STAIRS */
 #stairs{
   position:absolute;
   right:80px;
   bottom:0;
-  width:200px;
+  width:160px;
 }
 #stairs div{
-  height:20px;
+  height:18px;
   background:#3b1f0b;
   margin-top:4px;
 }
 
-/* Player */
+/* PLAYER */
 #player{
   position:absolute;
   z-index:10;
 }
 
-/* Bubble */
+/* BUBBLE */
 #bubble{
   position:absolute;
   width:90px;
@@ -78,23 +85,23 @@ body{
   z-index:9;
 }
 
-/* Door */
+/* DOOR */
 #door{
   position:absolute;
-  bottom:50px;
+  bottom:60px;
   left:50%;
   transform:translateX(-50%);
   width:140px;
   height:220px;
-  background:#111;
+  background:#000;
   border:4px solid white;
   text-align:center;
   color:white;
-  line-height:220px;
   font-size:22px;
+  line-height:220px;
 }
 
-/* Dialogue */
+/* UI */
 #dialogue{
   position:fixed;
   bottom:30px;
@@ -108,8 +115,7 @@ body{
   z-index:100;
 }
 
-/* Run text */
-#runText{
+#run{
   position:fixed;
   top:20px;
   left:50%;
@@ -123,121 +129,123 @@ body{
 </head>
 <body>
 
-<div id="world">
-  <div id="firstFloor">
-    <div id="bed"></div>
-    <div id="stairs">
-      <div></div><div></div><div></div><div></div><div></div>
+<div id="camera">
+  <div id="world">
+    <div id="floor1">
+      <div id="bed"></div>
+      <div id="stairs">
+        <div></div><div></div><div></div><div></div><div></div>
+      </div>
     </div>
-  </div>
-  <div id="secondFloor">
-    <div id="door">EXIT</div>
+
+    <div id="floor2">
+      <div id="door">EXIT</div>
+    </div>
   </div>
 </div>
 
 <img id="player" src="mc.PNG">
 <img id="bubble" src="bubbleboss.gif">
 
-<div id="runText">RUN ↓</div>
+<div id="run">RUN ↓</div>
 <div id="dialogue"></div>
 
 <script>
-const player = document.getElementById("player");
-const bubble = document.getElementById("bubble");
-const stairs = document.getElementById("stairs");
-const dialogue = document.getElementById("dialogue");
-const world = document.getElementById("world");
-const door = document.getElementById("door");
-const runText = document.getElementById("runText");
-
-let keys = {};
-let px=120, py=70; // player position
-let bx=0, by=0;     // bubble position
-let worldY=0;
-
-let atStairs=false;
-let onSecondFloor=false;
-let locked=false;
-let chasing=false;
-let autoScrolling=false;
+const player=document.getElementById("player");
+const bubble=document.getElementById("bubble");
+const stairs=document.getElementById("stairs");
+const world=document.getElementById("world");
+const door=document.getElementById("door");
+const dialogue=document.getElementById("dialogue");
+const run=document.getElementById("run");
 
 /* INPUT */
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
+let keys={};
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+/* WORLD POS */
+let camY=0;
+
+let pX=120;
+let pY=80;  // WORLD coords
+
+let bX=0;
+let bY=0;
+
+let locked=false;
+let onFloor2=false;
+let chasing=false;
 
 /* START */
-player.style.left=px+"px";
-player.style.bottom=py+"px";
+update();
 
-/* MAIN LOOP */
+/* LOOP */
 setInterval(()=>{
   if(!locked) movePlayer();
   stairCheck();
-  chaseLogic();
-  autoScroll();
-  doorCheck();
+  if(chasing){
+    bubbleFollow();
+    cameraFollow();
+    doorCheck();
+  }
+  render();
 },16);
 
-/* PLAYER MOVE */
+/* MOVE */
 function movePlayer(){
-  if(keys.a) px-=4;
-  if(keys.d) px+=4;
-  if(keys.w) py+=4;
-  if(keys.s) py-=4;
+  if(keys.a) pX-=4;
+  if(keys.d) pX+=4;
+  if(keys.w) pY+=4;
+  if(keys.s) pY-=4;
 
-  px=Math.max(0, Math.min(window.innerWidth-player.width, px));
-  py=Math.max(0, Math.min(window.innerHeight-player.height, py));
+  pX=Math.max(0,Math.min(window.innerWidth-player.width,pX));
+  pY=Math.max(0,pY);
+}
 
-  player.style.left=px+"px";
-  player.style.bottom=py+"px";
+/* RENDER */
+function render(){
+  world.style.top=-camY+"px";
+
+  player.style.left=pX+"px";
+  player.style.bottom=(pY-camY)+"px";
+
+  bubble.style.left=bX+"px";
+  bubble.style.bottom=(bY-camY)+"px";
 }
 
 /* STAIRS */
 function stairCheck(){
-  if(onSecondFloor) return;
+  if(onFloor2) return;
 
-  const s = stairs.getBoundingClientRect();
-  const p = player.getBoundingClientRect();
-  const hit = !(p.right < s.left || p.left > s.right || p.bottom < s.top || p.top > s.bottom);
+  const s=stairs.getBoundingClientRect();
+  const p=player.getBoundingClientRect();
 
-  if(hit && !atStairs){
-    atStairs = true;
+  if(hit(p,s)){
     show(`<button onclick="goDown()">Go downstairs</button>`);
-  }
-  if(!hit){
-    atStairs = false;
-    hide();
-  }
+  }else hide();
 }
 
 /* GO DOWN */
 function goDown(){
   hide();
-  onSecondFloor=true;
+  onFloor2=true;
 
-  // Show second floor
-  worldY = -window.innerHeight;
-  world.style.top = worldY + "px";
+  camY=window.innerHeight;
 
-  // Player starts near top
-  px = window.innerWidth/2;
-  py = 80;
-  player.style.left = px+"px";
-  player.style.bottom = py+"px";
+  pX=window.innerWidth/2;
+  pY=camY+80;
 
-  // Bubble at top
-  bubble.style.display = "block";
-  bx = window.innerWidth/2;
-  by = window.innerHeight - 120;
-  bubble.style.left = bx+"px";
-  bubble.style.bottom = by+"px";
+  bubble.style.display="block";
+  bX=window.innerWidth/2;
+  bY=camY+window.innerHeight-120;
 
-  locked = true;
-  setTimeout(bubbleDialogue, 500);
+  locked=true;
+  setTimeout(bubbleTalk,500);
 }
 
 /* DIALOGUE */
-function bubbleDialogue(){
+function bubbleTalk(){
   show(`
     "Join me or die."<br><br>
     <button onclick="refuse()">Refuse</button>
@@ -247,74 +255,51 @@ function bubbleDialogue(){
 /* REFUSE */
 function refuse(){
   hide();
-  runText.style.display = "block";
-  locked = false;
-
-  // Start chase immediately
-  chasing = true;
-  autoScrolling = true;
+  run.style.display="block";
+  locked=false;
+  chasing=true;
 }
 
-/* CHASE */
-function chaseLogic(){
-  if(!chasing) return;
+/* BUBBLE FOLLOW */
+function bubbleFollow(){
+  const dx=pX-bX;
+  const dy=pY-bY;
+  const d=Math.sqrt(dx*dx+dy*dy)||1;
 
-  // Bubble moves toward player
-  const dx = px - bx;
-  const dy = py - by;
-  const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-  const speed = 2.5;
-  bx += (dx/dist)*speed;
-  by += (dy/dist)*speed;
-
-  // Bubble follows camera properly
-  bubble.style.left = bx + "px";
-  bubble.style.bottom = by + worldY + "px";
+  bX+=dx/d*2.4;
+  bY+=dy/d*2.4;
 }
 
-/* AUTO SCROLL */
-function autoScroll(){
-  if(!autoScrolling) return;
+/* CAMERA FOLLOW */
+function cameraFollow(){
+  camY=pY-200;
 
-  const scrollSpeed = 2;
-
-  // Stop scrolling when the door is near bottom of screen
-  const doorScreenY = door.offsetTop + worldY; // door relative to screen
-  const screenHeight = window.innerHeight;
-
-  if(doorScreenY <= screenHeight - door.offsetHeight - 10){
-    autoScrolling = false;
-    return;
+  // stop when door visible
+  const doorScreen=(door.offsetTop-camY);
+  if(doorScreen<window.innerHeight-260){
+    camY=door.offsetTop-(window.innerHeight-260);
   }
-
-  // Move world down
-  worldY -= scrollSpeed;
-  world.style.top = worldY + "px";
-
-  // Bubble moves with world
-  bubble.style.bottom = by + worldY + "px";
 }
 
 /* DOOR */
 function doorCheck(){
-  if(!chasing) return;
-
-  const d = door.getBoundingClientRect();
-  const p = player.getBoundingClientRect();
-  const hit = !(p.right<d.left || p.left>d.right || p.bottom<d.top || p.top>d.bottom);
-
-  if(hit){
+  const d=door.getBoundingClientRect();
+  const p=player.getBoundingClientRect();
+  if(hit(p,d)){
     location.href="level2.html";
   }
 }
 
-/* UI */
+/* UTILS */
+function hit(a,b){
+  return !(a.right<b.left||a.left>b.right||a.bottom<b.top||a.top>b.bottom);
+}
 function show(t){
-  dialogue.innerHTML = t;
-  dialogue.style.display = "block";
+  dialogue.innerHTML=t;
+  dialogue.style.display="block";
 }
 function hide(){
-  dialogue.style.display = "none";
+  dialogue.style.display="none";
 }
 </script>
 </body>
