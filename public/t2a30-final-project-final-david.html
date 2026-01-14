@@ -4,18 +4,39 @@
 <meta charset="UTF-8">
 
 <h1 align=center><font color=red>I will pop that bubble Final level - 1</font></h1>
-<h2 align=center><font color=blue>It was all a dream</font></h1>
+<h2 id="subtitle" align=center><font color=blue>It was all a dream</font></h2>
+
 <style>
 body{
   margin:0;
   overflow:hidden;
   background:#7a4a1c;
   font-family:arial;
+  opacity:0;
+  animation: fadeInPage 2s ease forwards;
 }
+
+#subtitle{
+  animation: fadeOutText 2s ease forwards;
+  animation-delay: 3s;
+}
+
+/* animations */
+@keyframes fadeInPage{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+
+@keyframes fadeOutText{
+  from{opacity:1;}
+  to{opacity:0;}
+}
+
 #player{
   position:absolute;
   z-index:10;
 }
+
 #bed{
   position:absolute;
   left:60px;
@@ -25,6 +46,7 @@ body{
   background:#5a2d0c;
   border-radius:10px;
 }
+
 #bed:before{
   content:"";
   position:absolute;
@@ -34,6 +56,7 @@ body{
   background:#c68642;
   border-radius:10px 10px 0 0;
 }
+
 #stairs{
   position:absolute;
   right:80px;
@@ -41,11 +64,13 @@ body{
   width:160px;
   height:120px;
 }
+
 #stairs div{
   height:18px;
   background:#3b1f0b;
   margin-top:4px;
 }
+
 #dialogue{
   position:fixed;
   bottom:30px;
@@ -58,16 +83,22 @@ body{
   display:none;
   z-index:100;
 }
+
 button{
   padding:10px 20px;
   font-size:16px;
 }
 </style>
 </head>
+
 <body>
 
 <div id="bed"></div>
-<div id="stairs"><div></div><div></div><div></div><div></div><div></div></div>
+
+<div id="stairs">
+  <div></div><div></div><div></div><div></div><div></div>
+</div>
+
 <img id="player" src="mc.PNG">
 
 <div id="dialogue"></div>
@@ -80,44 +111,42 @@ const dialogue = document.getElementById("dialogue");
 let keys = {};
 let px = 120, py = 70;
 
-// Initialize player and movement loop
-function init() {
+function init(){
   player.style.left = px + "px";
   player.style.bottom = py + "px";
 
   setInterval(() => {
-    // WASD movement
+
     if(keys.a) px -= 4;
     if(keys.d) px += 4;
     if(keys.w) py += 4;
     if(keys.s) py -= 4;
 
-    // keep player inside window
     px = Math.max(0, Math.min(window.innerWidth - player.width, px));
     py = Math.max(0, py);
 
     player.style.left = px + "px";
     player.style.bottom = py + "px";
 
-    // collision detection
     const pRect = player.getBoundingClientRect();
     const sRect = stairs.getBoundingClientRect();
 
-    if(!(pRect.right < sRect.left || pRect.left > sRect.right || pRect.bottom < sRect.top || pRect.top > sRect.bottom)){
+    if(!(pRect.right < sRect.left ||
+         pRect.left > sRect.right ||
+         pRect.bottom < sRect.top ||
+         pRect.top > sRect.bottom)){
       showDialogueButton();
     } else {
       hideDialogue();
     }
+
   }, 16);
 }
 
-// Handle key input
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// Show dialogue with button
-function showDialogueButton() {
-  // prevent creating multiple buttons
+function showDialogueButton(){
   if(dialogue.firstChild) return;
 
   dialogue.innerHTML = "";
@@ -130,12 +159,11 @@ function showDialogueButton() {
   dialogue.style.display = "block";
 }
 
-function hideDialogue() {
+function hideDialogue(){
   dialogue.innerHTML = "";
   dialogue.style.display = "none";
 }
 
-// Start game once image is ready
 if(player.complete) init();
 else player.onload = init;
 </script>
