@@ -7,7 +7,6 @@
 <style>
 body{
   margin:0;
-  overflow:hidden;
   background:#222;
   font-family:arial;
   height:100vh;
@@ -15,89 +14,82 @@ body{
   user-select:none;
 }
 
-#fade-in{
-  position:fixed;
-  inset:0;
-  background:black;
-  opacity:1;
-  transition:opacity 2s ease;
-  z-index:2000;
-}
-#fade-in.hide{opacity:0;}
-
+/* ---------- LAYOUT ---------- */
 .generator{
   position:absolute;
-  bottom:70px;
+  bottom:80px;
   width:160px;
   height:160px;
+  z-index:10;
 }
 
 .button{
   position:absolute;
-  padding:6px 10px;
+  padding:6px 12px;
   font-size:14px;
   cursor:pointer;
+  z-index:20;
 }
 
-#main-gen{ left:30%; }
+#main-gen{ left:28%; }
 #window-gen{ left:55%; }
 
-#btn-main{ left:30%; bottom:20px; }
-#btn-window{ left:55%; bottom:20px; }
+#btn-main{ left:28%; bottom:30px; }
+#btn-window{ left:55%; bottom:30px; }
 
 .window-img{
   position:absolute;
-  top:50px;
+  top:40px;
   width:120px;
   height:250px;
+  z-index:5;
 }
 
-#window-left{left:50px;}
-#window-center{left:calc(50% - 60px);}
-#window-right{right:50px;}
+#window-left{ left:60px; }
+#window-center{ left:calc(50% - 60px); }
+#window-right{ right:60px; }
 
-#btn-left{ left:50px; top:320px; }
+#btn-left{ left:60px; top:320px; }
 #btn-center{ left:calc(50% - 60px); top:320px; }
-#btn-right{ right:50px; top:320px; }
+#btn-right{ right:60px; top:320px; }
 
 .bar{
   position:absolute;
-  bottom:90px;
+  bottom:140px;
   width:240px;
   height:20px;
   background:#333;
   border:2px solid #888;
 }
+
 .fill{ height:100%; width:0%; }
 
-#main-bar{ left:28%; }
+#main-bar{ left:26%; }
 #main-fill{ background:lime; }
 
 #window-bar{ left:53%; }
 #window-fill{ background:cyan; }
 
-#victory-screen,#death-screen{
+#victory,#death{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.9);
+  background:rgba(0,0,0,.9);
   font-size:48px;
   text-align:center;
   line-height:100vh;
   display:none;
-  z-index:3000;
+  z-index:999;
 }
 </style>
 </head>
 
 <body>
 
-<div id="fade-in"></div>
-
 <img id="main-gen" class="generator" src="generatoroff.gif">
-<button id="btn-main" class="button">HOLD MAIN GEN</button>
+<button id="btn-main" class="button">HOLD MAIN</button>
 
 <img id="window-gen" class="generator" src="generatoroff.gif">
-<button id="btn-window" class="button">HOLD WINDOW GEN</button>
+<button id="btn-window" class="button">HOLD WINDOW</button>
 
 <img id="window-left" class="window-img" src="window.gif">
 <button id="btn-left" class="button">CLOSE</button>
@@ -111,17 +103,19 @@ body{
 <div id="main-bar" class="bar"><div id="main-fill" class="fill"></div></div>
 <div id="window-bar" class="bar"><div id="window-fill" class="fill"></div></div>
 
-<div id="victory-screen">THE BUBBLE IS POPPED</div>
-<div id="death-screen">DEATH</div>
+<div id="victory">THE BUBBLE IS POPPED</div>
+<div id="death">DEATH</div>
 
 <script>
-const fadeIn = document.getElementById("fade-in");
-
-const mainGen = document.getElementById("main-gen");
-const windowGen = document.getElementById("window-gen");
-
-const mainFill = document.getElementById("main-fill");
-const windowFill = document.getElementById("window-fill");
+/* ---------- STATE ---------- */
+let mainPower = 0;
+let windowPower = 0;
+let holdMain = false;
+let holdWindow = false;
+let bubbleActive = false;
+let bubbleIndex = -1;
+let bubbleTimer = null;
+let gameOver = false;
 
 const windows = [
   document.getElementById("window-left"),
@@ -129,107 +123,81 @@ const windows = [
   document.getElementById("window-right")
 ];
 
-const windowButtons = [
-  document.getElementById("btn-left"),
-  document.getElementById("btn-center"),
-  document.getElementById("btn-right")
-];
+const mainFill = document.getElementById("main-fill");
+const windowFill = document.getElementById("window-fill");
+const mainGen = document.getElementById("main-gen");
+const windowGen = document.getElementById("window-gen");
 
-let mainPower = 0;
-let windowPower = 0;
-let holdingMain = false;
-let holdingWindow = false;
+/* ---------- HOLD LOGIC (POINTER EVENTS) ---------- */
+const hold = (btn, start, stop)=>{
+  btn.addEventListener("pointerdown", start);
+  btn.addEventListener("pointerup", stop);
+  btn.addEventListener("pointercancel", stop);
+  btn.addEventListener("pointerleave", stop);
+};
 
-let gameOver = false;
-let bubbleActive = false;
-let bubbleWindow = null;
-let bubbleTimer = null;
+hold(document.getElementById("btn-main"),
+  ()=> holdMain = true,
+  ()=> holdMain = false
+);
 
-/* FADE IN */
-window.addEventListener("load",()=>{
-  requestAnimationFrame(()=>fadeIn.classList.add("hide"));
-});
+hold(document.getElementById("btn-window"),
+  ()=> holdWindow = true,
+  ()=> holdWindow = false
+);
 
-/* HOLD MAIN GEN BUTTON */
-const btnMain = document.getElementById("btn-main");
-btnMain.addEventListener("mousedown", ()=> holdingMain = true);
-btnMain.addEventListener("mouseup",   ()=> holdingMain = false);
-btnMain.addEventListener("mouseleave",()=> holdingMain = false);
-
-/* HOLD WINDOW GEN BUTTON */
-const btnWindow = document.getElementById("btn-window");
-btnWindow.addEventListener("mousedown", ()=> holdingWindow = true);
-btnWindow.addEventListener("mouseup",   ()=> holdingWindow = false);
-btnWindow.addEventListener("mouseleave",()=> holdingWindow = false);
-
-/* WINDOW CLOSE BUTTONS */
-windowButtons.forEach((btn,i)=>{
-  btn.onclick = ()=>{
+/* ---------- WINDOW BUTTONS ---------- */
+["btn-left","btn-center","btn-right"].forEach((id,i)=>{
+  document.getElementById(id).onclick = ()=>{
     if(!bubbleActive) return;
-    if(windows[i] !== bubbleWindow) return;
+    if(i !== bubbleIndex) return;
     if(windowPower < 10) return;
 
     windowPower -= 10;
     windowFill.style.width = windowPower + "%";
-
     windows[i].src = "window.gif";
     clearTimeout(bubbleTimer);
     bubbleActive = false;
-    bubbleWindow = null;
   };
 });
 
-/* SPAWN BUBBLE */
+/* ---------- BUBBLES ---------- */
 function spawnBubble(){
-  if(gameOver || bubbleActive) return;
+  if(bubbleActive || gameOver) return;
 
-  const i = Math.floor(Math.random()*windows.length);
-  bubbleWindow = windows[i];
-  bubbleWindow.src = "windowopen.gif";
+  bubbleIndex = Math.floor(Math.random()*3);
+  windows[bubbleIndex].src = "windowopen.gif";
   bubbleActive = true;
 
   bubbleTimer = setTimeout(()=>{
-    if(bubbleWindow.src.includes("windowopen")){
-      endGame(false);
-    }
-  },1500);
+    document.getElementById("death").style.display="block";
+    gameOver = true;
+  },1400);
 }
 
-/* END GAME */
-function endGame(victory){
-  gameOver = true;
-  document.getElementById(victory ? "victory-screen" : "death-screen").style.display = "block";
-  if(bubbleTimer) clearTimeout(bubbleTimer);
-}
+setInterval(()=>{ if(Math.random()<0.9) spawnBubble(); },2000);
 
-/* MAIN LOOP */
+/* ---------- GAME LOOP ---------- */
 setInterval(()=>{
   if(gameOver) return;
 
-  if(holdingMain && !bubbleActive){
+  if(holdMain && !bubbleActive){
     mainPower = Math.min(100, mainPower + 0.03);
     mainFill.style.width = mainPower + "%";
     mainGen.src = "generatoron.gif";
-    if(mainPower >= 100) endGame(true);
-  } else {
-    mainGen.src = "generatoroff.gif";
-  }
+    if(mainPower >= 100){
+      document.getElementById("victory").style.display="block";
+      gameOver = true;
+    }
+  } else mainGen.src = "generatoroff.gif";
 
-  if(holdingWindow){
-    windowPower = Math.min(100, windowPower + 0.25);
+  if(holdWindow){
+    windowPower = Math.min(100, windowPower + 0.3);
     windowFill.style.width = windowPower + "%";
     windowGen.src = "generatoron.gif";
-  } else {
-    windowGen.src = "generatoroff.gif";
-  }
-},16);
+  } else windowGen.src = "generatoroff.gif";
 
-/* BUBBLE PRESSURE */
-setInterval(()=>{
-  if(Math.random() < 0.9){
-    spawnBubble();
-  }
-},2200);
+},16);
 </script>
 
 </body>
