@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
   <title>I will pop that bubble - lvl 2</title>
+
   <style>
-    /* PAGE STYLES */
     body {
       margin: 0;
       font-family: sans-serif;
       position: relative;
+      background-size: 100%;
+      background-image: url('lvl2doorclose.gif');
     }
-    
-    /* FADE-IN OVERLAY */
+
     #fadeOverlay {
       position: fixed;
       inset: 0;
@@ -18,11 +19,11 @@
       z-index: 9999;
       transition: opacity 1s;
     }
-    </style>
+  </style>
 </head>
-<body style="background-size:100%; background-image:url('lvl2doorclose.gif');">
 
-<!-- FULL SCREEN FADE OVERLAY -->
+<body>
+
 <div id="fadeOverlay"></div>
 
 <h1>I will pop that bubble - lvl 2</h1>
@@ -37,23 +38,35 @@
 </details>
 </h3>
 
-<img id="mybutton" src="Button.gif" onclick="
-  event.stopPropagation();
-  doorOpen = true;
-  document.body.style.backgroundImage = 'url(lvl2dooropen.gif)';
-  this.style.display='none';
-">
-<script>
-let doorOpen = false;/* W key to leave */
-document.addEventListener('keydown', e => {
-  if (doorOpen && (e.key === 'w' || e.key === 'W')) {
-    location.href = 't2a30-Final-Project-3-david.html';});
+<img
+  id="mybutton"
+  src="Button.gif"
+  style="cursor:pointer;"
+  onclick="
+    event.stopPropagation();
+    doorOpen = true;
+    document.body.style.backgroundImage = 'url(lvl2dooropen.gif)';
+    this.style.display = 'none';
+  "
+>
 
-/* FADE-IN THE PAGE */
+<script>
+let doorOpen = false;
+
+document.addEventListener('keydown', function (e) {
+  if (doorOpen && (e.key === 'w' || e.key === 'W')) {
+    location.href = 't2a30-Final-Project-3-david.html';
+  }
+});
+
 const overlay = document.getElementById('fadeOverlay');
-window.addEventListener('load', () => {
-  overlay.style.opacity = 0;          // start fade
-  setTimeout(() => overlay.remove(), 1000); // remove overlay after fade
-});</script>
+window.addEventListener('load', function () {
+  overlay.style.opacity = 0;
+  setTimeout(function () {
+    overlay.remove();
+  }, 1000);
+});
+</script>
 
 </body>
+</html>
