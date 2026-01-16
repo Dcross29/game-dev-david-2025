@@ -91,9 +91,32 @@ body{
   display:none;
   z-index:999;
 }
+
+#ai-picker{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  color:white;
+  text-align:center;
+  line-height:1.6;
+  font-size:22px;
+  z-index:9999;
+}
+#ai-picker button{
+  font-size:18px;
+  padding:10px 20px;
+  margin:10px;
+  cursor:pointer;
+}
 </style>
 </head>
 <body>
+
+<!-- AI Level Picker -->
+<div id="ai-picker">
+  <div>Choose Bubble AI Level (1-20)</div>
+  <div id="ai-buttons"></div>
+</div>
 
 <img id="main-gen" class="generator" src="generatoroff.gif">
 <button id="btn-main" class="button">HOLD MAIN</button>
@@ -132,7 +155,7 @@ let bubbleActive = false;
 let bubbleIndex = -1;
 let bubbleTimer = null;
 let gameOver = false;
-let difficulty = 1; // difficulty ramp
+let bubbleAILevel = 10; // default until player picks
 
 const windows = [
   document.getElementById("window-left"),
@@ -147,6 +170,19 @@ const windowGen = document.getElementById("window-gen");
 
 let mainOn = false;
 let windowOn = false;
+
+/* AI PICKER */
+const aiPicker = document.getElementById("ai-picker");
+const aiButtonsContainer = document.getElementById("ai-buttons");
+for(let i=1;i<=20;i++){
+  const btn = document.createElement("button");
+  btn.textContent = i;
+  btn.onclick = ()=>{
+    bubbleAILevel = i;
+    aiPicker.style.display = "none"; // hide picker, start game
+  };
+  aiButtonsContainer.appendChild(btn);
+}
 
 /* HOLD LOGIC */
 const hold = (btn, start, stop)=>{
@@ -189,30 +225,38 @@ function spawnBubble(){
   windows[bubbleIndex].src = "windowopen.gif";
   bubbleActive = true;
 
-  // bubble kill timer decreases with difficulty
-  let killTime = Math.max(800, 2000 - difficulty*150); 
+  // bubble kill timer
+  let killTime = 2000; // 2 seconds to react
   bubbleTimer = setTimeout(()=>{
     document.getElementById("death").style.display="block";
     gameOver = true;
   }, killTime);
 }
 
-/* DIFFICULTY RAMP */
-setInterval(()=>{
+/* BUBBLE AI LOOP */
+function bubbleAILoop(){
   if(gameOver) return;
-  difficulty += 0.01; // slowly increases over time
-},1000);
+  const roll = Math.floor(Math.random()*20)+1; // 1-20
+  if(roll <= bubbleAILevel){
+    spawnBubble();
+  }
+  const nextInterval = 3000 + Math.random()*2000; // 3-5 seconds
+  setTimeout(bubbleAILoop, nextInterval);
+}
+// start AI loop after picker hidden
+aiPicker.addEventListener("transitionend", ()=>{
+  bubbleAILoop();
+});
 
-/* BUBBLE SPAWN LOOP */
-setInterval(()=>{
-  if(gameOver) return;
-  let chance = 0.3 + Math.min(0.6,difficulty*0.02);
-  if(Math.random() < chance) spawnBubble();
-},3500);
+// start AI loop immediately if picker not used (failsafe)
+setTimeout(()=>{
+  if(aiPicker.style.display === "none") bubbleAILoop();
+},100);
 
 /* GAME LOOP */
 const fps = 60;
 const windowDrainPerFrame = 2 / fps; // 2% per second
+
 setInterval(()=>{
   if(gameOver) return;
 
@@ -229,7 +273,7 @@ setInterval(()=>{
 
   // WINDOW GENERATOR
   if(holdWindow){
-    let windowRate = 0.3 + difficulty*0.002; // gradually faster
+    let windowRate = 0.3; // static, AI difficulty handled separately
     windowPower = Math.min(100, windowPower + windowRate);
     windowFill.style.width = windowPower + "%";
     if(!windowOn){ windowGen.src="generatoron.gif"; windowOn=true; }
