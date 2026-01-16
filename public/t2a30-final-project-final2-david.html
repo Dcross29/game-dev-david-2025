@@ -12,6 +12,7 @@ body{
   font-family:arial;
   height:100vh;
   color:white;
+  user-select:none;
 }
 
 #fade-in{
@@ -38,9 +39,10 @@ body{
 .label{
   position:absolute;
   bottom:240px;
-  font-weight:bold;
   font-size:18px;
+  font-weight:bold;
 }
+
 #label-main{ left:35%; }
 #label-window{ left:55%; }
 
@@ -59,7 +61,7 @@ body{
 .bar{
   position:absolute;
   bottom:10px;
-  width:280px;
+  width:260px;
   height:22px;
   background:#333;
   border:2px solid #888;
@@ -125,6 +127,9 @@ const windows = [
 
 let mainPower = 0;
 let windowPower = 0;
+let holdingMain = false;
+let holdingWindow = false;
+
 let gameOver = false;
 let bubbleActive = false;
 let bubbleWindow = null;
@@ -135,32 +140,21 @@ window.addEventListener("load",()=>{
   requestAnimationFrame(()=>fadeIn.classList.add("hide"));
 });
 
-/* CLICK TO CHARGE MAIN GEN (SLOW) */
-mainGen.onclick = () => {
-  if(gameOver || bubbleActive) return;
+/* HOLD GENERATORS */
+mainGen.onmousedown = () => holdingMain = true;
+windowGen.onmousedown = () => holdingWindow = true;
 
-  mainPower = Math.min(100, mainPower + 1);
-  mainFill.style.width = mainPower + "%";
-  mainGen.src = "generatoron.gif";
-
-  if(mainPower >= 100){
-    endGame(true);
-  }
+document.onmouseup = () => {
+  holdingMain = false;
+  holdingWindow = false;
+  mainGen.src = "generatoroff.gif";
+  windowGen.src = "generatoroff.gif";
 };
 
-/* CLICK TO CHARGE WINDOW GEN (FAST) */
-windowGen.onclick = () => {
-  if(gameOver) return;
-
-  windowPower = Math.min(100, windowPower + 5);
-  windowFill.style.width = windowPower + "%";
-  windowGen.src = "generatoron.gif";
-};
-
-/* CLOSE WINDOW — COSTS WINDOW POWER */
+/* WINDOW CLICK — ONLY ACTIVE WINDOW */
 windows.forEach(win=>{
   win.onclick = () => {
-    if(!bubbleActive || gameOver) return;
+    if(!bubbleActive || win !== bubbleWindow) return;
     if(windowPower < 10) return;
 
     windowPower -= 10;
@@ -185,7 +179,7 @@ function spawnBubble(){
     if(bubbleWindow.src.includes("windowopen")){
       endGame(false);
     }
-  },1600);
+  },1500);
 }
 
 /* END GAME */
@@ -195,12 +189,33 @@ function endGame(victory){
   if(bubbleTimer) clearTimeout(bubbleTimer);
 }
 
-/* BUBBLE RATE — HIGH PRESSURE */
+/* GAME LOOP */
+setInterval(()=>{
+  if(gameOver) return;
+
+  if(holdingMain && !bubbleActive){
+    mainPower = Math.min(100, mainPower + 0.03);
+    mainFill.style.width = mainPower + "%";
+    mainGen.src = "generatoron.gif";
+
+    if(mainPower >= 100){
+      endGame(true);
+    }
+  }
+
+  if(holdingWindow){
+    windowPower = Math.min(100, windowPower + 0.25);
+    windowFill.style.width = windowPower + "%";
+    windowGen.src = "generatoron.gif";
+  }
+},16);
+
+/* BUBBLE PRESSURE */
 setInterval(()=>{
   if(Math.random() < 0.9){
     spawnBubble();
   }
-},2300);
+},2200);
 </script>
 
 </body>
