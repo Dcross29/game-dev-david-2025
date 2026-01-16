@@ -168,9 +168,10 @@ function spawnBubble(){
   bubbleActive = true;
 
   bubbleTimer = setTimeout(()=>{
+    // ❗ Give more time to react
     document.getElementById("death").style.display="block";
     gameOver = true;
-  },900); // 💀 faster kill timer
+  },2000); // increased from 900 -> 2000ms
 }
 
 /* LOWER SPAWN RATE */
@@ -193,17 +194,13 @@ setInterval(()=>{
       document.getElementById("victory").style.display="block";
       gameOver = true;
     }
-  } else {
-    mainGen.src = "generatoroff.gif";
-  }
+  } else mainGen.src = "generatoroff.gif";
 
   if(holdWindow){
     windowPower = Math.min(100, windowPower + 0.3);
     windowFill.style.width = windowPower + "%";
     windowGen.src = "generatoron.gif";
-  } else {
-    windowGen.src = "generatoroff.gif";
-  }
+  } else windowGen.src = "generatoroff.gif";
 
 },16);
 </script>
