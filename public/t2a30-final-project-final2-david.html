@@ -28,53 +28,52 @@ body{
 .generator{
   position:absolute;
   bottom:50px;
-  width:180px;
-  height:180px;
+  width:160px;
+  height:160px;
+}
+
+.button{
+  position:absolute;
+  padding:6px 10px;
+  font-size:14px;
   cursor:pointer;
 }
 
-#main-gen{ left:35%; }
+#main-gen{ left:30%; }
 #window-gen{ left:55%; }
 
-.label{
-  position:absolute;
-  bottom:240px;
-  font-size:18px;
-  font-weight:bold;
-}
-
-#label-main{ left:35%; }
-#label-window{ left:55%; }
+#btn-main{ left:30%; bottom:20px; }
+#btn-window{ left:55%; bottom:20px; }
 
 .window-img{
   position:absolute;
   top:50px;
   width:120px;
   height:250px;
-  cursor:pointer;
 }
 
 #window-left{left:50px;}
 #window-center{left:calc(50% - 60px);}
 #window-right{right:50px;}
 
+#btn-left{ left:50px; top:320px; }
+#btn-center{ left:calc(50% - 60px); top:320px; }
+#btn-right{ right:50px; top:320px; }
+
 .bar{
   position:absolute;
-  bottom:10px;
-  width:260px;
-  height:22px;
+  bottom:90px;
+  width:240px;
+  height:20px;
   background:#333;
   border:2px solid #888;
 }
-.fill{
-  height:100%;
-  width:0%;
-}
+.fill{ height:100%; width:0%; }
 
-#main-bar{ left:30%; }
+#main-bar{ left:28%; }
 #main-fill{ background:lime; }
 
-#window-bar{ left:55%; }
+#window-bar{ left:53%; }
 #window-fill{ background:cyan; }
 
 #victory-screen,#death-screen{
@@ -95,14 +94,19 @@ body{
 <div id="fade-in"></div>
 
 <img id="main-gen" class="generator" src="generatoroff.gif">
-<div id="label-main" class="label">MAIN GENERATOR</div>
+<button id="btn-main" class="button">HOLD MAIN GEN</button>
 
 <img id="window-gen" class="generator" src="generatoroff.gif">
-<div id="label-window" class="label">WINDOW POWER</div>
+<button id="btn-window" class="button">HOLD WINDOW GEN</button>
 
 <img id="window-left" class="window-img" src="window.gif">
+<button id="btn-left" class="button">CLOSE</button>
+
 <img id="window-center" class="window-img" src="window.gif">
+<button id="btn-center" class="button">CLOSE</button>
+
 <img id="window-right" class="window-img" src="window.gif">
+<button id="btn-right" class="button">CLOSE</button>
 
 <div id="main-bar" class="bar"><div id="main-fill" class="fill"></div></div>
 <div id="window-bar" class="bar"><div id="window-fill" class="fill"></div></div>
@@ -125,6 +129,12 @@ const windows = [
   document.getElementById("window-right")
 ];
 
+const windowButtons = [
+  document.getElementById("btn-left"),
+  document.getElementById("btn-center"),
+  document.getElementById("btn-right")
+];
+
 let mainPower = 0;
 let windowPower = 0;
 let holdingMain = false;
@@ -140,27 +150,27 @@ window.addEventListener("load",()=>{
   requestAnimationFrame(()=>fadeIn.classList.add("hide"));
 });
 
-/* HOLD GENERATORS */
-mainGen.onmousedown = () => holdingMain = true;
-windowGen.onmousedown = () => holdingWindow = true;
+/* HOLD BUTTONS */
+document.getElementById("btn-main").onmousedown = ()=> holdingMain = true;
+document.getElementById("btn-window").onmousedown = ()=> holdingWindow = true;
 
-document.onmouseup = () => {
+document.onmouseup = ()=>{
   holdingMain = false;
   holdingWindow = false;
   mainGen.src = "generatoroff.gif";
   windowGen.src = "generatoroff.gif";
 };
 
-/* WINDOW CLICK — ONLY ACTIVE WINDOW */
-windows.forEach(win=>{
-  win.onclick = () => {
-    if(!bubbleActive || win !== bubbleWindow) return;
+/* WINDOW CLOSE BUTTONS */
+windowButtons.forEach((btn,i)=>{
+  btn.onclick = ()=>{
+    if(!bubbleActive || windows[i] !== bubbleWindow) return;
     if(windowPower < 10) return;
 
     windowPower -= 10;
     windowFill.style.width = windowPower + "%";
 
-    win.src = "window.gif";
+    windows[i].src = "window.gif";
     clearTimeout(bubbleTimer);
     bubbleActive = false;
     bubbleWindow = null;
@@ -171,7 +181,8 @@ windows.forEach(win=>{
 function spawnBubble(){
   if(gameOver || bubbleActive) return;
 
-  bubbleWindow = windows[Math.floor(Math.random()*windows.length)];
+  const i = Math.floor(Math.random()*windows.length);
+  bubbleWindow = windows[i];
   bubbleWindow.src = "windowopen.gif";
   bubbleActive = true;
 
@@ -197,10 +208,7 @@ setInterval(()=>{
     mainPower = Math.min(100, mainPower + 0.03);
     mainFill.style.width = mainPower + "%";
     mainGen.src = "generatoron.gif";
-
-    if(mainPower >= 100){
-      endGame(true);
-    }
+    if(mainPower >= 100) endGame(true);
   }
 
   if(holdingWindow){
