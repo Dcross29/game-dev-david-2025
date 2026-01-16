@@ -14,7 +14,6 @@ body{
   user-select:none;
 }
 
-/* ---------- LAYOUT ---------- */
 .generator{
   position:absolute;
   bottom:80px;
@@ -107,7 +106,6 @@ body{
 <div id="death">DEATH</div>
 
 <script>
-/* ---------- STATE ---------- */
 let mainPower = 0;
 let windowPower = 0;
 let holdMain = false;
@@ -128,12 +126,12 @@ const windowFill = document.getElementById("window-fill");
 const mainGen = document.getElementById("main-gen");
 const windowGen = document.getElementById("window-gen");
 
-/* ---------- HOLD LOGIC (POINTER EVENTS) ---------- */
+/* HOLD LOGIC */
 const hold = (btn, start, stop)=>{
   btn.addEventListener("pointerdown", start);
   btn.addEventListener("pointerup", stop);
-  btn.addEventListener("pointercancel", stop);
   btn.addEventListener("pointerleave", stop);
+  btn.addEventListener("pointercancel", stop);
 };
 
 hold(document.getElementById("btn-main"),
@@ -146,7 +144,7 @@ hold(document.getElementById("btn-window"),
   ()=> holdWindow = false
 );
 
-/* ---------- WINDOW BUTTONS ---------- */
+/* WINDOW BUTTONS */
 ["btn-left","btn-center","btn-right"].forEach((id,i)=>{
   document.getElementById(id).onclick = ()=>{
     if(!bubbleActive) return;
@@ -161,7 +159,7 @@ hold(document.getElementById("btn-window"),
   };
 });
 
-/* ---------- BUBBLES ---------- */
+/* SPAWN BUBBLE — LESS OFTEN */
 function spawnBubble(){
   if(bubbleActive || gameOver) return;
 
@@ -172,12 +170,17 @@ function spawnBubble(){
   bubbleTimer = setTimeout(()=>{
     document.getElementById("death").style.display="block";
     gameOver = true;
-  },1400);
+  },900); // 💀 faster kill timer
 }
 
-setInterval(()=>{ if(Math.random()<0.9) spawnBubble(); },2000);
+/* LOWER SPAWN RATE */
+setInterval(()=>{
+  if(Math.random() < 0.5){
+    spawnBubble();
+  }
+},3500);
 
-/* ---------- GAME LOOP ---------- */
+/* GAME LOOP */
 setInterval(()=>{
   if(gameOver) return;
 
@@ -185,17 +188,22 @@ setInterval(()=>{
     mainPower = Math.min(100, mainPower + 0.03);
     mainFill.style.width = mainPower + "%";
     mainGen.src = "generatoron.gif";
+
     if(mainPower >= 100){
       document.getElementById("victory").style.display="block";
       gameOver = true;
     }
-  } else mainGen.src = "generatoroff.gif";
+  } else {
+    mainGen.src = "generatoroff.gif";
+  }
 
   if(holdWindow){
     windowPower = Math.min(100, windowPower + 0.3);
     windowFill.style.width = windowPower + "%";
     windowGen.src = "generatoron.gif";
-  } else windowGen.src = "generatoroff.gif";
+  } else {
+    windowGen.src = "generatoroff.gif";
+  }
 
 },16);
 </script>
