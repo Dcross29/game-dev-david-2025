@@ -54,19 +54,19 @@ body{
 
 .bar{
   position:absolute;
-  bottom:140px;
   width:240px;
   height:20px;
   background:#333;
   border:2px solid #888;
+  z-index:15; /* above generators */
 }
 
 .fill{ height:100%; width:0%; }
 
-#main-bar{ left:26%; }
+#main-bar{ left:26%; bottom:250px; }
 #main-fill{ background:lime; }
 
-#window-bar{ left:53%; }
+#window-bar{ left:53%; bottom:250px; }
 #window-fill{ background:cyan; }
 
 #victory,#death{
@@ -126,6 +126,9 @@ const windowFill = document.getElementById("window-fill");
 const mainGen = document.getElementById("main-gen");
 const windowGen = document.getElementById("window-gen");
 
+let mainOn = false;
+let windowOn = false;
+
 /* HOLD LOGIC */
 const hold = (btn, start, stop)=>{
   btn.addEventListener("pointerdown", start);
@@ -159,7 +162,7 @@ hold(document.getElementById("btn-window"),
   };
 });
 
-/* SPAWN BUBBLE — LESS OFTEN */
+/* SPAWN BUBBLE */
 function spawnBubble(){
   if(bubbleActive || gameOver) return;
 
@@ -168,10 +171,9 @@ function spawnBubble(){
   bubbleActive = true;
 
   bubbleTimer = setTimeout(()=>{
-    // ❗ Give more time to react
     document.getElementById("death").style.display="block";
     gameOver = true;
-  },2000); // increased from 900 -> 2000ms
+  },2000); // player has more time to react
 }
 
 /* LOWER SPAWN RATE */
@@ -185,22 +187,23 @@ setInterval(()=>{
 setInterval(()=>{
   if(gameOver) return;
 
+  // MAIN GENERATOR
   if(holdMain && !bubbleActive){
     mainPower = Math.min(100, mainPower + 0.03);
     mainFill.style.width = mainPower + "%";
-    mainGen.src = "generatoron.gif";
-
+    if(!mainOn){ mainGen.src="generatoron.gif"; mainOn=true; }
     if(mainPower >= 100){
       document.getElementById("victory").style.display="block";
       gameOver = true;
     }
-  } else mainGen.src = "generatoroff.gif";
+  } else if(mainOn){ mainGen.src="generatoroff.gif"; mainOn=false; }
 
+  // WINDOW GENERATOR
   if(holdWindow){
     windowPower = Math.min(100, windowPower + 0.3);
     windowFill.style.width = windowPower + "%";
-    windowGen.src = "generatoron.gif";
-  } else windowGen.src = "generatoroff.gif";
+    if(!windowOn){ windowGen.src="generatoron.gif"; windowOn=true; }
+  } else if(windowOn){ windowGen.src="generatoroff.gif"; windowOn=false; }
 
 },16);
 </script>
