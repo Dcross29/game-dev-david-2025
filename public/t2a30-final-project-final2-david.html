@@ -27,7 +27,7 @@ body{
 
 .generator{
   position:absolute;
-  bottom:50px;
+  bottom:70px;
   width:160px;
   height:160px;
 }
@@ -150,21 +150,23 @@ window.addEventListener("load",()=>{
   requestAnimationFrame(()=>fadeIn.classList.add("hide"));
 });
 
-/* HOLD BUTTONS */
-document.getElementById("btn-main").onmousedown = ()=> holdingMain = true;
-document.getElementById("btn-window").onmousedown = ()=> holdingWindow = true;
+/* HOLD MAIN GEN BUTTON */
+const btnMain = document.getElementById("btn-main");
+btnMain.addEventListener("mousedown", ()=> holdingMain = true);
+btnMain.addEventListener("mouseup",   ()=> holdingMain = false);
+btnMain.addEventListener("mouseleave",()=> holdingMain = false);
 
-document.onmouseup = ()=>{
-  holdingMain = false;
-  holdingWindow = false;
-  mainGen.src = "generatoroff.gif";
-  windowGen.src = "generatoroff.gif";
-};
+/* HOLD WINDOW GEN BUTTON */
+const btnWindow = document.getElementById("btn-window");
+btnWindow.addEventListener("mousedown", ()=> holdingWindow = true);
+btnWindow.addEventListener("mouseup",   ()=> holdingWindow = false);
+btnWindow.addEventListener("mouseleave",()=> holdingWindow = false);
 
 /* WINDOW CLOSE BUTTONS */
 windowButtons.forEach((btn,i)=>{
   btn.onclick = ()=>{
-    if(!bubbleActive || windows[i] !== bubbleWindow) return;
+    if(!bubbleActive) return;
+    if(windows[i] !== bubbleWindow) return;
     if(windowPower < 10) return;
 
     windowPower -= 10;
@@ -200,7 +202,7 @@ function endGame(victory){
   if(bubbleTimer) clearTimeout(bubbleTimer);
 }
 
-/* GAME LOOP */
+/* MAIN LOOP */
 setInterval(()=>{
   if(gameOver) return;
 
@@ -209,12 +211,16 @@ setInterval(()=>{
     mainFill.style.width = mainPower + "%";
     mainGen.src = "generatoron.gif";
     if(mainPower >= 100) endGame(true);
+  } else {
+    mainGen.src = "generatoroff.gif";
   }
 
   if(holdingWindow){
     windowPower = Math.min(100, windowPower + 0.25);
     windowFill.style.width = windowPower + "%";
     windowGen.src = "generatoron.gif";
+  } else {
+    windowGen.src = "generatoroff.gif";
   }
 },16);
 
