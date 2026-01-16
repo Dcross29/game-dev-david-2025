@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Floor 2 - Generator</title>
-
 <style>
 body{
   margin:0;
@@ -69,6 +68,19 @@ body{
 #window-bar{ left:53%; bottom:250px; }
 #window-fill{ background:cyan; }
 
+#guide{
+  position:fixed;
+  bottom:15px;
+  right:15px;
+  background:rgba(0,0,0,0.7);
+  padding:12px;
+  font-size:14px;
+  line-height:1.4;
+  border:1px solid #666;
+  z-index:30;
+  width:220px;
+}
+
 #victory,#death{
   position:fixed;
   inset:0;
@@ -81,7 +93,6 @@ body{
 }
 </style>
 </head>
-
 <body>
 
 <img id="main-gen" class="generator" src="generatoroff.gif">
@@ -102,6 +113,13 @@ body{
 <div id="main-bar" class="bar"><div id="main-fill" class="fill"></div></div>
 <div id="window-bar" class="bar"><div id="window-fill" class="fill"></div></div>
 
+<div id="guide">
+<b>GUIDE:</b><br>
+Hold <b>MAIN</b> generator to pop the bubble.<br>
+Hold <b>WINDOW</b> generator to help close bubble windows.<br>
+Click the open bubble window to close it before it kills you.
+</div>
+
 <div id="victory">THE BUBBLE IS POPPED</div>
 <div id="death">DEATH</div>
 
@@ -114,6 +132,7 @@ let bubbleActive = false;
 let bubbleIndex = -1;
 let bubbleTimer = null;
 let gameOver = false;
+let difficulty = 1; // starts easy
 
 const windows = [
   document.getElementById("window-left"),
@@ -170,17 +189,25 @@ function spawnBubble(){
   windows[bubbleIndex].src = "windowopen.gif";
   bubbleActive = true;
 
+  // bubble kill timer decreases with difficulty
+  let killTime = Math.max(800, 2000 - difficulty*150); 
   bubbleTimer = setTimeout(()=>{
     document.getElementById("death").style.display="block";
     gameOver = true;
-  },2000); // player has more time to react
+  }, killTime);
 }
 
-/* LOWER SPAWN RATE */
+/* DIFFICULTY RAMP */
 setInterval(()=>{
-  if(Math.random() < 0.5){
-    spawnBubble();
-  }
+  if(gameOver) return;
+  difficulty += 0.01; // slowly increases over time
+},1000);
+
+/* BUBBLE SPAWN LOOP — spawn chance increases with difficulty */
+setInterval(()=>{
+  if(gameOver) return;
+  let chance = 0.3 + Math.min(0.6,difficulty*0.02); // from 0.3 → 0.5~0.6
+  if(Math.random() < chance) spawnBubble();
 },3500);
 
 /* GAME LOOP */
@@ -200,7 +227,8 @@ setInterval(()=>{
 
   // WINDOW GENERATOR
   if(holdWindow){
-    windowPower = Math.min(100, windowPower + 0.3);
+    let windowRate = 0.3 + difficulty*0.002; // gradually faster
+    windowPower = Math.min(100, windowPower + windowRate);
     windowFill.style.width = windowPower + "%";
     if(!windowOn){ windowGen.src="generatoron.gif"; windowOn=true; }
   } else if(windowOn){ windowGen.src="generatoroff.gif"; windowOn=false; }
