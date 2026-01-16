@@ -211,6 +211,8 @@ setInterval(()=>{
 },3500);
 
 /* GAME LOOP */
+const fps = 60;
+const windowDrainPerFrame = 2 / fps; // 2% per second
 setInterval(()=>{
   if(gameOver) return;
 
@@ -232,8 +234,8 @@ setInterval(()=>{
     windowFill.style.width = windowPower + "%";
     if(!windowOn){ windowGen.src="generatoron.gif"; windowOn=true; }
   } else {
-    // gradually drain 2% per second => 0.02 per 16ms tick ~0.000333
-    windowPower = Math.max(0, windowPower - 0.02/60);
+    // gradual drain
+    windowPower = Math.max(0, windowPower - windowDrainPerFrame);
     windowFill.style.width = windowPower + "%";
     if(windowOn){ windowGen.src="generatoroff.gif"; windowOn=false; }
   }
