@@ -128,8 +128,6 @@ h1 { text-align: center; color: red; }
 <script>
 /* ===== CONSTANTS ===== */
 const TYPE_SPEED = 50;
-const SUCCESS_DELAY = 3000; // 3 seconds
-const DEATH_DELAY = 3000; // 3 seconds
 
 /* ===== FADE ===== */
 window.onload = () => {
@@ -150,10 +148,7 @@ const dialogueTree = {
         choices: [
           {
             label: "*say nothing*",
-            next: {
-              npcText: "Alright. I'm done waiting.",
-              death: true
-            }
+            next: { npcText: "Alright. I'm done waiting.", death: true }
           },
           {
             label: "let me in",
@@ -244,9 +239,7 @@ function type(text){
   return new Promise((resolve) => {
     textEl.textContent = "";
     let i = 0;
-
-    const audio = playVoiceAudio(text);
-
+    playVoiceAudio(text);
     const t = setInterval(()=>{
       textEl.textContent += text[i++];
       if(i >= text.length){
@@ -278,92 +271,66 @@ async function resolve(n){
 
   if(n.playerText){
     await type(n.playerText);
-    if(n.npcText){
-      await type(n.npcText);
-    }
+    if(n.npcText){ await type(n.npcText); }
 
-    // 3-second delay after option selection
-    if(n.success){
-      setTimeout(() => {
-        document.getElementById("successScreen").style.display="block";
-        document.getElementById("audioSuccess").play();
-        setTimeout(()=>document.getElementById("proceedBtn").style.display="block", 1000);
-        box.style.display="none";
-      }, 3000);
-      return;
-    }
-
-    if(n.death){
-      setTimeout(() => {
-        document.getElementById("deathScreen").style.display="block";
-        document.getElementById("audioDeath").play();
-        box.style.display="none";
-        setTimeout(()=>{
-          document.getElementById("deathScreen").style.display="none";
-          document.getElementById("gameOver").style.display="flex";
-        }, 1000);
-      }, 3000);
-      return;
-    }
-
-    return;
+    if(n.success){ success(); return; }
+    if(n.death){ death(); return; }
+    if(n.choices){ show(n); return; }
   }
 
   if(n.npcText){
     await type(n.npcText);
-    if(n.success){
-      setTimeout(() => {
-        document.getElementById("successScreen").style.display="block";
-        document.getElementById("audioSuccess").play();
-        setTimeout(()=>document.getElementById("proceedBtn").style.display="block", 1000);
-        box.style.display="none";
-      }, 3000);
-      return;
-    }
-
-    if(n.death){
-      setTimeout(() => {
-        document.getElementById("deathScreen").style.display="block";
-        document.getElementById("audioDeath").play();
-        box.style.display="none";
-        setTimeout(()=>{
-          document.getElementById("deathScreen").style.display="none";
-          document.getElementById("gameOver").style.display="flex";
-        }, 1000);
-      }, 3000);
-      return;
-    }
-
-    return;
+    if(n.success){ success(); return; }
+    if(n.death){ death(); return; }
+    if(n.choices){ show(n); return; }
   }
 
-  show(n);
+  if(n.text){ show(n); }
 }
 
 /* ===== RPS ===== */
 function startRPS(){
-  type("Rock. Paper. Scissors.").then(()=>{
-    ["Rock","Paper","Scissors"].forEach(p=>{
+  type("Rock. Paper. Scissors.").then(() => {
+    choicesEl.innerHTML = "";
+    ["Rock","Paper","Scissors"].forEach(p => {
       const b = document.createElement("button");
       b.textContent = p;
-      b.onclick = ()=>playRPS(p);
+      b.onclick = () => playRPS(p);
       choicesEl.appendChild(b);
     });
   });
 }
 
 function playRPS(player){
-  const npc=["Rock","Paper","Scissors"][Math.floor(Math.random()*3)];
+  const npc = ["Rock","Paper","Scissors"][Math.floor(Math.random()*3)];
   const win =
     (player==="Rock"&&npc==="Scissors")||
     (player==="Paper"&&npc==="Rock")||
     (player==="Scissors"&&npc==="Paper");
 
-  type(`You chose ${player}. He chose ${npc}.`).then(()=>{
-    type(win?"Hmph. You win.":"Nope. I win.").then(()=>{
+  type(`You chose ${player}. He chose ${npc}.`).then(() => {
+    type(win ? "Hmph. You win." : "Nope. I win.").then(() => {
       setTimeout(()=>win?success():death(), 700);
     });
   });
+}
+
+/* ===== SUCCESS & DEATH HELPERS ===== */
+function success(){
+  document.getElementById("successScreen").style.display="block";
+  document.getElementById("audioSuccess").play();
+  box.style.display="none";
+  setTimeout(()=>document.getElementById("proceedBtn").style.display="block", 1000);
+}
+
+function death(){
+  document.getElementById("deathScreen").style.display="block";
+  document.getElementById("audioDeath").play();
+  box.style.display="none";
+  setTimeout(()=>{
+    document.getElementById("deathScreen").style.display="none";
+    document.getElementById("gameOver").style.display="flex";
+  }, 1000);
 }
 
 /* ===== AUDIO MAP ===== */
